@@ -31,14 +31,6 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>ReCiter-PubMed-Model</groupId>
-			<artifactId>ReCiter-PubMed-Model</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/lib/ReCiter-PubMed-Model-0.0.1-SNAPSHOT.jar</systemPath>
-		</dependency>
 	</dependencies>
 
 	<build>
