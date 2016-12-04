@@ -1,43 +1,56 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>ReCiter-PubMed-Retrieval-Tool</groupId>
-  <artifactId>ReCiter-PubMed-Retrieval-Tool</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>ReCiter-PubMed-Retrieval-Tool</name>
-  <description>A tool to retrieve PubMed articles.</description>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>ReCiter-PubMed-Retrieval-Tool</groupId>
+	<artifactId>ReCiter-PubMed-Retrieval-Tool</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>ReCiter-PubMed-Retrieval-Tool</name>
+	<description>A tool to retrieve PubMed articles.</description>
 
-  <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.4.2.RELEASE</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.4.2.RELEASE</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
-    </properties>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+	</properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
+		<dependency>
+			<groupId>ReCiter-PubMed-Model</groupId>
+			<artifactId>ReCiter-PubMed-Model</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/lib/ReCiter-PubMed-Model-0.0.1-SNAPSHOT.jar</systemPath>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+	<!-- GitHub maven repo setup (doesn't work at the moment, not sure why). 
+		<repositories> <repository> <id>ReCiter-PubMed-Model-mvn-repo</id> <url>https://raw.github.com/wcmc-its/ReCiter-PubMed-Model/tree/master/target/mvn-repo/ReCiter-PubMed-Model/ReCiter-PubMed-Model/0.0.1-SNAPSHOT/</url> 
+		<snapshots> <enabled>true</enabled> <updatePolicy>always</updatePolicy> </snapshots> 
+		</repository> </repositories> -->
 </project>
