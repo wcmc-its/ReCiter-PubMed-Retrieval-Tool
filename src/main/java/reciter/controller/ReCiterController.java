@@ -21,7 +21,7 @@ public class ReCiterController {
 	@RequestMapping(value = "/reciter/retrieve/pubmed/by/query", method = RequestMethod.GET)
 	@ResponseBody
 	public List<PubMedArticle> retrieve(
-			@RequestParam(value="cwid") String query, 
+			@RequestParam(value="query") String query, 
 			@RequestParam(value="numberOfPubmedArticles") int numberOfPubmedArticles) {
 
 		slf4jLogger.info("calling retrieve with query=[" + query + " numberOfPubmedArticles=[" + numberOfPubmedArticles);
