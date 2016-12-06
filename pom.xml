@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>ReCiter-PubMed-Retrieval-Tool</groupId>
-	<artifactId>ReCiter-PubMed-Retrieval-Tool</artifactId>
+	<groupId>edu.wcmc.reciter</groupId>
+	<artifactId>reciter-pubmed-retrieval-tool</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>ReCiter-PubMed-Retrieval-Tool</name>
 	<description>A tool to retrieve PubMed articles.</description>
@@ -31,6 +31,12 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>edu.wcmc.reciter</groupId>
+			<artifactId>reciter-pubmed-model</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -41,8 +47,15 @@
 			</plugin>
 		</plugins>
 	</build>
-	<!-- GitHub maven repo setup (doesn't work at the moment, not sure why). 
-		<repositories> <repository> <id>ReCiter-PubMed-Model-mvn-repo</id> <url>https://raw.github.com/wcmc-its/ReCiter-PubMed-Model/tree/master/target/mvn-repo/ReCiter-PubMed-Model/ReCiter-PubMed-Model/0.0.1-SNAPSHOT/</url> 
-		<snapshots> <enabled>true</enabled> <updatePolicy>always</updatePolicy> </snapshots> 
-		</repository> </repositories> -->
+	<repositories>
+		<repository>
+			<id>wcmc-its</id>
+			<name>ReCiter-Maven-Repository</name>
+			<url>https://github.com/wcmc-its/ReCiter-Maven-Repository/raw/master/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
 </project>
