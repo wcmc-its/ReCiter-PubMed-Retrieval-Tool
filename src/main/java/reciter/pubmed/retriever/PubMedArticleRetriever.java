@@ -1,13 +1,20 @@
 package reciter.pubmed.retriever;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.callable.PubMedUriParserCallable;
@@ -28,34 +35,26 @@ public class PubMedArticleRetriever {
 	 * @param cwid
 	 * @param count
 	 */
-	public List<PubMedArticle> retrievePubMed(String pubMedQuery, int numberOfPubmedArticles)  {
+	public List<PubMedArticle> retrievePubMed(String pubMedQuery) throws IOException {
 
-		int numAvailableProcessors = Runtime.getRuntime().availableProcessors();
-		ExecutorService executor = Executors.newFixedThreadPool(numAvailableProcessors);
+		int numberOfPubmedArticles = getNumberOfPubMedArticles(pubMedQuery);
+		
+		ExecutorService executor = Executors.newWorkStealingPool();
 
 		// Get the count (number of publications for this query).
 		PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery();
 		pubmedXmlQuery.setTerm(pubMedQuery);
 
-		// The number of articles will be less than 10,000. Set retMax equal to minimum of number of articles needed to be
-		// retrieved divided by the number of available processors and 10,000.
-		// If number of articles is less than 4, use number of articles as retmax.
-		pubmedXmlQuery.setRetMax(Math.min(Math.max(numberOfPubmedArticles / Math.max(numAvailableProcessors, 1), numberOfPubmedArticles)
-				, PubmedXmlQuery.DEFAULT_RETMAX));
-		slf4jLogger.info("numAvailableProcessors=[" + numAvailableProcessors + "] retMax=[" 
-				+ pubmedXmlQuery.getRetMax() + "], pubMedQuery=[" + pubMedQuery + "], "
+		slf4jLogger.info("retMax=[" + pubmedXmlQuery.getRetMax() + "], pubMedQuery=[" + pubMedQuery + "], "
 				+ "numberOfPubmedArticles=[" + numberOfPubmedArticles + "].");
 
 		// Retrieve the publications retMax records at one time and store to disk.
 		int currentRetStart = 0;
 
-		// Number of partitions that we need to finish retrieving all XML.
-		int numSteps = (int) Math.ceil((double)numberOfPubmedArticles / pubmedXmlQuery.getRetMax()); 
-
 		List<Callable<List<PubMedArticle>>> callables = new ArrayList<Callable<List<PubMedArticle>>>();
 
 		// Use the retstart value to iteratively fetch all XMLs.
-		for (int i = 0; i < numSteps; i++) {
+		while (numberOfPubmedArticles > 0) {
 			// Get webenv value.
 			pubmedXmlQuery.setRetStart(currentRetStart);
 			String eSearchUrl = pubmedXmlQuery.buildESearchQuery();
@@ -65,12 +64,13 @@ public class PubMedArticleRetriever {
 			// Use the webenv value to retrieve xml.
 			String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
 			slf4jLogger.info("eFetchUrl=[" + eFetchUrl + "].");
-			PubMedUriParserCallable pubMedUriParserCallable = new PubMedUriParserCallable(new PubmedEFetchHandler(), eFetchUrl);
-			callables.add(pubMedUriParserCallable);
+
+			callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), eFetchUrl));
 
 			// Update the retstart value.
 			currentRetStart += pubmedXmlQuery.getRetMax();
 			pubmedXmlQuery.setRetStart(currentRetStart);
+			numberOfPubmedArticles -= pubmedXmlQuery.getRetMax();
 		}
 
 		List<List<PubMedArticle>> list = new ArrayList<List<PubMedArticle>>();
@@ -93,5 +93,22 @@ public class PubMedArticleRetriever {
 		List<PubMedArticle> results = new ArrayList<PubMedArticle>();
 		list.forEach(results::addAll);
 		return results;
+	}
+	
+	protected int getNumberOfPubMedArticles(String query) throws IOException {
+		PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(query);
+		pubmedXmlQuery.setRetMax(1);
+		String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
+		slf4jLogger.info("ESearch Query=[" + fullUrl + "]");
+		
+		PubmedESearchHandler pubmedESearchHandler = new PubmedESearchHandler();
+		InputStream esearchStream = new URL(fullUrl).openStream();
+
+		try {
+			SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
+		} catch (SAXException | ParserConfigurationException e) {
+			slf4jLogger.error("Error parsing XML file for query=[" + query + "], full url=[" + fullUrl + "]", e);
+		}
+		return pubmedESearchHandler.getCount();
 	}
 }

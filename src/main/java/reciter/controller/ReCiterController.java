@@ -1,5 +1,6 @@
 package reciter.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -20,14 +21,11 @@ public class ReCiterController {
 
 	@RequestMapping(value = "/reciter/retrieve/pubmed/by/query", method = RequestMethod.GET)
 	@ResponseBody
-	public List<PubMedArticle> retrieve(
-			@RequestParam(value="query") String query, 
-			@RequestParam(value="numberOfPubmedArticles") int numberOfPubmedArticles) {
+	public int retrieve(@RequestParam(value="query") String query) throws IOException {
 
-		slf4jLogger.info("calling retrieve with query=[" + query + " numberOfPubmedArticles=[" + numberOfPubmedArticles);
-		PubMedArticleRetriever pubMedArticleRetriever = new PubMedArticleRetriever();
-		List<PubMedArticle> pubMedArticles = pubMedArticleRetriever.retrievePubMed(query, numberOfPubmedArticles);
+		slf4jLogger.info("calling retrieve with query=[" + query + "]");
+		List<PubMedArticle> pubMedArticles = new PubMedArticleRetriever().retrievePubMed(query);
 		slf4jLogger.info("retrieved " + pubMedArticles.size() + " PubMed articles using query=[" + query + "]");
-		return pubMedArticles;
+		return pubMedArticles.size();
 	}
 }
