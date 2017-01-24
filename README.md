@@ -6,7 +6,11 @@ ReCiter PubMed Retrieval Tool is a REST API for retrieving PubMed articles from 
 
 Instructions for getting started are in the simple.
 
-Just open your browser and https://reciter-pubmed-retrieval-1.herokuapp.com/reciter/retrieve/pubmed/by/query?query=kukafka[au] where `kukafka[au]` is a sample PubMed query.
+Just open your browser and hit:
+
+https://reciter-pubmed-retrieval-1.herokuapp.com/reciter/retrieve/pubmed/by/query?query=kukafka[au] 
+
+where `kukafka[au]` is a sample PubMed query.
 
 <!--1. Install [jdk 8](http://www.oracle.com/technetwork/java/javase/downloads/index-jsp-138363.html) or higher.
 2. Import project into Eclipse, Intellij or your favorite IDE.
