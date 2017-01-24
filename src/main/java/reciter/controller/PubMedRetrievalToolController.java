@@ -15,17 +15,17 @@ import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.retriever.PubMedArticleRetriever;
 
 @Controller
-public class ReCiterController {
+public class PubMedRetrievalToolController {
 
-	private static final Logger slf4jLogger = LoggerFactory.getLogger(ReCiterController.class);
+	private static final Logger slf4jLogger = LoggerFactory.getLogger(PubMedRetrievalToolController.class);
 
 	@RequestMapping(value = "/reciter/retrieve/pubmed/by/query", method = RequestMethod.GET)
 	@ResponseBody
-	public int retrieve(@RequestParam(value="query") String query) throws IOException {
+	public List<PubMedArticle> retrieve(@RequestParam(value="query") String query) throws IOException {
 
 		slf4jLogger.info("calling retrieve with query=[" + query + "]");
 		List<PubMedArticle> pubMedArticles = new PubMedArticleRetriever().retrievePubMed(query);
 		slf4jLogger.info("retrieved " + pubMedArticles.size() + " PubMed articles using query=[" + query + "]");
-		return pubMedArticles.size();
+		return pubMedArticles;
 	}
 }
