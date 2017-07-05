@@ -14,6 +14,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 
 import reciter.model.pubmed.PubMedArticle;
@@ -22,20 +23,16 @@ import reciter.pubmed.querybuilder.PubmedXmlQuery;
 import reciter.pubmed.xmlparser.PubmedEFetchHandler;
 import reciter.pubmed.xmlparser.PubmedESearchHandler;
 
-public class PubMedArticleRetriever {
+@Service
+public class PubMedArticleRetrievalService {
 
-	private final static Logger slf4jLogger = LoggerFactory.getLogger(PubMedArticleRetriever.class);
+	private final static Logger slf4jLogger = LoggerFactory.getLogger(PubMedArticleRetrievalService.class);
 
 	/**
 	 * Initializes and starts threads that handles the retrieval process. Partition the number of articles
 	 * into manageable pieces and ask each thread to handle one partition.
-	 * 
-	 * @param query
-	 * @param commonLocation
-	 * @param cwid
-	 * @param count
 	 */
-	public List<PubMedArticle> retrievePubMed(String pubMedQuery) throws IOException {
+	public List<PubMedArticle> retrieve(String pubMedQuery) throws IOException {
 
 		int numberOfPubmedArticles = getNumberOfPubMedArticles(pubMedQuery);
 		
