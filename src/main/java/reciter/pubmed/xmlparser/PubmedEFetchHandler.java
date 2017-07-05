@@ -1,3 +1,21 @@
+/*******************************************************************************
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *******************************************************************************/
 package reciter.pubmed.xmlparser;
 
 import org.xml.sax.Attributes;
@@ -118,13 +136,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
         chars.setLength(0);
 
         if (qName.equalsIgnoreCase("PubmedArticleSet")) {
-            pubmedArticles = new ArrayList<PubMedArticle>(); // create a new list of PubmedArticle.
+            pubmedArticles = new ArrayList<>(); // create a new list of PubmedArticle.
         }
         if (qName.equalsIgnoreCase("PubmedArticle")) {
-            pubmedArticle = new PubMedArticle(); // create a new PubmedArticle.
+            pubmedArticle = PubMedArticle.builder().build(); // create a new PubmedArticle.
         }
         if (qName.equalsIgnoreCase("MedlineCitation")) {
-            pubmedArticle.setMedlineCitation(new MedlineCitation()); // set the PubmedArticle's MedlineCitation.
+            pubmedArticle.setMedlinecitation(MedlineCitation.builder().build()); // set the PubmedArticle's MedlineCitation.
             bMedlineCitation = true;
         }
         if (qName.equalsIgnoreCase("PMID") && !bCommentsCorrectionsList) {
@@ -133,7 +151,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
 
         if (qName.equalsIgnoreCase("Article")) {
-            pubmedArticle.getMedlineCitation().setArticle(new MedlineCitationArticle()); // set the PubmedArticle's MedlineCitation's MedlineCitationArticle.
+            pubmedArticle.getMedlinecitation().setArticle(MedlineCitationArticle.builder().build()); // set the PubmedArticle's MedlineCitation's MedlineCitationArticle.
             bArticle = true;
         }
 
@@ -141,17 +159,22 @@ public class PubmedEFetchHandler extends DefaultHandler {
             bArticleTitle = true;
         }
 
+        if (qName.equalsIgnoreCase("ELocationID")) {
+            pubmedArticle.getMedlinecitation().getArticle().setElocationid(MedlineCitationArticleELocationID.builder().build());
+            bELocationID = true;
+        }
+
         if (qName.equalsIgnoreCase("Journal")) {
-            pubmedArticle.getMedlineCitation().getArticle().setJournal(new MedlineCitationJournal()); // add journal information.
+            pubmedArticle.getMedlinecitation().getArticle().setJournal(MedlineCitationJournal.builder().build()); // add journal information.
         }
 
         if (qName.equalsIgnoreCase("JournalIssue")) {
-            pubmedArticle.getMedlineCitation().getArticle().getJournal().setJournalIssue(new MedlineCitationJournalIssue());
+            pubmedArticle.getMedlinecitation().getArticle().getJournal().setJournalissue(MedlineCitationJournalIssue.builder().build());
         }
 
         // PubMed XML has either <Year>, <Month>, <Day> tags or <MedlineDate> tag.
         if (qName.equalsIgnoreCase("PubDate")) {
-            pubmedArticle.getMedlineCitation().getArticle().getJournal().getJournalIssue().setPubDate(new MedlineCitationDate());
+            pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().setPubdate(MedlineCitationDate.builder().build());
             bPubDate = true;
         }
 
@@ -173,12 +196,12 @@ public class PubmedEFetchHandler extends DefaultHandler {
             bJournalTitle = true;
         }
         if (qName.equalsIgnoreCase("AuthorList")) {
-            pubmedArticle.getMedlineCitation().getArticle().setAuthorList(new ArrayList<MedlineCitationArticleAuthor>()); // set the PubmedArticle's MedlineCitation's MedlineCitationArticle's title.
+            pubmedArticle.getMedlinecitation().getArticle().setAuthorlist(new ArrayList<>()); // set the PubmedArticle's MedlineCitation's MedlineCitationArticle's title.
             bAuthorList = true;
         }
         if (qName.equalsIgnoreCase("Author")) {
-            MedlineCitationArticleAuthor author = new MedlineCitationArticleAuthor();
-            pubmedArticle.getMedlineCitation().getArticle().getAuthorList().add(author); // add author to author list.
+            MedlineCitationArticleAuthor author = MedlineCitationArticleAuthor.builder().build();
+            pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().add(author); // add author to author list.
             bAuthor = true;
         }
         if (qName.equalsIgnoreCase("LastName") && bAuthorList) {
@@ -194,60 +217,66 @@ public class PubmedEFetchHandler extends DefaultHandler {
             bAffiliation = true;
         }
         if (qName.equalsIgnoreCase("KeywordList")) {
-            pubmedArticle.getMedlineCitation().setKeywordList(new MedlineCitationKeywordList()); // add keyword information.
-            pubmedArticle.getMedlineCitation().getKeywordList().setKeywordList(new ArrayList<MedlineCitationKeyword>());
+            pubmedArticle.getMedlinecitation().setKeywordlist(
+                    MedlineCitationKeywordList
+                            .builder()
+                            .keywordlist(new ArrayList<>())
+                            .build()); // add keyword information.
             bKeywordList = true;
         }
         if (qName.equalsIgnoreCase("Keyword")) {
             bKeyword = true;
         }
         if (qName.equalsIgnoreCase("MeshHeadingList")) {
-            pubmedArticle.getMedlineCitation().setMeshHeadingList(new ArrayList<MedlineCitationMeshHeading>());
+            pubmedArticle.getMedlinecitation().setMeshheadinglist(new ArrayList<>());
         }
         if (qName.equalsIgnoreCase("DescriptorName")) {
             // Set MedlineCitationYNEnum.
             MedlineCitationYNEnum medlineCitationYNEnum = getMedlineCitationYNEnum(attributes);
-            MedlineCitationMeshHeading medlineCitationMeshHeading = new MedlineCitationMeshHeading();
+            MedlineCitationMeshHeading medlineCitationMeshHeading = MedlineCitationMeshHeading.builder().build();
 
             // Set DescriptorName.
-            MedlineCitationMeshHeadingDescriptorName medlineCitationMeshHeadingDescriptorName = new MedlineCitationMeshHeadingDescriptorName();
-            medlineCitationMeshHeadingDescriptorName.setMajorTopicYN(medlineCitationYNEnum);
-            medlineCitationMeshHeading.setDescriptorName(medlineCitationMeshHeadingDescriptorName);
+            MedlineCitationMeshHeadingDescriptorName medlineCitationMeshHeadingDescriptorName =
+                    MedlineCitationMeshHeadingDescriptorName
+                            .builder()
+                            .majortopicyn(medlineCitationYNEnum)
+                            .build();
+            medlineCitationMeshHeading.setDescriptorname(medlineCitationMeshHeadingDescriptorName);
 
             // Set QualifierName list.
-            List<MedlineCitationMeshHeadingQualifierName> medlineCitationMeshHeadingQualifierName =
-                    new ArrayList<MedlineCitationMeshHeadingQualifierName>();
-            medlineCitationMeshHeading.setQualifierNameList(medlineCitationMeshHeadingQualifierName);
+            medlineCitationMeshHeading.setQualifiernamelist(new ArrayList<>());
 
             // Add to list of MeshHeading.
-            pubmedArticle.getMedlineCitation().getMeshHeadingList().add(medlineCitationMeshHeading);
+            pubmedArticle.getMedlinecitation().getMeshheadinglist().add(medlineCitationMeshHeading);
             bDescriptorName = true;
         }
         if (qName.equalsIgnoreCase("QualifierName")) {
             MedlineCitationYNEnum medlineCitationYNEnum = getMedlineCitationYNEnum(attributes);
 
             // Get the last inserted list of qualifier names.
-            int size = pubmedArticle.getMedlineCitation().getMeshHeadingList().size();
+            int size = pubmedArticle.getMedlinecitation().getMeshheadinglist().size();
             List<MedlineCitationMeshHeadingQualifierName> medlineCitationMeshHeadingQualifierNames =
-                    pubmedArticle.getMedlineCitation().getMeshHeadingList().get(size - 1).getQualifierNameList();
+                    pubmedArticle.getMedlinecitation().getMeshheadinglist().get(size - 1).getQualifiernamelist();
 
             // Create a new MedlineCitationMeshHeadingQualifierName.
-            MedlineCitationMeshHeadingQualifierName qualifierName = new MedlineCitationMeshHeadingQualifierName();
+            MedlineCitationMeshHeadingQualifierName qualifierName =
+                    MedlineCitationMeshHeadingQualifierName
+                            .builder()
+                            .majortopicyn(medlineCitationYNEnum)
+                            .build();
 
             // Insert into list of MedlineCitationMeshHeadingQualifierNames.
             medlineCitationMeshHeadingQualifierNames.add(qualifierName);
 
-            // Set MedlineCitationYNEnum.
-            qualifierName.setMajorTopicYN(medlineCitationYNEnum);
             bQualifierName = true;
         }
         if (qName.equalsIgnoreCase("GrantList")) {
-            pubmedArticle.getMedlineCitation().getArticle().setGrantList(new ArrayList<MedlineCitationGrant>());
+            pubmedArticle.getMedlinecitation().getArticle().setGrantlist(new ArrayList<>());
             bGrantList = true;
         }
         if (qName.equalsIgnoreCase("Grant")) {
-            MedlineCitationGrant grant = new MedlineCitationGrant();
-            pubmedArticle.getMedlineCitation().getArticle().getGrantList().add(grant);
+            MedlineCitationGrant grant = MedlineCitationGrant.builder().build();
+            pubmedArticle.getMedlinecitation().getArticle().getGrantlist().add(grant);
             bGrant = true;
         }
         if (qName.equalsIgnoreCase("GrantID")) {
@@ -263,8 +292,8 @@ public class PubmedEFetchHandler extends DefaultHandler {
             bGrantCountry = true;
         }
         if (qName.equalsIgnoreCase("CommentsCorrectionsList")) {
-            List<MedlineCitationCommentsCorrections> medlineCitationCommentsCorrections = new ArrayList<MedlineCitationCommentsCorrections>();
-            pubmedArticle.getMedlineCitation().setCommentsCorrectionsList(medlineCitationCommentsCorrections);
+            List<MedlineCitationCommentsCorrections> medlineCitationCommentsCorrections = new ArrayList<>();
+            pubmedArticle.getMedlinecitation().setCommentscorrectionslist(medlineCitationCommentsCorrections);
             bCommentsCorrectionsList = true;
         }
         if (qName.equalsIgnoreCase("CommentsCorrections") && bCommentsCorrectionsList) {
@@ -287,7 +316,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
         // PMID
         if (bMedlineCitation && bPMID) {
             long pmid = Long.valueOf(chars.toString());
-            pubmedArticle.getMedlineCitation().setMedlineCitationPMID(new MedlineCitationPMID(pmid));
+            pubmedArticle.getMedlinecitation().setMedlinecitationpmid(MedlineCitationPMID.builder().pmid(pmid).build());
             bPMID = false;
             bMedlineCitation = false;
         }
@@ -295,60 +324,66 @@ public class PubmedEFetchHandler extends DefaultHandler {
         // Article title.
         if (bArticle && bArticleTitle) {
             String articleTitle = chars.toString();
-            pubmedArticle.getMedlineCitation().getArticle().setArticleTitle(articleTitle); // set the title of the Article.
+            pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); // set the title of the Article.
             bArticleTitle = false;
+        }
+
+        if (bELocationID) {
+            String eLocationId = chars.toString();
+            pubmedArticle.getMedlinecitation().getArticle().getElocationid().setElocationid(eLocationId);
+            bELocationID = false;
         }
 
         // Author last name.
         if (bAuthorLastName) {
             String authorLastName = chars.toString();
-            int lastInsertedIndex = pubmedArticle.getMedlineCitation().getArticle().getAuthorList().size() - 1;
-            pubmedArticle.getMedlineCitation().getArticle().getAuthorList().get(lastInsertedIndex).setLastName(authorLastName);
+            int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+            pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setLastname(authorLastName);
             bAuthorLastName = false;
         }
 
         // Author fore name.
         if (bAuthorForeName) {
             String authorForeName = chars.toString();
-            int lastInsertedIndex = pubmedArticle.getMedlineCitation().getArticle().getAuthorList().size() - 1;
-            pubmedArticle.getMedlineCitation().getArticle().getAuthorList().get(lastInsertedIndex).setForeName(authorForeName);
+            int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+            pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setForename(authorForeName);
             bAuthorForeName = false;
         }
 
         // Author middle initials.
         if (bAuthorInitials) {
             String authorInitials = chars.toString();
-            int lastInsertedIndex = pubmedArticle.getMedlineCitation().getArticle().getAuthorList().size() - 1;
-            pubmedArticle.getMedlineCitation().getArticle().getAuthorList().get(lastInsertedIndex).setInitials(authorInitials);
+            int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+            pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setInitials(authorInitials);
             bAuthorInitials = false;
         }
 
         // Author affiliations.
         if (bAffiliation) {
             String affiliation = chars.toString();
-            int lastInsertedIndex = pubmedArticle.getMedlineCitation().getArticle().getAuthorList().size() - 1;
-            pubmedArticle.getMedlineCitation().getArticle().getAuthorList().get(lastInsertedIndex).setAffiliation(affiliation);
+            int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+            pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliation);
             bAffiliation = false;
         }
 
         // Journal title
         if (bJournalTitle) {
             String journalTitle = chars.toString();
-            pubmedArticle.getMedlineCitation().getArticle().getJournal().setJournalTitle(journalTitle);
+            pubmedArticle.getMedlinecitation().getArticle().getJournal().setTitle(journalTitle);
             bJournalTitle = false;
         }
 
         // Journal ISO abbreviation.
         if (bJournalISOAbbreviation) {
             String isoAbbr = chars.toString();
-            pubmedArticle.getMedlineCitation().getArticle().getJournal().setIsoAbbreviation(isoAbbr);
+            pubmedArticle.getMedlinecitation().getArticle().getJournal().setIsoAbbreviation(isoAbbr);
             bJournalISOAbbreviation = false;
         }
 
         // Journal Year.
         if (bPubDate && bPubDateYear) {
             String pubDateYear = chars.toString();
-            pubmedArticle.getMedlineCitation().getArticle().getJournal().getJournalIssue().getPubDate().setYear(pubDateYear);
+            pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate().setYear(pubDateYear);
             bPubDate = false;
             bPubDateYear = false;
         }
@@ -359,36 +394,36 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (pubDateYear.length() > 4) {
                 pubDateYear = pubDateYear.substring(0, 4); // PMID = 23849565 <MedlineDate>2013 May-Jun</MedlineDate>
             }
-            pubmedArticle.getMedlineCitation().getArticle().getJournal().getJournalIssue().getPubDate().setYear(pubDateYear);
+            pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate().setYear(pubDateYear);
             bPubDate = false;
             bMedlineDate = false;
         }
 
         // Keyword.
         if (bKeywordList && bKeyword) {
-            MedlineCitationKeyword keyword = new MedlineCitationKeyword();
+            MedlineCitationKeyword keyword = MedlineCitationKeyword.builder().build();
             keyword.setKeyword(chars.toString());
-            pubmedArticle.getMedlineCitation().getKeywordList().getKeywordList().add(keyword);
+            pubmedArticle.getMedlinecitation().getKeywordlist().getKeywordlist().add(keyword);
             bKeyword = false;
         }
 
         // MeSH descriptor name.
         if (bDescriptorName) {
             String descriptorName = chars.toString();
-            int lastInsertedIndex = pubmedArticle.getMedlineCitation().getMeshHeadingList().size() - 1;
-            pubmedArticle.getMedlineCitation().getMeshHeadingList().get(lastInsertedIndex).getDescriptorName().setDescriptorName(descriptorName); // set descriptor name for MeSH.
+            int lastInsertedIndex = pubmedArticle.getMedlinecitation().getMeshheadinglist().size() - 1;
+            pubmedArticle.getMedlinecitation().getMeshheadinglist().get(lastInsertedIndex).getDescriptorname().setDescriptorname(descriptorName); // set descriptor name for MeSH.
             bDescriptorName = false;
         }
 
         // MeSH qualifier name.
         if (bQualifierName) {
             String qualifierName = chars.toString();
-            int lastInsertedMeshHeadingIndex = pubmedArticle.getMedlineCitation().getMeshHeadingList().size() - 1;
-            MedlineCitationMeshHeading meshHeading = pubmedArticle.getMedlineCitation().getMeshHeadingList().get(lastInsertedMeshHeadingIndex);
-            int lastInsertedQualifierNameIndex = meshHeading.getQualifierNameList().size() - 1;
+            int lastInsertedMeshHeadingIndex = pubmedArticle.getMedlinecitation().getMeshheadinglist().size() - 1;
+            MedlineCitationMeshHeading meshHeading = pubmedArticle.getMedlinecitation().getMeshheadinglist().get(lastInsertedMeshHeadingIndex);
+            int lastInsertedQualifierNameIndex = meshHeading.getQualifiernamelist().size() - 1;
             MedlineCitationMeshHeadingQualifierName meshHeadingQualifierName =
-                    meshHeading.getQualifierNameList().get(lastInsertedQualifierNameIndex);
-            meshHeadingQualifierName.setQualifierName(qualifierName);
+                    meshHeading.getQualifiernamelist().get(lastInsertedQualifierNameIndex);
+            meshHeadingQualifierName.setQualifiername(qualifierName);
             bQualifierName = false;
         }
 
@@ -410,29 +445,29 @@ public class PubmedEFetchHandler extends DefaultHandler {
         // End of GrantID tag.
         if (bGrant && bGrantId) {
             String grantId = chars.toString();
-            int lastInsertedIndex = pubmedArticle.getMedlineCitation().getArticle().getGrantList().size() - 1;
-            pubmedArticle.getMedlineCitation().getArticle().getGrantList().get(lastInsertedIndex).setGrantID(grantId);
+            int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getGrantlist().size() - 1;
+            pubmedArticle.getMedlinecitation().getArticle().getGrantlist().get(lastInsertedIndex).setGrantid(grantId);
             bGrantId = false;
         }
 
         if (bGrant && bGrantAcronym) {
             String grantAcronym = chars.toString();
-            int lastInsertedIndex = pubmedArticle.getMedlineCitation().getArticle().getGrantList().size() - 1;
-            pubmedArticle.getMedlineCitation().getArticle().getGrantList().get(lastInsertedIndex).setAcronym(grantAcronym);
+            int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getGrantlist().size() - 1;
+            pubmedArticle.getMedlinecitation().getArticle().getGrantlist().get(lastInsertedIndex).setAcronym(grantAcronym);
             bGrantAcronym = false;
         }
 
         if (bGrant && bGrantAgency) {
             String grantAgency = chars.toString();
-            int lastInsertedIndex = pubmedArticle.getMedlineCitation().getArticle().getGrantList().size() - 1;
-            pubmedArticle.getMedlineCitation().getArticle().getGrantList().get(lastInsertedIndex).setAgency(grantAgency);
+            int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getGrantlist().size() - 1;
+            pubmedArticle.getMedlinecitation().getArticle().getGrantlist().get(lastInsertedIndex).setAgency(grantAgency);
             bGrantAgency = false;
         }
 
         if (bGrant && bGrantCountry) {
             String grantCountry = chars.toString();
-            int lastInsertedIndex = pubmedArticle.getMedlineCitation().getArticle().getGrantList().size() - 1;
-            pubmedArticle.getMedlineCitation().getArticle().getGrantList().get(lastInsertedIndex).setCountry(grantCountry);
+            int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getGrantlist().size() - 1;
+            pubmedArticle.getMedlinecitation().getArticle().getGrantlist().get(lastInsertedIndex).setCountry(grantCountry);
             bGrantCountry = false;
         }
 
@@ -449,9 +484,12 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
 
         if (bCommentsCorrections && bCommentsCorrectionsPmid) {
-            MedlineCitationCommentsCorrections medlineCitationCommentsCorrections = new MedlineCitationCommentsCorrections();
-            medlineCitationCommentsCorrections.setPmid(chars.toString());
-            pubmedArticle.getMedlineCitation().getCommentsCorrectionsList().add(medlineCitationCommentsCorrections);
+            MedlineCitationCommentsCorrections medlineCitationCommentsCorrections =
+                    MedlineCitationCommentsCorrections
+                            .builder()
+                            .pmid(chars.toString())
+                            .build();
+            pubmedArticle.getMedlinecitation().getCommentscorrectionslist().add(medlineCitationCommentsCorrections);
             bCommentsCorrectionsPmid = false;
             bCommentsCorrections = false;
         }
@@ -473,6 +511,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
 
         if (bArticle && bArticleTitle) {
+            chars.append(ch, start, length);
+        }
+
+        if (bELocationID) {
             chars.append(ch, start, length);
         }
 

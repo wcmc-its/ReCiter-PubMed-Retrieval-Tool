@@ -38,7 +38,7 @@ public class PubMedRetrievalToolController {
     private List<PubMedArticle> retrieve(String query, String fields) throws IOException {
         query = URLEncoder.encode(query, "UTF-8");
         slf4jLogger.info("Retrieving with query=[" + query + "]");
-
+        fields = fields.toLowerCase();
         ObjectMapper objectMapper = Squiggly
                 .init(new ObjectMapper(), fields)
                 .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
@@ -54,7 +54,7 @@ public class PubMedRetrievalToolController {
             try {
                 pubMedArticle = objectMapper.readValue(partialObject, PubMedArticle.class);
             } catch (IOException e) {
-                slf4jLogger.error("Unable to read value from pmid=" + elem.getMedlineCitation().getMedlineCitationPMID().getPmid(), e);
+                slf4jLogger.error("Unable to read value from pmid=" + elem.getMedlinecitation().getMedlinecitationpmid().getPmid(), e);
             }
             result.add(pubMedArticle);
         });
