@@ -172,6 +172,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
             pubmedArticle.getMedlinecitation().getArticle().getJournal().setJournalissue(MedlineCitationJournalIssue.builder().build());
         }
 
+        if (qName.equalsIgnoreCase("Issue")) {
+            bIssue = true;
+        }
+
+        if (qName.equalsIgnoreCase("Volume")) {
+            bVolume = true;
+        }
+
         // PubMed XML has either <Year>, <Month>, <Day> tags or <MedlineDate> tag.
         if (qName.equalsIgnoreCase("PubDate")) {
             pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().setPubdate(MedlineCitationDate.builder().build());
@@ -195,6 +203,19 @@ public class PubmedEFetchHandler extends DefaultHandler {
         if (qName.equalsIgnoreCase("Title")) {
             bJournalTitle = true;
         }
+
+        if (qName.equalsIgnoreCase("Pagination")) {
+            pubmedArticle.getMedlinecitation().getArticle().setPagination(
+                    MedlineCitationArticlePagination
+                            .builder()
+                            .medlinepgns(new ArrayList<>()).build());
+            bPagination = true;
+        }
+
+        if (qName.equalsIgnoreCase("MedlinePgn")) {
+            bMedlinePgn = true;
+        }
+
         if (qName.equalsIgnoreCase("AuthorList")) {
             pubmedArticle.getMedlinecitation().getArticle().setAuthorlist(new ArrayList<>()); // set the PubmedArticle's MedlineCitation's MedlineCitationArticle's title.
             bAuthorList = true;
@@ -366,6 +387,20 @@ public class PubmedEFetchHandler extends DefaultHandler {
             bAffiliation = false;
         }
 
+        // Journal Volume
+        if (bVolume) {
+            String volume = chars.toString();
+            pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().setVolume(volume);
+            bVolume = false;
+        }
+
+        // Journal issue
+        if (bIssue) {
+            String issue = chars.toString();
+            pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().setIssue(issue);
+            bIssue = false;
+        }
+
         // Journal title
         if (bJournalTitle) {
             String journalTitle = chars.toString();
@@ -397,6 +432,12 @@ public class PubmedEFetchHandler extends DefaultHandler {
             pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate().setYear(pubDateYear);
             bPubDate = false;
             bMedlineDate = false;
+        }
+
+        if (bPagination && bMedlinePgn) {
+            String pagination = chars.toString();
+            pubmedArticle.getMedlinecitation().getArticle().getPagination().getMedlinepgns().add(pagination);
+            bMedlinePgn = false;
         }
 
         // Keyword.
@@ -440,6 +481,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
         // End of keyword list.
         if (qName.equalsIgnoreCase("KeywordList")) {
             bKeywordList = false;
+        }
+
+        if (qName.equalsIgnoreCase("Pagination")) {
+            bPagination = false;
         }
 
         // End of GrantID tag.
@@ -534,6 +579,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
             chars.append(ch, start, length);
         }
 
+        if (bVolume) {
+            chars.append(ch, start, length);
+        }
+
+        if (bIssue) {
+            chars.append(ch, start, length);
+        }
+
         if (bJournalTitle) {
             chars.append(ch, start, length);
         }
@@ -547,6 +600,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
 
         if (bPubDate && bMedlineDate) {
+            chars.append(ch, start, length);
+        }
+
+        if (bPagination && bMedlinePgn) {
             chars.append(ch, start, length);
         }
 
