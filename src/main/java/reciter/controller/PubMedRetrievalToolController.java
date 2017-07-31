@@ -47,8 +47,9 @@ public class PubMedRetrievalToolController {
     @RequestMapping(value = "/query-complex/", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<List<PubMedArticle>> queryComplex(@RequestBody PubMedQuery pubMedQuery) throws IOException {
-        slf4jLogger.info("query: " + pubMedQuery);
-        return null;
+        slf4jLogger.info("Querying: " + pubMedQuery);
+        List<PubMedArticle> pubMedArticles = query(pubMedQuery.toString(), null);
+        return ResponseEntity.ok(pubMedArticles);
     }
 
     @RequestMapping(value = "/query-doi/", method = RequestMethod.POST)
@@ -61,7 +62,7 @@ public class PubMedRetrievalToolController {
     @RequestMapping(value = "/query-number-pubmed-articles/", method = RequestMethod.POST)
     @ResponseBody
     public int getNumberOfPubMedArticles(@RequestBody PubMedQuery pubMedQuery) throws IOException {
-        PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(pubMedQuery.toString());
+        PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(URLEncoder.encode(pubMedQuery.toString(), "UTF-8"));
         pubmedXmlQuery.setRetMax(1);
         String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
         slf4jLogger.info("ESearch Query=[" + fullUrl + "]");
