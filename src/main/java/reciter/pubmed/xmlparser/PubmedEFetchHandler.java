@@ -97,6 +97,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bPublicationStatus;
     private boolean bArticleIdList;
     private boolean bArticleId;
+    private boolean bArticleIdPubMed;
+    private boolean bArticleIdPii;
+    private boolean bArticleIdDoi;
+    private boolean bArticleIdPmc;
     private boolean bGrantList;
     private boolean bGrant;
     private boolean bGrantId;
@@ -125,6 +129,18 @@ public class PubmedEFetchHandler extends DefaultHandler {
             medlineCitationYNEnum = new MedlineCitationYNEnum(majorTopicYN);
         }
         return medlineCitationYNEnum;
+    }
+
+    /**
+     * Get the IdType value of ArticleId tag.
+     * Example:
+     * <ArticleId IdType="pubmed">20634481</ArticleId>
+     *
+     * @param attributes
+     * @return IdType value
+     */
+    private String getArticleIdType(Attributes attributes) {
+        return attributes.getValue("IdType");
     }
 
     @Override
@@ -325,6 +341,30 @@ public class PubmedEFetchHandler extends DefaultHandler {
         if (qName.equalsIgnoreCase("PMID") && bCommentsCorrections) {
             //			bCommentsCorrectionsPmidVersion = true;
             bCommentsCorrectionsPmid = true;
+        }
+
+        if (qName.equalsIgnoreCase("PubmedData")) {
+            bPubmedData = true;
+            pubmedArticle.setPubmeddata(new PubMedData());
+        }
+
+        if (qName.equalsIgnoreCase("ArticleIdList")) {
+            bArticleIdList = true;
+            pubmedArticle.getPubmeddata().setArticleIdList(new ArticleIdList());
+        }
+
+        if (qName.equalsIgnoreCase("ArticleId")) {
+            bArticleId = true;
+            String idType = getArticleIdType(attributes);
+            if ("pubmed".equals(idType)) {
+                bArticleIdPubMed = true;
+            } else if ("pii".equals(idType)) {
+                bArticleIdPii = true;
+            } else if ("doi".equals(idType)) {
+                bArticleIdDoi = true;
+            } else if ("pmc".equals(idType)) {
+                bArticleIdPmc = true;
+            }
         }
     }
 
@@ -543,6 +583,23 @@ public class PubmedEFetchHandler extends DefaultHandler {
         if (qName.equalsIgnoreCase("CommentsCorrectionsList")) {
             bCommentsCorrectionsList = false;
         }
+
+        if (qName.equalsIgnoreCase("PubmedData")) {
+            bPubmedData = false;
+        }
+
+        if (qName.equalsIgnoreCase("ArticleIdList")) {
+            bArticleIdList = false;
+            bArticleId = false;
+            bArticleIdPmc = false;
+            bArticleIdPubMed = false;
+            bArticleIdPii = false;
+            bArticleIdDoi = false;
+        }
+
+        if (bArticleIdPmc) {
+            pubmedArticle.getPubmeddata().getArticleIdList().setPmc(chars.toString());
+        }
     }
 
     @Override
@@ -633,6 +690,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
 
         if (bCommentsCorrections && bCommentsCorrectionsPmid) {
+            chars.append(ch, start, length);
+        }
+
+        if (bArticleIdPmc) {
             chars.append(ch, start, length);
         }
     }
