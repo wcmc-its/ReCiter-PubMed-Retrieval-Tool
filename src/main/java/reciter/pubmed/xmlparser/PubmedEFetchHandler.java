@@ -125,8 +125,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private MedlineCitationYNEnum getMedlineCitationYNEnum(Attributes attributes) {
         String majorTopicYN = attributes.getValue("MajorTopicYN");
         MedlineCitationYNEnum medlineCitationYNEnum = null;
-        if (majorTopicYN != null) {
-            medlineCitationYNEnum = new MedlineCitationYNEnum(majorTopicYN);
+        if ("Y".equalsIgnoreCase(majorTopicYN)) {
+            medlineCitationYNEnum = MedlineCitationYNEnum.Y;
+        } else if ("N".equalsIgnoreCase(majorTopicYN)) {
+            medlineCitationYNEnum = MedlineCitationYNEnum.N;
         }
         return medlineCitationYNEnum;
     }
@@ -350,7 +352,8 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
         if (qName.equalsIgnoreCase("ArticleIdList")) {
             bArticleIdList = true;
-            pubmedArticle.getPubmeddata().setArticleIdList(new ArticleIdList());
+            // TODO figure out what's going on here.
+//            pubmedArticle.getPubmeddata().setArticleIdList(new ArticleIdList());
         }
 
         if (qName.equalsIgnoreCase("ArticleId")) {
@@ -598,7 +601,8 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
 
         if (bArticleIdPmc) {
-            pubmedArticle.getPubmeddata().getArticleIdList().setPmc(chars.toString());
+            // TODO figure out what's going on here.
+//            pubmedArticle.getPubmeddata().getArticleIdList().setPmc(chars.toString());
         }
     }
 
