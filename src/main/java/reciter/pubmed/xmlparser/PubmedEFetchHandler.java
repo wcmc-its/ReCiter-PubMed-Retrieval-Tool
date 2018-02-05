@@ -124,13 +124,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
     private MedlineCitationYNEnum getMedlineCitationYNEnum(Attributes attributes) {
         String majorTopicYN = attributes.getValue("MajorTopicYN");
-        MedlineCitationYNEnum medlineCitationYNEnum = null;
-        if ("Y".equalsIgnoreCase(majorTopicYN)) {
-            medlineCitationYNEnum = MedlineCitationYNEnum.Y;
-        } else if ("N".equalsIgnoreCase(majorTopicYN)) {
-            medlineCitationYNEnum = MedlineCitationYNEnum.N;
-        }
-        return medlineCitationYNEnum;
+        return new MedlineCitationYNEnum(majorTopicYN);
     }
 
     /**

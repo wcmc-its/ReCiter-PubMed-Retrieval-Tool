@@ -6,6 +6,10 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +34,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/pubmed")
+@Api(value="PubMedController", description="Operations on querying the PubMed API.")
 public class PubMedRetrievalToolController {
 
     private static final Logger slf4jLogger = LoggerFactory.getLogger(PubMedRetrievalToolController.class);
@@ -37,7 +42,14 @@ public class PubMedRetrievalToolController {
     @Autowired
     private PubMedArticleRetrievalService pubMedArticleRetrievalService;
 
-    @RequestMapping(value = "/query/{query}", method = RequestMethod.GET)
+    @ApiOperation(value = "Query with field selection.", response = List.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully retrieved list"),
+            @ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+            @ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+            @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
+    })
+    @RequestMapping(value = "/query/{query}", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public List<PubMedArticle> query(@PathVariable String query,
                                      @RequestParam(name = "fields", required = false) String fields) throws IOException {
