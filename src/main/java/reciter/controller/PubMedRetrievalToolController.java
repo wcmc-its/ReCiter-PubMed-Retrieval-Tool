@@ -10,6 +10,16 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +35,17 @@ import reciter.pubmed.xmlparser.PubmedESearchHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
+
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.CookiePolicy;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +76,6 @@ public class PubMedRetrievalToolController {
     @RequestMapping(value = "/query-complex/", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<List<PubMedArticle>> queryComplex(@RequestBody PubMedQuery pubMedQuery) throws IOException {
-        slf4jLogger.info("Querying: " + pubMedQuery);
         List<PubMedArticle> pubMedArticles = query(pubMedQuery.toString(), null);
         return ResponseEntity.ok(pubMedArticles);
     }
@@ -75,18 +91,37 @@ public class PubMedRetrievalToolController {
     @ResponseBody
     public int getNumberOfPubMedArticles(@RequestBody PubMedQuery pubMedQuery) throws IOException {
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(URLEncoder.encode(pubMedQuery.toString(), "UTF-8"));
-        pubmedXmlQuery.setRetMax(1);
+        //pubmedXmlQuery.setRetMax(1);
+        pubmedXmlQuery.setRetStart(0);
         String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
         slf4jLogger.info("ESearch Query=[" + fullUrl + "]");
-
         PubmedESearchHandler pubmedESearchHandler = new PubmedESearchHandler();
-        InputStream esearchStream = new URL(fullUrl).openStream();
-
-        try {
-            SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
-        } catch (SAXException | ParserConfigurationException e) {
-            slf4jLogger.error("Error parsing XML file for query=[" + pubMedQuery + "], full url=[" + fullUrl + "]", e);
-        }
+		HttpClient httpClient = HttpClients.createDefault();
+		HttpPost httppost = new HttpPost(PubmedXmlQuery.ESEARCH_BASE_URL);
+		// Request parameters and other properties.
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("db", pubmedXmlQuery.getDb()));
+		params.add(new BasicNameValuePair("retmax", String.valueOf(pubmedXmlQuery.getRetMax())));
+		params.add(new BasicNameValuePair("usehistory", pubmedXmlQuery.getUseHistory()));
+		params.add(new BasicNameValuePair("term", java.net.URLDecoder.decode(pubmedXmlQuery.getTerm(), "UTF-8")));
+		params.add(new BasicNameValuePair("retmode", pubmedXmlQuery.getRetMode()));
+		params.add(new BasicNameValuePair("retstart", String.valueOf(pubmedXmlQuery.getRetStart())));
+		httppost.setEntity(new UrlEncodedFormEntity(params));
+		httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+		httppost.getParams().setParameter(ClientPNames.COOKIE_POLICY, "standard");
+		
+		//Execute and get the response.
+		HttpResponse response = httpClient.execute(httppost); 
+		HttpEntity entity = response.getEntity();
+		if(entity != null) {
+			InputStream esearchStream = entity.getContent();
+			try {
+				SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
+			} catch (SAXException | ParserConfigurationException e) {
+		        slf4jLogger.error("Error parsing XML file for query=[" + pubMedQuery + "], full url=[" + fullUrl + "]", e);
+		    } 
+		}
+    
         return pubmedESearchHandler.getCount();
     }
 
