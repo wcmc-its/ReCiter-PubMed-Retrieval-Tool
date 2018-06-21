@@ -141,8 +141,8 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-
-        chars.setLength(0);
+    	
+    	chars.setLength(0);
 
         if (qName.equalsIgnoreCase("PubmedArticleSet")) {
             pubmedArticles = new ArrayList<>(); // create a new list of PubmedArticle.
@@ -678,7 +678,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
 
         if (bGrant && bGrantId) {
-            chars.append(ch, start, length);
+        	chars.append(ch, start, length);
         }
 
         if (bGrant && bGrantAcronym) {
@@ -690,7 +690,9 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
 
         if (bGrant && bGrantCountry) {
-            chars.append(ch, start, length);
+        	if(chars.length() == 0) {
+        		chars.append(ch, start, length);
+        	}
         }
 
         if (bCommentsCorrections && bCommentsCorrectionsPmid) {
