@@ -1,5 +1,5 @@
 /*
- * +/*******************************************************************************
+ *  + *******************************************************************************
  *  + * Licensed to the Apache Software Foundation (ASF) under one
  *  + * or more contributor license agreements.  See the NOTICE file
  *  + * distributed with this work for additional information
@@ -23,6 +23,8 @@ package reciter.pubmed.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -30,41 +32,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Getter
+@Setter
 public class PubMedQuery {
 
     private static SimpleDateFormat dt = new SimpleDateFormat("yyyy/MM/dd");
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
-    public Date getStart() {
-        return start;
-    }
-
-    public void setStart(Date start) {
-        this.start = start;
-    }
-
-    public Date getEnd() {
-        return end;
-    }
-
-    public void setEnd(Date end) {
-        this.end = end;
-    }
-
-    public String getStrategyQuery() {
-        return strategyQuery;
-    }
-
-    public void setStrategyQuery(String strategyQuery) {
-        this.strategyQuery = strategyQuery;
-    }
 
     @JsonProperty("author")
     private String author;
@@ -83,18 +55,9 @@ public class PubMedQuery {
     @JsonProperty("doi")
     private String doi;
 
-    public String getDoi() {
-        return doi;
-    }
-
-    public void setDoi(String doi) {
-        this.doi = doi;
-    }
-
     @Override
     public String toString() {
-//        return author + "[au]" + " AND " + dt.format(start) + ":" + dt.format(end) + "[DP]";
-        List<String> parts = new ArrayList<String>();
+        List<String> parts = new ArrayList<>();
         if (author != null) {
             parts.add(author + " [au]");
         }
@@ -107,7 +70,6 @@ public class PubMedQuery {
         if (doi != null) {
             parts.add(doi);
         }
-
         return StringUtils.join(parts, " AND ");
     }
 }

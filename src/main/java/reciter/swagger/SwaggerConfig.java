@@ -21,4 +21,3 @@ public class SwaggerConfig {
                 .build();
     }
 }
-

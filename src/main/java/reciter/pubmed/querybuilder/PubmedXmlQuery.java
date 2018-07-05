@@ -1,8 +1,11 @@
 package reciter.pubmed.querybuilder;
 
+import lombok.Data;
+
 /**
  * Reference documentation for the various parameters in this class: http://www.ncbi.nlm.nih.gov/books/NBK25499/
  */
+@Data
 public class PubmedXmlQuery {
 
     public static final int DEFAULT_RETMAX = 10000;
@@ -20,12 +23,14 @@ public class PubmedXmlQuery {
      * Database to search. Value must be a valid Entrez database name. (Default={@code pubmed})
      */
     private String db = "pubmed";
+
     /**
      * Entrez text query. All special characters must be URL encoded. Spaces may be replaced by '+'
      * signs. For very long queries (more than several hundred characters long), consider using
      * an HTTP POST call. (Required parameter).
      */
     private String term;
+
     /**
      * Total number of UIDs from the retrieved set to be shown in the XML output.
      * PubMed default is 20.
@@ -35,6 +40,7 @@ public class PubmedXmlQuery {
      * while holding retmax constant, thereby downloading the entire set in batches of size retmax.
      */
     private int retMax = DEFAULT_RETMAX;
+
     /**
      * Sequential index of the first UID in the retrieved set to be shown in the XML output,
      * corresponding to the first record of the entire set. PubMed default is 0. This parameter
@@ -42,6 +48,7 @@ public class PubmedXmlQuery {
      * retrieved from a search.
      */
     private int retStart;
+
     /**
      * When {@link reciter.pubmed.querybuilder.PubmedXmlQuery#useHistory} is set to {@code true}, ESearch will post the UIDs resulting
      * from the search operation onto the PubMed history server so that they can be used
@@ -50,16 +57,19 @@ public class PubmedXmlQuery {
      * {@link reciter.pubmed.querybuilder.PubmedXmlQuery#webEnv} as input.
      */
     private String useHistory = "y";
+
     /**
      * Web environment string returned from a previous ESearch, EPost or ELink call. When provided,
      * ESearch will post the results of the search operation to this pre-existing {@link reciter.pubmed.querybuilder.PubmedXmlQuery#webEnv},
      * thereby appending the results to the existing environment.
      */
     private String webEnv;
+
     /**
      * Integer query key returned by a previous ESearch, EPost or Elink call.
      */
     private int queryKey = 1;
+
     /**
      * Returned format for query. xml or json.
      */
@@ -121,69 +131,4 @@ public class PubmedXmlQuery {
         sb.append(webEnv);
         return sb.toString();
     }
-
-    public int getRetMax() {
-        return retMax;
-    }
-
-    public void setRetMax(int retMax) {
-        this.retMax = retMax;
-    }
-
-    public int getRetStart() {
-        return retStart;
-    }
-
-    public void setRetStart(int retStart) {
-        this.retStart = retStart;
-    }
-
-    public String getWebEnv() {
-        return webEnv;
-    }
-
-    public void setWevEnv(String webEnv) {
-        this.webEnv = webEnv;
-    }
-
-    public int getQueryKey() {
-        return queryKey;
-    }
-
-    public void setQueryKey(int queryKey) {
-        this.queryKey = queryKey;
-    }
-
-    public String getTerm() {
-        return term;
-    }
-
-    public void setTerm(String term) {
-        this.term = term;
-    }
-
-    public String getDb() {
-        return db;
-    }
-
-    public void setDb(String db) {
-        this.db = db;
-    }
-
-    public String getUseHistory() {
-        return useHistory;
-    }
-
-    public void setUseHistory(String useHistory) {
-        this.useHistory = useHistory;
-    }
-
-    public String getRetMode() {
-        return retMode;
-    }
-
-    public void setRetMode(String retMode) {
-        this.retMode = retMode;
-    }
-
 }
