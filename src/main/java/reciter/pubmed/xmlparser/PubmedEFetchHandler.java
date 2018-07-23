@@ -142,7 +142,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
     private MedlineCitationYNEnum getMedlineCitationYNEnum(Attributes attributes) {
         String majorTopicYN = attributes.getValue("MajorTopicYN");
-        return MedlineCitationYNEnum.valueOf(majorTopicYN);
+        return new MedlineCitationYNEnum(majorTopicYN);
     }
 
     /**
