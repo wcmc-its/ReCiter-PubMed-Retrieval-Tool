@@ -59,7 +59,8 @@ public class PubMedQuery {
     public String toString() {
         List<String> parts = new ArrayList<>();
         if (author != null) {
-            parts.add(author + " [au]");
+            //parts.add(author + " [au]");
+        	parts.add(author);
         }
         if (start != null && end != null) {
             parts.add(dt.format(start) + ":" + dt.format(end) + "[DP]");
