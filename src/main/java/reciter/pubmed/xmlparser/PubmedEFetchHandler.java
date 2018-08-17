@@ -147,12 +147,12 @@ public class PubmedEFetchHandler extends DefaultHandler {
         return new MedlineCitationYNEnum(majorTopicYN);
     }
     
-    private IssnType getIssnType(Attributes attributes) {
+    private String getIssnType(Attributes attributes) {
     	String issnType = attributes.getValue("IssnType");
     	if(issnType.equalsIgnoreCase("Print")) {
-    		return IssnType.PRINT;
+    		return "Print";
     	} else {
-    		return IssnType.ELECTRONIC;
+    		return "Electronic";
     	}
     }
 
@@ -216,7 +216,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             
             if(qName.equalsIgnoreCase("ISSNLinking")) {
-            	MedlineCitationJournalISSN journalLIssn = MedlineCitationJournalISSN.builder().issntype(IssnType.LINKING).build();
+            	MedlineCitationJournalISSN journalLIssn = MedlineCitationJournalISSN.builder().issntype("Linking").build();
             	pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().add(journalLIssn);
             	bISSNLinking = true;
             	
