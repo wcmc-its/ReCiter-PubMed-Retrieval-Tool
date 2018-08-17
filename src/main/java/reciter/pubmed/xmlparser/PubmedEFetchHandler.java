@@ -30,6 +30,8 @@ import reciter.model.pubmed.MedlineCitationCommentsCorrections;
 import reciter.model.pubmed.MedlineCitationDate;
 import reciter.model.pubmed.MedlineCitationGrant;
 import reciter.model.pubmed.MedlineCitationJournal;
+import reciter.model.pubmed.MedlineCitationJournalISSN;
+import reciter.model.pubmed.MedlineCitationJournalISSN.IssnType;
 import reciter.model.pubmed.MedlineCitationJournalIssue;
 import reciter.model.pubmed.MedlineCitationKeyword;
 import reciter.model.pubmed.MedlineCitationKeywordList;
@@ -144,6 +146,15 @@ public class PubmedEFetchHandler extends DefaultHandler {
         String majorTopicYN = attributes.getValue("MajorTopicYN");
         return new MedlineCitationYNEnum(majorTopicYN);
     }
+    
+    private IssnType getIssnType(Attributes attributes) {
+    	String issnType = attributes.getValue("IssnType");
+    	if(issnType.equalsIgnoreCase("Print")) {
+    		return IssnType.PRINT;
+    	} else {
+    		return IssnType.ELECTRONIC;
+    	}
+    }
 
     /**
      * Get the IdType value of ArticleId tag.
@@ -195,6 +206,20 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             if (qName.equalsIgnoreCase("Journal")) {
                 pubmedArticle.getMedlinecitation().getArticle().setJournal(MedlineCitationJournal.builder().build()); // add journal information.
+            }
+            
+            if (qName.equalsIgnoreCase("ISSN")) {
+                pubmedArticle.getMedlinecitation().getArticle().getJournal().setIssn(new ArrayList<MedlineCitationJournalISSN>());
+                MedlineCitationJournalISSN journalIssn = MedlineCitationJournalISSN.builder().issntype(getIssnType(attributes)).build();
+                pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().add(journalIssn);
+                bISSN = true;
+            }
+            
+            if(qName.equalsIgnoreCase("ISSNLinking")) {
+            	MedlineCitationJournalISSN journalLIssn = MedlineCitationJournalISSN.builder().issntype(IssnType.LINKING).build();
+            	pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().add(journalLIssn);
+            	bISSNLinking = true;
+            	
             }
 
             if (qName.equalsIgnoreCase("JournalIssue")) {
@@ -443,6 +468,20 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliation);
                 bAffiliation = false;
             }
+            
+            if(bISSN) {
+            	String issn = chars.toString();
+            	int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().size() - 1;
+            	pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().get(lastInsertedIndex).setIssn(issn);
+            	bISSN = false;
+            }
+            
+            if(bISSNLinking) {
+            	String lissn = chars.toString();
+            	int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().size() - 1;
+            	pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().get(lastInsertedIndex).setIssn(lissn);
+            	bISSNLinking = false;
+            }
 
             // Journal Volume
             if (bVolume) {
@@ -657,6 +696,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
         if (bVolume) {
             chars.append(ch, start, length);
+        }
+        
+        if(bISSN) {
+        	chars.append(ch, start, length);
+        }
+        
+        if(bISSNLinking) {
+        	chars.append(ch, start, length);
         }
 
         if (bIssue) {
