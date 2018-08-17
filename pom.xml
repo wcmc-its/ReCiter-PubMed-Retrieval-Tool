@@ -45,6 +45,12 @@
             <groupId>edu.wcmc.reciter</groupId>
             <artifactId>reciter-pubmed-model</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.slf4j</groupId>
+            		<artifactId>slf4j-simple</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger2 -->
         <dependency>
