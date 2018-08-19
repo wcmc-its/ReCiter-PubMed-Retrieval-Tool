@@ -32,6 +32,8 @@ import java.util.concurrent.Executors;
 @Service
 public class PubMedArticleRetrievalService {
 
+    private static final int RETRIEVAL_THRESHOLD = 2000;
+
     /**
      * Initializes and starts threads that handles the retrieval process. Partition the number of articles
      * into manageable pieces and ask each thread to handle one partition.
@@ -41,15 +43,15 @@ public class PubMedArticleRetrievalService {
         int numberOfPubmedArticles = getNumberOfPubMedArticles(pubMedQuery);
         List<PubMedArticle> pubMedArticles = new ArrayList<>();
 
-        if (numberOfPubmedArticles <= 2000) {
+        if (numberOfPubmedArticles <= RETRIEVAL_THRESHOLD) {
             ExecutorService executor = Executors.newWorkStealingPool();
 
             // Get the count (number of publications for this query).
             PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery();
             pubmedXmlQuery.setTerm(pubMedQuery);
 
-            log.info("retMax=[" + pubmedXmlQuery.getRetMax() + "], pubMedQuery=[" + pubMedQuery + "], "
-                    + "numberOfPubmedArticles=[" + numberOfPubmedArticles + "].");
+            log.info("retMax=[{}], pubMedQuery=[{}], numberOfPubmedArticles=[{}].",
+                    pubmedXmlQuery.getRetMax(), pubMedQuery, numberOfPubmedArticles);
 
             // Retrieve the publications retMax records at one time and store to disk.
             int currentRetStart = 0;
@@ -66,7 +68,7 @@ public class PubMedArticleRetrievalService {
 
                 // Use the webenv value to retrieve xml.
                 String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
-                log.info("eFetchUrl=[" + eFetchUrl + "].");
+                log.info("eFetchUrl=[{}].", eFetchUrl);
 
                 callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), eFetchUrl));
 
@@ -83,7 +85,7 @@ public class PubMedArticleRetrievalService {
                             try {
                                 return future.get();
                             } catch (Exception e) {
-                                log.error("Unsable to retrieve result using future get.");
+                                log.error("Unable to retrieve result using future get.");
                                 throw new IllegalStateException(e);
                             }
                         }).forEach(pubMedArticles::addAll);
@@ -91,7 +93,7 @@ public class PubMedArticleRetrievalService {
                 log.error("Unable to invoke callable.", e);
             }
         } else {
-            throw new IOException("Number of PubMed Articles retrieved " + numberOfPubmedArticles + " exceeded the threshold level 2000");
+            throw new IOException("Number of PubMed Articles retrieved " + numberOfPubmedArticles + " exceeded the threshold level " + RETRIEVAL_THRESHOLD);
         }
         return pubMedArticles;
     }
@@ -100,7 +102,7 @@ public class PubMedArticleRetrievalService {
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(query);
         //pubmedXmlQuery.setRetMax(1);
         String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
-        log.info("ESearch Query=[" + fullUrl + "]");
+        log.info("ESearch Query=[{}]", fullUrl);
 
         PubmedESearchHandler pubmedESearchHandler = new PubmedESearchHandler();
         //InputStream esearchStream = new URL(fullUrl).openStream();
