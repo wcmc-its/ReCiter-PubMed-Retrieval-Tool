@@ -402,7 +402,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
             	bHistory = true;
             	History history = History.builder().pubmedPubDate(new ArrayList<PubMedPubDate>()).build();
             	pubmedArticle.getPubmeddata().setHistory(history);
-            	System.out.println("<History> starts");
             }
             
             if(qName.equalsIgnoreCase("PubMedPubDate")) {
@@ -410,22 +409,18 @@ public class PubmedEFetchHandler extends DefaultHandler {
             	MedlineCitationDate medlineCitationDate = MedlineCitationDate.builder().build();
             	PubMedPubDate pubmedPubDate = PubMedPubDate.builder().pubMedPubDate(medlineCitationDate).pubStatus(getPubStatus(attributes)).build();
             	pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().add(pubmedPubDate);
-            	System.out.println("<PubMedPubDate> starts");
             }
             
             if(bPubMedPubDate && qName.equalsIgnoreCase("Year")) {
             	bPubMedPubDateYear = true;
-            	System.out.println("<PubMedPubDateYear> starts");
             }
             
             if(bPubMedPubDate && qName.equalsIgnoreCase("Month")) {
             	bPubMedPubDateMonth = true;
-            	System.out.println("<PubMedPubDateMonth> starts");
             }
             
             if(bPubMedPubDate && qName.equalsIgnoreCase("Day")) {
             	bPubMedPubDateDay = true;
-            	System.out.println("<PubMedPubDateDay> starts");
             }
 
             if (qName.equalsIgnoreCase("ArticleIdList")) {
@@ -683,7 +678,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
             
             if(bPubMedPubDate && bPubMedPubDateYear) {
             	String pubmedPubDateYear = chars.toString();
-            	System.out.println("<PubMedPubDateYear> ends " + pubmedPubDateYear);
                 int lastInsertedIndex = pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().size() - 1;
                 pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().get(lastInsertedIndex).getPubMedPubDate().setYear(pubmedPubDateYear);
                 bPubMedPubDateYear = false;
@@ -691,7 +685,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
             
             if(bPubMedPubDate && bPubMedPubDateMonth) {
             	String pubmedPubDateMonth = chars.toString();
-            	System.out.println("<PubMedPubDateMonth> ends " + pubmedPubDateMonth);
                 int lastInsertedIndex = pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().size() - 1;
                 pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().get(lastInsertedIndex).getPubMedPubDate().setMonth(pubmedPubDateMonth);
                 bPubMedPubDateMonth = false;
@@ -699,19 +692,16 @@ public class PubmedEFetchHandler extends DefaultHandler {
             
             if(bPubMedPubDate && bPubMedPubDateDay) {
             	String pubmedPubDateDay = chars.toString();
-            	System.out.println("<PubMedPubDateDay> ends " + pubmedPubDateDay);
                 int lastInsertedIndex = pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().size() - 1;
                 pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().get(lastInsertedIndex).getPubMedPubDate().setDay(pubmedPubDateDay);
                 bPubMedPubDateDay = false;
             }
             
             if(qName.equalsIgnoreCase("PubMedPubDate")) {
-            	System.out.println("<PubMedPubDate> ends ");
             	bPubMedPubDate = false;
             }
             
             if(qName.equalsIgnoreCase("History")) {
-            	System.out.println("<History> ends ");
             	bHistory = false;
             }
 
@@ -837,32 +827,23 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
         
         if(bHistory && bPubMedPubDate && bPubMedPubDateYear) {
-        	//if (chars.length() == 0) {
-        		chars.append(ch, start, length);
-        		System.out.println("Year " + chars.toString());
-        	//}
+        	chars.append(ch, start, length);
         }
         
         if(bHistory && bPubMedPubDate && bPubMedPubDateMonth) {
-        	//if (chars.length() == 0) {
-       	 		chars.append(ch, start, length);
-       	 	System.out.println("Month " + chars.toString());
-        	//}
+       	 	chars.append(ch, start, length);
         }
         
         if(bHistory && bPubMedPubDate && bPubMedPubDateDay) {
-        	//if (chars.length() == 0) {
-       	 		chars.append(ch, start, length);
-       	 	System.out.println("Day " + chars.toString());
-        	//}
+        	chars.append(ch, start, length);
         }
 
         if (bArticleIdPmc) {
             chars.append(ch, start, length);
         }
         
-        if (bPubmedData) {
+        /*if (bPubmedData) {
             chars.append(ch, start, length);
-        }
+        }*/
     }
 }
