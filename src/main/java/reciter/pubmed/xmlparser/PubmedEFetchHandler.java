@@ -46,8 +46,14 @@ import reciter.model.pubmed.PubMedArticle;
 import reciter.model.pubmed.PubMedData;
 import reciter.model.pubmed.PubMedPubDate;
 
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A SAX handler that parses PubMed XML content.
@@ -78,9 +84,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bMedlineDate;
     private boolean bPubDateYear;
     private boolean bPubDateMonth;
+    private boolean bPubDateDay;
     private boolean bJournalTitle;
     private boolean bJournalISOAbbreviation;
     private boolean bArticleTitle;
+    private boolean bArticleDate;
+    private boolean bArticleDateYear;
+    private boolean bArticleDateMonth;
+    private boolean bArticleDateDay;
     private boolean bPagination;
     private boolean bMedlinePgn;
     private boolean bELocationID;
@@ -162,6 +173,47 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private String getPubStatus(Attributes attributes) {
     	String pubStatus = attributes.getValue("PubStatus");
     	return pubStatus;
+    }
+    
+    /**
+     * Pull out year. Year is the first four consecutive numbers in the string.
+	 * Attempt to pull out month. (This won't always work.) Month is the first three consecutive letters. Map these letters to a two-digit month equivalent, e.g., "Feb" --> "02", "Oct" --> "10"
+	 * Use "01" for day. Don't bother trying to parse that.
+	 * PMID(23849565) OR PMID(29756752)
+     * @param medlineDate MedlineDate tag value
+     * @param medlineCitationDate
+     */
+    private void getStandardizedDate(String medlineDate, MedlineCitationDate medlineCitationDate) {
+    	if(medlineDate != null && medlineDate.length() >=4) {
+	    	String year = null;
+	    	String month = null;
+	    	Pattern pattern = Pattern.compile("\\b\\d{4}\\b");
+			Matcher matcher = pattern.matcher(medlineDate);
+			if(matcher.find()) {
+				year = matcher.group();
+			}
+			
+			//Trying to retrieve month
+			
+			pattern = Pattern.compile("\\b[a-zA-Z]{3}\\b", Pattern.CASE_INSENSITIVE);
+			matcher = pattern.matcher(medlineDate);
+			
+			if(matcher.find()) {
+				month = matcher.group();
+				DateTimeFormatter parser = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.ENGLISH);
+				TemporalAccessor accessor = parser.parse(month);
+				int monthNumber = accessor.get(ChronoField.MONTH_OF_YEAR);
+				if(monthNumber != 0 && monthNumber < 10) {
+					month = "0" + String.valueOf(monthNumber);
+				} else {
+					month = String.valueOf(monthNumber);
+				}
+				
+			}
+			medlineCitationDate.setYear(year);
+			medlineCitationDate.setMonth(month);
+			medlineCitationDate.setDay("01");
+    	}
     }
 
     /**
@@ -251,6 +303,16 @@ public class PubmedEFetchHandler extends DefaultHandler {
             // <Year> tag.
             if (bPubDate && qName.equalsIgnoreCase("Year")) {
                 bPubDateYear = true;
+            }
+            
+            // <Month> tag.
+            if (bPubDate && qName.equalsIgnoreCase("Month")) {
+                bPubDateMonth = true;
+            }
+            
+            // <Day> tag.
+            if (bPubDate && qName.equalsIgnoreCase("Day")) {
+                bPubDateDay = true;
             }
 
             // <MedlineDate> tag.
@@ -375,14 +437,34 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (qName.equalsIgnoreCase("Country")) {
                 bGrantCountry = true;
             }
+            
             if (qName.equalsIgnoreCase("CommentsCorrectionsList")) {
                 List<MedlineCitationCommentsCorrections> medlineCitationCommentsCorrections = new ArrayList<>();
                 pubmedArticle.getMedlinecitation().setCommentscorrectionslist(medlineCitationCommentsCorrections);
                 bCommentsCorrectionsList = true;
             }
+            
             if (qName.equalsIgnoreCase("CommentsCorrections") && bCommentsCorrectionsList) {
                 bCommentsCorrections = true;
             }
+            
+            if(qName.equalsIgnoreCase("ArticleDate")) {
+            	bArticleDate = true;
+            	pubmedArticle.getMedlinecitation().getArticle().setArticledate(MedlineCitationDate.builder().build());
+            }
+            
+            if(bArticleDate && qName.equalsIgnoreCase("Year")) {
+            	bArticleDateYear = true;
+            }
+            
+            if(bArticleDate && qName.equalsIgnoreCase("Month")) {
+            	bArticleDateMonth = true;
+            }
+            
+            if(bArticleDate && qName.equalsIgnoreCase("Day")) {
+            	bArticleDateDay = true;
+            }
+            
 
             // not used.
             //		if (qName.equalsIgnoreCase("RefSource") && bCommentsCorrections) {
@@ -548,19 +630,52 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (bPubDate && bPubDateYear) {
                 String pubDateYear = chars.toString();
                 pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate().setYear(pubDateYear);
-                bPubDate = false;
+                //bPubDate = false;
                 bPubDateYear = false;
             }
+            
+            if (bPubDate && bPubDateMonth) {
+                String pubDateMonth = chars.toString();
+                if(pubDateMonth.trim().length() == 3) {
+                	DateTimeFormatter parser = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.ENGLISH);
+        			TemporalAccessor accessor = parser.parse(pubDateMonth);
+        			int monthNumber = accessor.get(ChronoField.MONTH_OF_YEAR);
+    				if(monthNumber != 0 && monthNumber < 10 ) {
+    					pubDateMonth = "0" + String.valueOf(monthNumber);
+    				} else {
+    					pubDateMonth = String.valueOf(monthNumber);
+    				}
+                }
+                pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate().setMonth(pubDateMonth);
+                //bPubDate = false;
+                bPubDateMonth = false;
+            }
+            
+            if (bPubDate && bPubDateDay) {
+                String pubDateDay = chars.toString();
+                pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate().setDay(pubDateDay);
+                //bPubDate = false;
+                bPubDateDay = false;
+            }
+            
 
             // Journal MedlineDate.
             if (bPubDate && bMedlineDate) {
-                String pubDateYear = chars.toString();
-                if (pubDateYear.length() > 4) {
+                String medlineDate = chars.toString();
+                pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().setMedlineDate(medlineDate);
+                MedlineCitationDate medlineCitationDate = pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate();
+                getStandardizedDate(medlineDate, medlineCitationDate);
+                
+                /*if (pubDateYear.length() > 4) {
                     pubDateYear = pubDateYear.substring(0, 4); // PMID = 23849565 <MedlineDate>2013 May-Jun</MedlineDate>
                 }
-                pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate().setYear(pubDateYear);
+                pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate().setYear(pubDateYear);*/
                 bPubDate = false;
                 bMedlineDate = false;
+            }
+            
+            if(qName.equalsIgnoreCase("PubDate")) {
+            	bPubDate = false;
             }
 
             if (bPagination && bMedlinePgn) {
@@ -676,6 +791,29 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bCommentsCorrectionsList = false;
             }
             
+            //End of <ArticleDate> tag
+            if(bArticleDate && qName.equalsIgnoreCase("Year")) {
+            	String articleDateYear = chars.toString();
+            	pubmedArticle.getMedlinecitation().getArticle().getArticledate().setYear(articleDateYear);
+            	bArticleDateYear = false;
+            }
+            
+            if(bArticleDate && qName.equalsIgnoreCase("Month")) {
+            	String articleDateMonth = chars.toString();
+            	pubmedArticle.getMedlinecitation().getArticle().getArticledate().setMonth(articleDateMonth);
+            	bArticleDateMonth = false;
+            }
+            
+            if(bArticleDate && qName.equalsIgnoreCase("Day")) {
+            	String articleDateDay = chars.toString();
+            	pubmedArticle.getMedlinecitation().getArticle().getArticledate().setDay(articleDateDay);
+            	bArticleDateDay = false;
+            }
+            
+            if(qName.equalsIgnoreCase("ArticleDate")) {
+            	bArticleDate = false;
+            }
+            
             if(bPubMedPubDate && bPubMedPubDateYear) {
             	String pubmedPubDateYear = chars.toString();
                 int lastInsertedIndex = pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().size() - 1;
@@ -783,6 +921,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
         if (bPubDate && bPubDateYear) {
             chars.append(ch, start, length);
         }
+        
+        if (bPubDate && bPubDateMonth) {
+            chars.append(ch, start, length);
+        }
+        
+        if (bPubDate && bPubDateDay) {
+            chars.append(ch, start, length);
+        }
 
         if (bPubDate && bMedlineDate) {
             chars.append(ch, start, length);
@@ -821,7 +967,19 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 chars.append(ch, start, length);
             }
         }
-
+        
+        if(bArticleDate && bArticleDateYear) {
+        	chars.append(ch, start, length);
+        }
+        
+        if(bArticleDate && bArticleDateMonth) {
+        	chars.append(ch, start, length);
+        }
+        
+        if(bArticleDate && bArticleDateDay) {
+        	chars.append(ch, start, length);
+        }
+        
         if (bCommentsCorrections && bCommentsCorrectionsPmid) {
             chars.append(ch, start, length);
         }
