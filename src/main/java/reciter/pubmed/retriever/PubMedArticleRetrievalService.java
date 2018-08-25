@@ -13,6 +13,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.callable.PubMedUriParserCallable;
@@ -81,7 +82,7 @@ public class PubMedArticleRetrievalService {
                 String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
                 log.info("eFetchUrl=[{}].", eFetchUrl);
 
-                callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), saxParser, eFetchUrl));
+                callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), saxParser, new InputSource(eFetchUrl)));
 
                 // Update the retstart value.
                 currentRetStart += pubmedXmlQuery.getRetMax();

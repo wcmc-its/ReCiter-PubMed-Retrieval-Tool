@@ -1,5 +1,6 @@
 package reciter.pubmed.xmlparser;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -9,8 +10,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -28,9 +27,8 @@ import java.util.List;
  *
  * @author Jie
  */
+@Slf4j
 public class PubmedESearchHandler extends DefaultHandler {
-
-    private final static Logger slf4jLogger = LoggerFactory.getLogger(PubmedESearchHandler.class);
 
     private String webEnv;
     private int count;
@@ -55,17 +53,17 @@ public class PubmedESearchHandler extends DefaultHandler {
         try {
             inputStream = new URL(eSearchUrl).openStream();
         } catch (IOException e) {
-            slf4jLogger.error("Error in executeESearchQuery", e);
+            log.error("Error in executeESearchQuery", e);
         }
         try {
             SAXParserFactory.newInstance().newSAXParser().parse(inputStream, webEnvHandler);
         } catch (Exception e) {
-            slf4jLogger.error("Error in executeESearchQuery. url=[" + eSearchUrl + "]", e);
+            log.error("Error in executeESearchQuery. url=[" + eSearchUrl + "]", e);
         }*/
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(eSearchUrl);
         pubmedXmlQuery.setRetMax(1);
         String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
-        slf4jLogger.info("ESearch Query=[" + fullUrl + "]");
+        log.info("ESearch Query=[" + fullUrl + "]");
         try {
             HttpClient httpClient = HttpClients.createDefault();
             HttpPost httppost = new HttpPost(PubmedXmlQuery.ESEARCH_BASE_URL);
@@ -90,7 +88,7 @@ public class PubmedESearchHandler extends DefaultHandler {
                 SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, webEnvHandler);
             }
         } catch (SAXException | ParserConfigurationException | IOException e) {
-            slf4jLogger.error("Error parsing XML file for query=[" + eSearchUrl + "], full url=[" + fullUrl + "]", e);
+            log.error("Error parsing XML file for query=[" + eSearchUrl + "], full url=[" + fullUrl + "]", e);
         }
 
         return webEnvHandler;
