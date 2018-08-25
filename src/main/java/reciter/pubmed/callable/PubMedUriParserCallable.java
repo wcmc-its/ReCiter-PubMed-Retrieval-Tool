@@ -1,6 +1,7 @@
 package reciter.pubmed.callable;
 
 import lombok.AllArgsConstructor;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.xmlparser.PubmedEFetchHandler;
@@ -15,14 +16,14 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
 
     private final PubmedEFetchHandler xmlHandler;
     private final SAXParser saxParser;
-    private final String uri;
+    private final InputSource inputSource;
 
-    public List<PubMedArticle> parse(String uri) throws SAXException, IOException {
-        saxParser.parse(uri, xmlHandler);
+    public List<PubMedArticle> parse(InputSource inputSource) throws SAXException, IOException {
+        saxParser.parse(inputSource, xmlHandler);
         return xmlHandler.getPubmedArticles();
     }
 
     public List<PubMedArticle> call() throws Exception {
-        return parse(uri);
+        return parse(inputSource);
     }
 }
