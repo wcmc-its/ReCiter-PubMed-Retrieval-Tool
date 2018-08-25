@@ -1,0 +1,174 @@
+<?xml version="1.0" ?>
+<!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st June 2018//EN" "https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_180601.dtd">
+<PubmedArticleSet>
+    <PubmedArticle>
+        <MedlineCitation Status="In-Process" Owner="NLM">
+            <PMID Version="1">30126453</PMID>
+            <DateRevised>
+                <Year>2018</Year>
+                <Month>08</Month>
+                <Day>21</Day>
+            </DateRevised>
+            <Article PubModel="Electronic">
+                <Journal>
+                    <ISSN IssnType="Electronic">1756-3305</ISSN>
+                    <JournalIssue CitedMedium="Internet">
+                        <Volume>11</Volume>
+                        <Issue>1</Issue>
+                        <PubDate>
+                            <Year>2018</Year>
+                            <Month>Aug</Month>
+                            <Day>20</Day>
+                        </PubDate>
+                    </JournalIssue>
+                    <Title>Parasites &amp; vectors</Title>
+                    <ISOAbbreviation>Parasit Vectors</ISOAbbreviation>
+                </Journal>
+                <ArticleTitle>Sheep breed and shearing influences attraction and blood-feeding behaviour of Culicoides (Diptera: Ceratopogonidae) on a UK farm.</ArticleTitle>
+                <Pagination>
+                    <MedlinePgn>473</MedlinePgn>
+                </Pagination>
+                <ELocationID EIdType="doi" ValidYN="Y">10.1186/s13071-018-3003-5</ELocationID>
+                <Abstract>
+                    <AbstractText Label="BACKGROUND" NlmCategory="BACKGROUND">Culicoides biting midges (Diptera: Ceratopogonidae) are responsible for the biological transmission of arboviruses of international importance between ruminant livestock. These arboviruses include bluetongue virus (BTV) and Schmallenberg virus (SBV), which have emerged in unprecedented outbreaks in northern Europe. The impact of breed and shearing of sheep on Culicoides: host contact rates has not been investigated in detail and has the potential to influence arbovirus transmission and control measures employed to limit spread.</AbstractText>
+                    <AbstractText Label="METHODS" NlmCategory="METHODS">Attraction of Culicoides to Hartline and Hartline/Suffolk cross-breed sheep was compared using 224 drop trap collections over 22 nights and 181 catches from sheared or unsheared Hartline/Suffolk ewes were made over 17 nights to compare Culicoides activity and rates of blood engorgement.</AbstractText>
+                    <AbstractText Label="RESULTS" NlmCategory="RESULTS">A total of 31,314 Culicoides was collected in the two trials and females of the subgenus Avaritia represented over 96.9% of individuals collected. Attraction to breed was dependent upon species of Culicoides and physiological status, with a significantly greater number of individuals collected on the cross-breed sheep. Shearing of sheep did not significantly increase or decrease the number of Culicoides attracted but increased the rate of successful engorgement.</AbstractText>
+                    <AbstractText Label="CONCLUSIONS" NlmCategory="CONCLUSIONS">Both breed and shearing were shown to influence Culicoides biting rate on sheep. These data are useful in a direct context in understanding the likely impact of control measures against arboviruses including BTV and SBV and additionally in providing data from field-based studies to enable modelling exercises of arbovirus transmission and spread.</AbstractText>
+                </Abstract>
+                <AuthorList CompleteYN="Y">
+                    <Author ValidYN="Y">
+                        <LastName>Hope</LastName>
+                        <ForeName>Andrew</ForeName>
+                        <Initials>A</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>The Pirbright Institute, Pirbright, Surrey, UK. andrew.hope@lstmed.ac.uk.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Gubbins</LastName>
+                        <ForeName>Simon</ForeName>
+                        <Initials>S</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>The Pirbright Institute, Pirbright, Surrey, UK.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Sanders</LastName>
+                        <ForeName>Christopher</ForeName>
+                        <Initials>C</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>The Pirbright Institute, Pirbright, Surrey, UK.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Barber</LastName>
+                        <ForeName>James</ForeName>
+                        <Initials>J</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>The Pirbright Institute, Pirbright, Surrey, UK.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Stubbins</LastName>
+                        <ForeName>Francesca</ForeName>
+                        <Initials>F</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>The Pirbright Institute, Pirbright, Surrey, UK.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Baylis</LastName>
+                        <ForeName>Matthew</ForeName>
+                        <Initials>M</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>Liverpool University Climate and Infectious Diseases of Animals (Lucinda) Group, University of Liverpool, Neston, Cheshire, UK.</Affiliation>
+                        </AffiliationInfo>
+                        <AffiliationInfo>
+                            <Affiliation>Health Protection Research Unit in Emerging and Zoonotic Infections, University of Liverpool, Liverpool, UK.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Carpenter</LastName>
+                        <ForeName>Simon</ForeName>
+                        <Initials>S</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>The Pirbright Institute, Pirbright, Surrey, UK.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                </AuthorList>
+                <Language>eng</Language>
+                <GrantList CompleteYN="Y">
+                    <Grant>
+                        <GrantID>BBF0164921</GrantID>
+                        <Agency>Biotechnology and Biological Sciences Research Council</Agency>
+                        <Country>United Kingdom</Country>
+                    </Grant>
+                </GrantList>
+                <PublicationTypeList>
+                    <PublicationType UI="D016428">Journal Article</PublicationType>
+                </PublicationTypeList>
+                <ArticleDate DateType="Electronic">
+                    <Year>2018</Year>
+                    <Month>08</Month>
+                    <Day>20</Day>
+                </ArticleDate>
+            </Article>
+            <MedlineJournalInfo>
+                <Country>England</Country>
+                <MedlineTA>Parasit Vectors</MedlineTA>
+                <NlmUniqueID>101462774</NlmUniqueID>
+                <ISSNLinking>1756-3305</ISSNLinking>
+            </MedlineJournalInfo>
+            <KeywordList Owner="NOTNLM">
+                <Keyword MajorTopicYN="N">Animal husbandry</Keyword>
+                <Keyword MajorTopicYN="N">Arbovirus</Keyword>
+                <Keyword MajorTopicYN="N">Bluetongue virus</Keyword>
+                <Keyword MajorTopicYN="N">Host location</Keyword>
+                <Keyword MajorTopicYN="N">Schmallenberg virus</Keyword>
+                <Keyword MajorTopicYN="N">Vector</Keyword>
+            </KeywordList>
+        </MedlineCitation>
+        <PubmedData>
+            <History>
+                <PubMedPubDate PubStatus="received">
+                    <Year>2017</Year>
+                    <Month>11</Month>
+                    <Day>04</Day>
+                </PubMedPubDate>
+                <PubMedPubDate PubStatus="accepted">
+                    <Year>2018</Year>
+                    <Month>07</Month>
+                    <Day>09</Day>
+                </PubMedPubDate>
+                <PubMedPubDate PubStatus="entrez">
+                    <Year>2018</Year>
+                    <Month>8</Month>
+                    <Day>22</Day>
+                    <Hour>6</Hour>
+                    <Minute>0</Minute>
+                </PubMedPubDate>
+                <PubMedPubDate PubStatus="pubmed">
+                    <Year>2018</Year>
+                    <Month>8</Month>
+                    <Day>22</Day>
+                    <Hour>6</Hour>
+                    <Minute>0</Minute>
+                </PubMedPubDate>
+                <PubMedPubDate PubStatus="medline">
+                    <Year>2018</Year>
+                    <Month>8</Month>
+                    <Day>22</Day>
+                    <Hour>6</Hour>
+                    <Minute>0</Minute>
+                </PubMedPubDate>
+            </History>
+            <PublicationStatus>epublish</PublicationStatus>
+            <ArticleIdList>
+                <ArticleId IdType="pubmed">30126453</ArticleId>
+                <ArticleId IdType="doi">10.1186/s13071-018-3003-5</ArticleId>
+                <ArticleId IdType="pii">10.1186/s13071-018-3003-5</ArticleId>
+            </ArticleIdList>
+        </PubmedData>
+    </PubmedArticle>
+
+</PubmedArticleSet>

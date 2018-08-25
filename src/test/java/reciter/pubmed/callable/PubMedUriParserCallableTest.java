@@ -1,6 +1,6 @@
 package reciter.pubmed.callable;
 
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -12,6 +12,8 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.util.List;
 
+import static org.testng.Assert.assertEquals;
+
 public class PubMedUriParserCallableTest {
 
     private PubmedEFetchHandler xmlHandler;
@@ -19,16 +21,25 @@ public class PubMedUriParserCallableTest {
     private InputSource inputSource;
     private PubMedUriParserCallable pubMedUriParserCallable;
 
-    @BeforeMethod
+    @BeforeClass
     public void setup() throws Exception {
         xmlHandler = new PubmedEFetchHandler();
         saxParser = SAXParserFactory.newInstance().newSAXParser();
-        inputSource = new InputSource("src/test/resources/pubmed/callable/24694772.xml"); // new InputSource(f.toURI().toASCIIString());
-        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
     }
 
+    /**
+     * Test that the PubMed XML handler is able to handle
+     *
+     * @throws SAXException
+     * @throws IOException
+     */
     @Test
-    public void testParse() throws SAXException, IOException {
+    public void testInvalidCharacterParse() throws SAXException, IOException {
+        inputSource = new InputSource("src/test/resources/pubmed/callable/30126453.xml");
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.parse(inputSource);
+        PubMedArticle pubMedArticle = pubMedArticles.get(0);
+        String journalTitle = pubMedArticle.getMedlinecitation().getArticle().getJournal().getTitle();
+        assertEquals(journalTitle, "Parasites & vectors");
     }
 }
