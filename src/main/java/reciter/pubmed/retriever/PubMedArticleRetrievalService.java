@@ -10,6 +10,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 import reciter.model.pubmed.PubMedArticle;
@@ -19,6 +21,7 @@ import reciter.pubmed.xmlparser.PubmedEFetchHandler;
 import reciter.pubmed.xmlparser.PubmedESearchHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +36,14 @@ import java.util.concurrent.Executors;
 public class PubMedArticleRetrievalService {
 
     private static final int RETRIEVAL_THRESHOLD = 2000;
+
+    @Autowired
+    private SAXParser saxParser;
+
+    @Bean
+    public SAXParser saxParser() throws ParserConfigurationException, SAXException {
+        return SAXParserFactory.newInstance().newSAXParser();
+    }
 
     /**
      * Initializes and starts threads that handles the retrieval process. Partition the number of articles
@@ -70,7 +81,7 @@ public class PubMedArticleRetrievalService {
                 String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
                 log.info("eFetchUrl=[{}].", eFetchUrl);
 
-                callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), eFetchUrl));
+                callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), saxParser, eFetchUrl));
 
                 // Update the retstart value.
                 currentRetStart += pubmedXmlQuery.getRetMax();
