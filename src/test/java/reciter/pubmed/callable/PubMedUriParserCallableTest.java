@@ -28,18 +28,19 @@ public class PubMedUriParserCallableTest {
     }
 
     /**
-     * Test that the PubMed XML handler is able to handle
+     * Test that the PubMed XML handler is able to handle special characters.
      *
      * @throws SAXException
      * @throws IOException
      */
     @Test
     public void testInvalidCharacterParse() throws SAXException, IOException {
-        inputSource = new InputSource("src/test/resources/pubmed/callable/30126453.xml");
+        inputSource = new InputSource("src/test/resources/pubmed/callable/28356292.xml");
         pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.parse(inputSource);
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
-        String journalTitle = pubMedArticle.getMedlinecitation().getArticle().getJournal().getTitle();
-        assertEquals(journalTitle, "Parasites & vectors");
+        // String journalTitle = pubMedArticle.getMedlinecitation().getArticle().getJournal().getTitle();
+        String articleTitle = pubMedArticle.getMedlinecitation().getArticle().getArticletitle();
+        assertEquals(articleTitle, "Parasites & vectors");
     }
 }
