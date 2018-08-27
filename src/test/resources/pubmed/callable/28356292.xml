@@ -1,0 +1,496 @@
+<?xml version="1.0" ?>
+<!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st June 2018//EN" "https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_180601.dtd">
+<PubmedArticleSet>
+<PubmedArticle>
+    <MedlineCitation Status="MEDLINE" Owner="NLM">
+        <PMID Version="1">28356292</PMID>
+        <DateCompleted>
+            <Year>2017</Year>
+            <Month>09</Month>
+            <Day>18</Day>
+        </DateCompleted>
+        <DateRevised>
+            <Year>2018</Year>
+            <Month>07</Month>
+            <Day>01</Day>
+        </DateRevised>
+        <Article PubModel="Print-Electronic">
+            <Journal>
+                <ISSN IssnType="Electronic">1522-1466</ISSN>
+                <JournalIssue CitedMedium="Internet">
+                    <Volume>313</Volume>
+                    <Issue>1</Issue>
+                    <PubDate>
+                        <Year>2017</Year>
+                        <Month>07</Month>
+                        <Day>01</Day>
+                    </PubDate>
+                </JournalIssue>
+                <Title>American journal of physiology. Renal physiology</Title>
+                <ISOAbbreviation>Am. J. Physiol. Renal Physiol.</ISOAbbreviation>
+            </Journal>
+            <ArticleTitle>Responses of distal nephron Na<sup>+</sup> transporters to acute volume depletion and hyperkalemia.</ArticleTitle>
+            <Pagination>
+                <MedlinePgn>F62-F73</MedlinePgn>
+            </Pagination>
+            <ELocationID EIdType="doi" ValidYN="Y">10.1152/ajprenal.00668.2016</ELocationID>
+            <Abstract>
+                <AbstractText>We assessed effects of acute volume reductions induced by administration of diuretics in rats. Direct block of Na<sup>+</sup> transport produced changes in urinary electrolyte excretion. Adaptations to these effects appeared as alterations in the expression of protein for the distal nephron Na<sup>+</sup> transporters NCC and ENaC. Two hours after a single injection of furosemide (6 mg/kg) or hydrochlorothiazide (HCTZ; 30 mg/kg) Na<sup>+</sup> and K<sup>+</sup> excretion increased but no changes in the content of activated forms of NCC (phosphorylated on residue T53) or ENaC (cleaved γ-subunit) were detected. In contrast, amiloride (0.6 mg/kg) evoked a similar natriuresis that coincided with decreased pT53NCC and increased cleaved γENaC. Alterations in posttranslational membrane protein processing correlated with an increase in plasma K<sup>+</sup> of 0.6-0.8 mM. Decreased pT53NCC occurred within 1 h after amiloride injection, whereas changes in γENaC were slower and were blocked by the mineralocorticoid receptor antagonist spironolactone. Increased γENaC cleavage correlated with elevation of the surface expression of the subunit as assessed by in situ biotinylation. Na depletion induced by 2 h of furosemide or HCTZ treatment increases total NCC expression without affecting ENaC protein. However, restriction of Na intake for 10 h (during the day) or 18 h (overnight) increased the abundance of both total NCC and of cleaved α- and γENaC. We conclude that the kidneys respond acutely to hyperkalemic challenges by decreasing the activity of NCC while increasing that of ENaC. They respond to hypovolemia more slowly, increasing Na<sup>+</sup> reabsorptive capacities of both of these transporters.</AbstractText>
+                <CopyrightInformation>Copyright © 2017 the American Physiological Society.</CopyrightInformation>
+            </Abstract>
+            <AuthorList CompleteYN="Y">
+                <Author ValidYN="Y">
+                    <LastName>Frindt</LastName>
+                    <ForeName>Gustavo</ForeName>
+                    <Initials>G</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Physiology and Biophysics, Weill-Cornell Medical College, New York, New York.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Yang</LastName>
+                    <ForeName>Lei</ForeName>
+                    <Initials>L</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Physiology and Biophysics, Weill-Cornell Medical College, New York, New York.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Physiology, Harbin University School of Medicine, Harbin, China; and.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Uchida</LastName>
+                    <ForeName>Shinichi</ForeName>
+                    <Initials>S</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Nephrology, Graduate School of Medical and Dental Sciences, Tokyo Medical and Dental University, Tokyo, Japan.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Weinstein</LastName>
+                    <ForeName>Alan M</ForeName>
+                    <Initials>AM</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Physiology and Biophysics, Weill-Cornell Medical College, New York, New York.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Medicine, Weill Cornell Medical College, New York, New York.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Palmer</LastName>
+                    <ForeName>Lawrence G</ForeName>
+                    <Initials>LG</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Physiology and Biophysics, Weill-Cornell Medical College, New York, New York; lgpalm@med.cornell.edu.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+            </AuthorList>
+            <Language>eng</Language>
+            <GrantList CompleteYN="Y">
+                <Grant>
+                    <GrantID>R01 DK099284</GrantID>
+                    <Acronym>DK</Acronym>
+                    <Agency>NIDDK NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
+            </GrantList>
+            <PublicationTypeList>
+                <PublicationType UI="D003160">Comparative Study</PublicationType>
+                <PublicationType UI="D016428">Journal Article</PublicationType>
+                <PublicationType UI="D052061">Research Support, N.I.H., Extramural</PublicationType>
+            </PublicationTypeList>
+            <ArticleDate DateType="Electronic">
+                <Year>2017</Year>
+                <Month>03</Month>
+                <Day>29</Day>
+            </ArticleDate>
+        </Article>
+        <MedlineJournalInfo>
+            <Country>United States</Country>
+            <MedlineTA>Am J Physiol Renal Physiol</MedlineTA>
+            <NlmUniqueID>100901990</NlmUniqueID>
+            <ISSNLinking>1522-1466</ISSNLinking>
+        </MedlineJournalInfo>
+        <ChemicalList>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D004232">Diuretics</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D053503">Epithelial Sodium Channels</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="C507054">Scnn1g protein, rat</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="C578876">Slc12a3 protein, rat</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D064486">Solute Carrier Family 12, Member 3</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0J48LPH2TH</RegistryNumber>
+                <NameOfSubstance UI="D006852">Hydrochlorothiazide</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>27O7W4T232</RegistryNumber>
+                <NameOfSubstance UI="D013148">Spironolactone</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>7DZO8EB0Z3</RegistryNumber>
+                <NameOfSubstance UI="D000584">Amiloride</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>7LXU5N7ZO5</RegistryNumber>
+                <NameOfSubstance UI="D005665">Furosemide</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>9NEZ333N27</RegistryNumber>
+                <NameOfSubstance UI="D012964">Sodium</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>RWP5GA015D</RegistryNumber>
+                <NameOfSubstance UI="D011188">Potassium</NameOfSubstance>
+            </Chemical>
+        </ChemicalList>
+        <CitationSubset>IM</CitationSubset>
+        <CommentsCorrectionsList>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Med. 2010 Jan;16(1):67-74</RefSource>
+                <PMID Version="1">20023637</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2005 Oct;289(4):F699-720</RefSource>
+                <PMID Version="1">15855659</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Clin J Am Soc Nephrol. 2015 Apr 7;10(4):676-87</RefSource>
+                <PMID Version="1">25098598</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Hypertension. 2008 Mar;51(3):588-96</RefSource>
+                <PMID Version="1">18212265</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2005 Oct;289(4):F721-41</RefSource>
+                <PMID Version="1">15855658</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Physiol Rep. 2015 Sep;3(9):null</RefSource>
+                <PMID Version="1">26347505</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2014 Feb 15;306(4):F457-67</RefSource>
+                <PMID Version="1">24402096</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Endocrinology. 1976 Aug;99(2):567-72</RefSource>
+                <PMID Version="1">954653</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Pflugers Arch. 2015 Mar;467(3):513-30</RefSource>
+                <PMID Version="1">25559844</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Pflugers Arch. 2012 Jun;463(6):853-63</RefSource>
+                <PMID Version="1">22549242</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2000 Aug;279(2):F252-8</RefSource>
+                <PMID Version="1">10919843</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Sci Signal. 2014 Jul 15;7(334):re3</RefSource>
+                <PMID Version="1">25028718</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Pflugers Arch. 2016 May;468(5):849-58</RefSource>
+                <PMID Version="1">26898302</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Hypertension. 2016 Oct;68(4):904-12</RefSource>
+                <PMID Version="1">27600183</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2000 Jul;279(1):F161-9</RefSource>
+                <PMID Version="1">10894798</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Physiol. 1952 May;117(1):22-37</RefSource>
+                <PMID Version="1">14946727</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Annu Rev Pharmacol Toxicol. 1986;26:293-309</RefSource>
+                <PMID Version="1">3521458</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Kidney Int. 2017 Feb;91(2):402-411</RefSource>
+                <PMID Version="1">28341239</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Kidney Int. 2008 Dec;74(11):1403-9</RefSource>
+                <PMID Version="1">18800028</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2014 May 1;306(9):F1059-68</RefSource>
+                <PMID Version="1">24598799</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2009 Aug;297(2):F389-96</RefSource>
+                <PMID Version="1">19474187</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Gen Physiol. 2008 Jun;131(6):617-27</RefSource>
+                <PMID Version="1">18504317</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2010 Oct;299(4):F890-7</RefSource>
+                <PMID Version="1">20702602</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Biol Chem. 2014 Apr 25;289(17):11791-806</RefSource>
+                <PMID Version="1">24610784</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Kidney Int. 2016 Jan;89(1):127-34</RefSource>
+                <PMID Version="1">26422504</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Proc Natl Acad Sci U S A. 2009 Mar 17;106(11):4384-9</RefSource>
+                <PMID Version="1">19240212</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol. 1984 Jun;246(6 Pt 2):F937-45</RefSource>
+                <PMID Version="1">6742137</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Clin Invest. 1999 Oct;104(7):R19-23</RefSource>
+                <PMID Version="1">10510339</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>PLoS One. 2012;7(4):e36311</RefSource>
+                <PMID Version="1">22558431</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2013 Aug 15;305(4):F510-9</RefSource>
+                <PMID Version="1">23720346</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2015 Mar 15;308(6):F572-8</RefSource>
+                <PMID Version="1">25520012</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Clin Invest. 2009 Aug;119(8):2423-34</RefSource>
+                <PMID Version="1">19587447</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Am Soc Nephrol. 2012 Jun;23(6):1019-26</RefSource>
+                <PMID Version="1">22440902</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Am Soc Nephrol. 2011 Apr;22(4):605-14</RefSource>
+                <PMID Version="1">21436285</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Proc Natl Acad Sci U S A. 1998 Nov 24;95(24):14552-7</RefSource>
+                <PMID Version="1">9826738</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2009 Nov;297(5):F1249-55</RefSource>
+                <PMID Version="1">19741015</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Gen Physiol. 2016 Mar;147(3):217-27</RefSource>
+                <PMID Version="1">26880754</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Kidney Int. 2013 May;83(5):811-24</RefSource>
+                <PMID Version="1">23447069</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2012 Mar 15;302(6):F658-73</RefSource>
+                <PMID Version="1">22114205</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol. 1977 Feb;232(2):F128-35</RefSource>
+                <PMID Version="1">402818</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Clin Invest. 1975 Aug;56(2):401-7</RefSource>
+                <PMID Version="1">1150878</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Physiol. 2016 Nov 1;594(21):6319-6331</RefSource>
+                <PMID Version="1">27457700</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Kidney Int. 2011 Jan;79(1):66-76</RefSource>
+                <PMID Version="1">20720527</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2017 Jan 1;312(1):F65-F76</RefSource>
+                <PMID Version="1">27413200</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Biochem Biophys Res Commun. 2012 Nov 2;427(4):743-7</RefSource>
+                <PMID Version="1">23044422</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Am J Physiol Renal Physiol. 2006 Sep;291(3):F683-93</RefSource>
+                <PMID Version="1">16554417</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Cell Metab. 2015 Jan 6;21(1):39-50</RefSource>
+                <PMID Version="1">25565204</PMID>
+            </CommentsCorrections>
+        </CommentsCorrectionsList>
+        <MeshHeadingList>
+            <MeshHeading>
+                <DescriptorName UI="D000584" MajorTopicYN="N">Amiloride</DescriptorName>
+                <QualifierName UI="Q000494" MajorTopicYN="N">pharmacology</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D000818" MajorTopicYN="N">Animals</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D004232" MajorTopicYN="N">Diuretics</DescriptorName>
+                <QualifierName UI="Q000494" MajorTopicYN="Y">pharmacology</QualifierName>
+                <QualifierName UI="Q000633" MajorTopicYN="N">toxicity</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D053503" MajorTopicYN="N">Epithelial Sodium Channels</DescriptorName>
+                <QualifierName UI="Q000187" MajorTopicYN="Y">drug effects</QualifierName>
+                <QualifierName UI="Q000378" MajorTopicYN="N">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D005260" MajorTopicYN="N">Female</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D005665" MajorTopicYN="N">Furosemide</DescriptorName>
+                <QualifierName UI="Q000494" MajorTopicYN="N">pharmacology</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D006852" MajorTopicYN="N">Hydrochlorothiazide</DescriptorName>
+                <QualifierName UI="Q000494" MajorTopicYN="N">pharmacology</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D006947" MajorTopicYN="N">Hyperkalemia</DescriptorName>
+                <QualifierName UI="Q000097" MajorTopicYN="N">blood</QualifierName>
+                <QualifierName UI="Q000139" MajorTopicYN="N">chemically induced</QualifierName>
+                <QualifierName UI="Q000378" MajorTopicYN="Y">metabolism</QualifierName>
+                <QualifierName UI="Q000652" MajorTopicYN="N">urine</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D020896" MajorTopicYN="N">Hypovolemia</DescriptorName>
+                <QualifierName UI="Q000097" MajorTopicYN="N">blood</QualifierName>
+                <QualifierName UI="Q000139" MajorTopicYN="N">chemically induced</QualifierName>
+                <QualifierName UI="Q000378" MajorTopicYN="Y">metabolism</QualifierName>
+                <QualifierName UI="Q000652" MajorTopicYN="N">urine</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D008297" MajorTopicYN="N">Male</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D008954" MajorTopicYN="N">Models, Biological</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D009399" MajorTopicYN="N">Nephrons</DescriptorName>
+                <QualifierName UI="Q000187" MajorTopicYN="Y">drug effects</QualifierName>
+                <QualifierName UI="Q000378" MajorTopicYN="N">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D010766" MajorTopicYN="N">Phosphorylation</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D011188" MajorTopicYN="N">Potassium</DescriptorName>
+                <QualifierName UI="Q000097" MajorTopicYN="N">blood</QualifierName>
+                <QualifierName UI="Q000378" MajorTopicYN="Y">metabolism</QualifierName>
+                <QualifierName UI="Q000652" MajorTopicYN="N">urine</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D017207" MajorTopicYN="N">Rats, Sprague-Dawley</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D065667" MajorTopicYN="N">Renal Elimination</DescriptorName>
+                <QualifierName UI="Q000187" MajorTopicYN="N">drug effects</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D012964" MajorTopicYN="N">Sodium</DescriptorName>
+                <QualifierName UI="Q000097" MajorTopicYN="N">blood</QualifierName>
+                <QualifierName UI="Q000378" MajorTopicYN="Y">metabolism</QualifierName>
+                <QualifierName UI="Q000652" MajorTopicYN="N">urine</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D064486" MajorTopicYN="N">Solute Carrier Family 12, Member 3</DescriptorName>
+                <QualifierName UI="Q000187" MajorTopicYN="N">drug effects</QualifierName>
+                <QualifierName UI="Q000378" MajorTopicYN="N">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName UI="D013148" MajorTopicYN="N">Spironolactone</DescriptorName>
+                <QualifierName UI="Q000494" MajorTopicYN="N">pharmacology</QualifierName>
+            </MeshHeading>
+        </MeshHeadingList>
+        <KeywordList Owner="NOTNLM">
+            <Keyword MajorTopicYN="Y">ENaC</Keyword>
+            <Keyword MajorTopicYN="Y">NCC</Keyword>
+            <Keyword MajorTopicYN="Y">amiloride</Keyword>
+            <Keyword MajorTopicYN="Y">furosemide</Keyword>
+            <Keyword MajorTopicYN="Y">hydrochlorothiazide</Keyword>
+            <Keyword MajorTopicYN="Y">hyperkalemia</Keyword>
+        </KeywordList>
+    </MedlineCitation>
+    <PubmedData>
+        <History>
+            <PubMedPubDate PubStatus="received">
+                <Year>2016</Year>
+                <Month>12</Month>
+                <Day>14</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="revised">
+                <Year>2017</Year>
+                <Month>03</Month>
+                <Day>21</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="accepted">
+                <Year>2017</Year>
+                <Month>03</Month>
+                <Day>21</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="pubmed">
+                <Year>2017</Year>
+                <Month>3</Month>
+                <Day>31</Day>
+                <Hour>6</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="medline">
+                <Year>2017</Year>
+                <Month>9</Month>
+                <Day>19</Day>
+                <Hour>6</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="entrez">
+                <Year>2017</Year>
+                <Month>3</Month>
+                <Day>31</Day>
+                <Hour>6</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+        </History>
+        <PublicationStatus>ppublish</PublicationStatus>
+        <ArticleIdList>
+            <ArticleId IdType="pubmed">28356292</ArticleId>
+            <ArticleId IdType="pii">ajprenal.00668.2016</ArticleId>
+            <ArticleId IdType="doi">10.1152/ajprenal.00668.2016</ArticleId>
+            <ArticleId IdType="pmc">PMC5538837</ArticleId>
+        </ArticleIdList>
+    </PubmedData>
+</PubmedArticle>
+
+</PubmedArticleSet>
