@@ -39,8 +39,7 @@ public class PubMedUriParserCallableTest {
         pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.parse(inputSource);
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
-        // String journalTitle = pubMedArticle.getMedlinecitation().getArticle().getJournal().getTitle();
         String articleTitle = pubMedArticle.getMedlinecitation().getArticle().getArticletitle();
-        assertEquals(articleTitle, "Parasites & vectors");
+        assertEquals(articleTitle, "Responses of distal nephron Na<sup>+</sup> transporters to acute volume depletion and hyperkalemia.");
     }
 }
