@@ -18,6 +18,7 @@
  *******************************************************************************/
 package reciter.pubmed.xmlparser;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -33,7 +34,6 @@ import reciter.model.pubmed.MedlineCitationDate;
 import reciter.model.pubmed.MedlineCitationGrant;
 import reciter.model.pubmed.MedlineCitationJournal;
 import reciter.model.pubmed.MedlineCitationJournalISSN;
-import reciter.model.pubmed.MedlineCitationJournalISSN.IssnType;
 import reciter.model.pubmed.MedlineCitationJournalIssue;
 import reciter.model.pubmed.MedlineCitationKeyword;
 import reciter.model.pubmed.MedlineCitationKeywordList;
@@ -151,7 +151,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private List<PubMedArticle> pubmedArticles;
     private PubMedArticle pubmedArticle;
     private StringBuilder chars = new StringBuilder();
-
+    
     public List<PubMedArticle> getPubmedArticles() {
         return pubmedArticles;
     }
@@ -865,13 +865,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
-
+    	
         if (bMedlineCitation && bPMID) {
             chars.append(ch, start, length);
         }
 
         if (bArticle && bArticleTitle) {
-            chars.append(ch, start, length);
+        	chars.append(ch, start, length);
         }
 
         if (bELocationID) {
