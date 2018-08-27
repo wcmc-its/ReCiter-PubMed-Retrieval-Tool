@@ -210,6 +210,9 @@ public class PubmedEFetchHandler extends DefaultHandler {
 				}
 				
 			}
+			if(month == null) {
+				month = "01";
+			}
 			medlineCitationDate.setYear(year);
 			medlineCitationDate.setMonth(month);
 			medlineCitationDate.setDay("01");
