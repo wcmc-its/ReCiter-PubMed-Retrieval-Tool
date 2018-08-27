@@ -34,20 +34,6 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
 
     public List<PubMedArticle> parse(String uri) throws ParserConfigurationException, SAXException, IOException {
         SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();
-        /*URL url = new URL(uri);
-        InputStream in = url.openConnection().getInputStream();
-        StringBuilder textBuilder = new StringBuilder();
-        try (Reader reader = new BufferedReader(new InputStreamReader
-          (in, Charset.forName(StandardCharsets.UTF_8.name())))) {
-            int c = 0;
-            while ((c = reader.read()) != -1) {
-            	textBuilder.append((char) c);
-            }
-        }
-        
-        String xml = textBuilder.toString().replaceAll("<sup>", "&lt;sup&gt;").replaceAll("</sup>", "&lt;/sup&gt;");
-        System.out.println(xml);
-        saxParser.parse(new ByteArrayInputStream(xml.getBytes()), xmlHandler);*/
         saxParser.parse(uri, xmlHandler);
         return xmlHandler.getPubmedArticles();
     }
