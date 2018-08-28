@@ -683,7 +683,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             if (bPagination && bMedlinePgn) {
                 String pagination = chars.toString();
-                pubmedArticle.getMedlinecitation().getArticle().getPagination().getMedlinepgns().add(pagination);
+                if(pagination != null 
+                		&&
+                		!pagination.isEmpty()) {
+                	pubmedArticle.getMedlinecitation().getArticle().getPagination().getMedlinepgns().add(pagination);
+                }
                 bMedlinePgn = false;
             }
 
