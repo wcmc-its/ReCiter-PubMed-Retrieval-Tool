@@ -262,7 +262,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bArticleTitle = true;
             }
 
-            if (qName.equalsIgnoreCase("ELocationID")) {
+            if (qName.equalsIgnoreCase("ELocationID") && attributes.getValue("EIdType").equalsIgnoreCase("doi")) {
                 pubmedArticle.getMedlinecitation().getArticle().setElocationid(MedlineCitationArticleELocationID.builder().build());
                 bELocationID = true;
             }
@@ -550,8 +550,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
 
             if (bELocationID) {
-                String eLocationId = chars.toString();
-                pubmedArticle.getMedlinecitation().getArticle().getElocationid().setElocationid(eLocationId);
+                String eLocationId = chars.toString().trim();
+                if(!eLocationId.contains(" ")) { //Case where doi would have a space in between doi which causes exception when retrieving scopus articles using doi - pmid - 24763504
+                	pubmedArticle.getMedlinecitation().getArticle().getElocationid().setElocationid(eLocationId);
+                }
                 bELocationID = false;
             }
 
