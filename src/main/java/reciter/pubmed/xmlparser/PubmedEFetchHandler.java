@@ -18,7 +18,6 @@
  *******************************************************************************/
 package reciter.pubmed.xmlparser;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;

@@ -43,6 +43,6 @@ public class PubMedUriParserCallableTest {
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.parse(inputSource);
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
         String articleTitle = pubMedArticle.getMedlinecitation().getArticle().getArticletitle();
-        assertEquals(articleTitle, "Responses of distal nephron Na<sup>+</sup> transporters to acute volume depletion and hyperkalemia.");
+        assertEquals(articleTitle, "<i>Responses</i> of <b>distal</b> nephron Na<sup>+</sup> transporters <sub>-</sub> to acute volume depletion and hyperkalemia.");
     }
 }
