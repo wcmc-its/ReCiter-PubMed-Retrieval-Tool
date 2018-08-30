@@ -42,6 +42,12 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
         String xml = IOUtils.toString(inputStream);
         xml = xml.replace("<sup>", "&lt;sup&gt;");
         xml = xml.replace("</sup>", "&lt;/sup&gt;");
+        xml = xml.replace("<sub>", "&lt;sub&gt;");
+        xml = xml.replace("</sub>", "&lt;/sub&gt;");
+        xml = xml.replace("<i>", "&lt;i&gt;");
+        xml = xml.replace("</i>", "&lt;/i&gt;");
+        xml = xml.replace("<b>", "&lt;b&gt;");
+        xml = xml.replace("</b>", "&lt;/b&gt;");
         return new InputSource(new StringReader(xml));
     }
 }
