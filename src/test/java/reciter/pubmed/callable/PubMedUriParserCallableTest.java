@@ -9,6 +9,8 @@ import reciter.pubmed.xmlparser.PubmedEFetchHandler;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -35,7 +37,8 @@ public class PubMedUriParserCallableTest {
      */
     @Test
     public void testInvalidCharacterParse() throws SAXException, IOException {
-        inputSource = new InputSource("src/test/resources/pubmed/callable/28356292.xml");
+        File initialFile = new File("src/test/resources/pubmed/callable/28356292.xml");
+        inputSource = new InputSource(new FileInputStream(initialFile));
         pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.parse(inputSource);
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
