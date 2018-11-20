@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 @Getter
 @Setter
@@ -42,11 +43,11 @@ public class PubMedQuery {
     private String author;
 
     @JsonProperty("start")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd", timezone = "America/New_York")
     private Date start;
 
     @JsonProperty("end")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd", timezone = "America/New_York")
     private Date end;
 
     @JsonProperty("strategy-query")
@@ -58,12 +59,13 @@ public class PubMedQuery {
     @Override
     public String toString() {
         List<String> parts = new ArrayList<>();
+        System.out.println(start.toString() + " " + end.toString());
         if (author != null) {
             //parts.add(author + " [au]");
         	parts.add(author);
         }
         if (start != null && end != null) {
-            parts.add(dt.format(start) + ":" + dt.format(end) + "[DP]");
+            parts.add("(" + dt.format(start) + "[DP]" + ":" + dt.format(end) + "[DP])");
         }
         if (strategyQuery != null && !strategyQuery.isEmpty()) {
             parts.add(strategyQuery);
