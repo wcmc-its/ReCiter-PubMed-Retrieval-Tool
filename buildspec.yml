@@ -17,3 +17,5 @@ phases:
 artifacts:
   files:
     - target/reciter-pubmed-retrieval-tool-0.0.1-SNAPSHOT.jar
+    - .ebextensions/**/* 
+    - Procfile
