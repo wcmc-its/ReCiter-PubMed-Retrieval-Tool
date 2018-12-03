@@ -59,7 +59,6 @@ public class PubMedQuery {
     @Override
     public String toString() {
         List<String> parts = new ArrayList<>();
-        System.out.println(start.toString() + " " + end.toString());
         if (author != null) {
             //parts.add(author + " [au]");
         	parts.add(author);
