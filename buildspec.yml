@@ -14,8 +14,9 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
+      - cp target/reciter-pubmed-retrieval-tool-0.0.1-SNAPSHOT.jar .
 artifacts:
   files:
-    - target/reciter-pubmed-retrieval-tool-0.0.1-SNAPSHOT.jar
+    - reciter-pubmed-retrieval-tool-0.0.1-SNAPSHOT.jar
     - .ebextensions/**/* 
     - Procfile
