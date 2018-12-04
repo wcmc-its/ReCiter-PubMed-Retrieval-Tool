@@ -64,6 +64,8 @@ public class PubmedXmlQuery {
      * thereby appending the results to the existing environment.
      */
     private String webEnv;
+    
+    private String apiKey = "ce4b255ef02d1b1bd00050761a1cbdd1f808";
 
     /**
      * Integer query key returned by a previous ESearch, EPost or Elink call.
@@ -97,6 +99,8 @@ public class PubmedXmlQuery {
         sb.append(ESEARCH_BASE_URL);
         sb.append("?db=");
         sb.append(db);
+        sb.append("&api_key=");
+        sb.append(apiKey);
         sb.append("&retmax=");
         sb.append(retMax);
         sb.append("&usehistory=");
@@ -121,6 +125,8 @@ public class PubmedXmlQuery {
         sb.append(retMode);
         sb.append("&db=");
         sb.append(db);
+        sb.append("&api_key=");
+        sb.append(apiKey);
         sb.append("&retstart=");
         sb.append(retStart);
         sb.append("&retmax=");
