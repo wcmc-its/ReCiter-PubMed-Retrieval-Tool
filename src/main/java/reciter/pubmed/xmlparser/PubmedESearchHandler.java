@@ -2,6 +2,7 @@ package reciter.pubmed.xmlparser;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -13,6 +14,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -67,6 +70,7 @@ public class PubmedESearchHandler extends DefaultHandler {
         try {
             HttpClient httpClient = HttpClients.createDefault();
             HttpPost httppost = new HttpPost(PubmedXmlQuery.ESEARCH_BASE_URL);
+            httppost.setHeader(HttpHeaders.ACCEPT, "application/xml");
             // Request parameters and other properties.
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("db", pubmedXmlQuery.getDb()));

@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -38,6 +39,7 @@ import reciter.pubmed.xmlparser.PubmedESearchHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -92,6 +94,7 @@ public class PubMedRetrievalToolController {
         PubmedESearchHandler pubmedESearchHandler = new PubmedESearchHandler();
         HttpClient httpClient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost(PubmedXmlQuery.ESEARCH_BASE_URL);
+        httppost.setHeader(HttpHeaders.ACCEPT, "application/xml");
         // Request parameters and other properties.
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("db", pubmedXmlQuery.getDb()));
@@ -114,7 +117,6 @@ public class PubMedRetrievalToolController {
             } catch (SAXException | ParserConfigurationException e) {
                 log.error("Error parsing XML file for query=[" + pubMedQuery + "], full url=[" + fullUrl + "]", e);
             }
-            esearchStream.close();
         }
 
         return pubmedESearchHandler.getCount();
