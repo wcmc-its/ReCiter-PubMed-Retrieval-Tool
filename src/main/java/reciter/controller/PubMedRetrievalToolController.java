@@ -114,6 +114,7 @@ public class PubMedRetrievalToolController {
             } catch (SAXException | ParserConfigurationException e) {
                 log.error("Error parsing XML file for query=[" + pubMedQuery + "], full url=[" + fullUrl + "]", e);
             }
+            esearchStream.close();
         }
 
         return pubmedESearchHandler.getCount();
