@@ -94,7 +94,7 @@ public class PubMedRetrievalToolController {
         PubmedESearchHandler pubmedESearchHandler = new PubmedESearchHandler();
         HttpClient httpClient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost(PubmedXmlQuery.ESEARCH_BASE_URL);
-        httppost.setHeader(HttpHeaders.ACCEPT, "application/xml");
+        //httppost.setHeader(HttpHeaders.ACCEPT, "application/xml");
         // Request parameters and other properties.
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("db", pubmedXmlQuery.getDb()));
