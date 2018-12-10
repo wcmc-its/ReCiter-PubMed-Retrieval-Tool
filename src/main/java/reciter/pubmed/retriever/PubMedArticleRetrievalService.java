@@ -2,9 +2,6 @@ package reciter.pubmed.retriever;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.io.ByteOrderMark;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.BOMInputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
