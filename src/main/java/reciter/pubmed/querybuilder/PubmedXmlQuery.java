@@ -99,16 +99,16 @@ public class PubmedXmlQuery {
         sb.append(ESEARCH_BASE_URL);
         sb.append("?db=");
         sb.append(db);
-        sb.append("&api_key=");
-        sb.append(apiKey);
+        sb.append("&term=");
+        sb.append(term);
         sb.append("&retmax=");
         sb.append(retMax);
         sb.append("&usehistory=");
         sb.append(useHistory);
-        sb.append("&term=");
-        sb.append(term);
         sb.append("&retmode=");
         sb.append(retMode);
+        sb.append("&api_key=");
+        sb.append(apiKey);
         return sb.toString();
     }
 
@@ -121,20 +121,20 @@ public class PubmedXmlQuery {
     public String buildEFetchQuery() {
         StringBuilder sb = new StringBuilder();
         sb.append(EFETCH_BASE_URL);
-        sb.append("?retmode=");
-        sb.append(retMode);
-        sb.append("&db=");
+        sb.append("?db=");
         sb.append(db);
-        sb.append("&api_key=");
-        sb.append(apiKey);
+        sb.append("&query_key=");
+        sb.append(queryKey);
         sb.append("&retstart=");
         sb.append(retStart);
         sb.append("&retmax=");
         sb.append(retMax);
-        sb.append("&query_key=");
-        sb.append(queryKey);
+        sb.append("&retmode=");
+        sb.append(retMode);               
         sb.append("&WebEnv=");
         sb.append(webEnv);
+        sb.append("&api_key=");
+        sb.append(apiKey);
         return sb.toString();
     }
 }
