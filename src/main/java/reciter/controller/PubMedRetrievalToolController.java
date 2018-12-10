@@ -86,6 +86,13 @@ public class PubMedRetrievalToolController {
     @RequestMapping(value = "/query-number-pubmed-articles/", method = RequestMethod.POST)
     @ResponseBody
     public int getNumberOfPubMedArticles(@RequestBody PubMedQuery pubMedQuery) throws IOException {
+    	
+    	try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			log.error("InterruptedException", e);
+		}
+    	
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(URLEncoder.encode(pubMedQuery.toString(), "UTF-8"));
         //pubmedXmlQuery.setRetMax(1);
         pubmedXmlQuery.setRetStart(0);

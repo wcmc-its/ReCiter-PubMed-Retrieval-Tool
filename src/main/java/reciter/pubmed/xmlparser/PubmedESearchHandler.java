@@ -1,6 +1,10 @@
 package reciter.pubmed.xmlparser;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -12,6 +16,7 @@ import org.apache.http.client.params.ClientPNames;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -63,6 +68,11 @@ public class PubmedESearchHandler extends DefaultHandler {
         } catch (Exception e) {
             log.error("Error in executeESearchQuery. url=[" + eSearchUrl + "]", e);
         }*/
+    	try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			log.error("InterruptedException", e);
+		}
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(eSearchUrl);
         pubmedXmlQuery.setRetMax(1);
         String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
@@ -89,6 +99,8 @@ public class PubmedESearchHandler extends DefaultHandler {
 
             if (entity != null) {
                 InputStream esearchStream = entity.getContent();
+                //String sanitizedStream = IOUtils.toString(esearchStream).trim().replaceFirst("^([\\W]+)<","<");
+                //log.info(sanitizedStream);
                 SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, webEnvHandler);
             }
         } catch (SAXException | ParserConfigurationException | IOException e) {

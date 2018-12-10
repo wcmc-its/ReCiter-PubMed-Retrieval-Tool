@@ -1,6 +1,10 @@
 package reciter.pubmed.retriever;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -51,6 +55,12 @@ public class PubMedArticleRetrievalService {
      * into manageable pieces and ask each thread to handle one partition.
      */
     public List<PubMedArticle> retrieve(String pubMedQuery) throws IOException {
+    	
+    	try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			log.error("InterruptedException", e);
+		}
 
         int numberOfPubmedArticles = getNumberOfPubMedArticles(pubMedQuery);
         List<PubMedArticle> pubMedArticles = new ArrayList<>();
@@ -139,9 +149,7 @@ public class PubMedArticleRetrievalService {
         HttpEntity entity = response.getEntity();
 
         if (entity != null) {
-
             InputStream esearchStream = entity.getContent();
-
             try {
                 SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
             } catch (SAXException | ParserConfigurationException e) {
