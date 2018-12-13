@@ -178,6 +178,16 @@ public class PubmedEFetchHandler extends DefaultHandler {
     	return pubStatus;
     }
     
+    private String getAbstractTextLabel(Attributes attributes) {
+    	String abstractTextLabel = attributes.getValue("Label");
+    	return abstractTextLabel;
+    }
+    
+    private String getAbstractTextNlmCategory(Attributes attributes) {
+    	String abstractTextNlmCategory = attributes.getValue("NlmCategory");
+    	return abstractTextNlmCategory;
+    }
+    
     /**
      * Pull out year. Year is the first four consecutive numbers in the string.
 	 * Attempt to pull out month. (This won't always work.) Month is the first three consecutive letters. Map these letters to a two-digit month equivalent, e.g., "Feb" --> "02", "Oct" --> "10"
@@ -374,11 +384,17 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bAuthorList = true;
             }
             if (qName.equalsIgnoreCase("Abstract") &&
-                    pubmedArticle != null) { 
+                    pubmedArticle != null) {
+            	pubmedArticle.getMedlinecitation().getArticle().setPublicationAbstract(MedlineCitationArticleAbstract.builder().abstractTexts(new ArrayList<>()).build());
                 bAbstract = true;
             }
             if (qName.equalsIgnoreCase("AbstractText") && bAbstract) {
+            	MedlineCitationArticleAbstractText abstractText = MedlineCitationArticleAbstractText.builder().abstractTextLabel(getAbstractTextLabel(attributes)).abstractTextNlmCategory(getAbstractTextNlmCategory(attributes)).build();
+            	pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().add(abstractText);
                 bAbstractText = true;
+            }
+            if (qName.equalsIgnoreCase("CopyrightInformation") && bAbstract) {
+                bCopyrightInformation = true;
             }
             if (qName.equalsIgnoreCase("PublicationTypeList") &&
                     pubmedArticle != null) {
@@ -731,10 +747,17 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             //Abstract
             if (bAbstractText && bAbstract) {
-                MedlineCitationArticleAbstract publicationAbstract = MedlineCitationArticleAbstract.builder().build();
-                publicationAbstract.setAbstractText(chars.toString());
-                pubmedArticle.getMedlinecitation().getArticle().setPublicationAbstract(publicationAbstract);
+                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().size() - 1;
+                String publicationAbstractText = chars.toString();
+                pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().get(lastInsertedIndex).setAbstractText(publicationAbstractText);
                 bAbstractText = false;
+            }
+            
+            if (bCopyrightInformation && bAbstract) {
+                MedlineCitationArticleAbstract publicationAbstract = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract();
+                publicationAbstract.setCopyrightInformation(chars.toString());
+                //pubmedArticle.getMedlinecitation().getArticle().setPublicationAbstract(publicationAbstract);
+                bCopyrightInformation = false;
             }
             
             if (qName.equalsIgnoreCase("Abstract")) {
@@ -1030,6 +1053,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
         
         if(bAbstractText &&  bAbstract) {
+        	chars.append(ch, start, length);
+        }
+        
+        if(bCopyrightInformation &&  bAbstract) {
         	chars.append(ch, start, length);
         }
         
