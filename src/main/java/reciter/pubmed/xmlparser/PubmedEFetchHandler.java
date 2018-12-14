@@ -25,6 +25,9 @@ import org.xml.sax.helpers.DefaultHandler;
 import reciter.model.pubmed.History;
 import reciter.model.pubmed.MedlineCitation;
 import reciter.model.pubmed.MedlineCitationArticle;
+import reciter.model.pubmed.MedlineCitationArticleAbstract;
+import reciter.model.pubmed.MedlineCitationArticleAbstractText;
+import reciter.model.pubmed.MedlineCitationArticleAbstractText.MedlineCitationArticleAbstractTextBuilder;
 import reciter.model.pubmed.MedlineCitationArticleAuthor;
 import reciter.model.pubmed.MedlineCitationArticleELocationID;
 import reciter.model.pubmed.MedlineCitationArticlePagination;
@@ -40,6 +43,7 @@ import reciter.model.pubmed.MedlineCitationMeshHeading;
 import reciter.model.pubmed.MedlineCitationMeshHeadingDescriptorName;
 import reciter.model.pubmed.MedlineCitationMeshHeadingQualifierName;
 import reciter.model.pubmed.MedlineCitationPMID;
+import reciter.model.pubmed.MedlineCitationPublicationType;
 import reciter.model.pubmed.MedlineCitationYNEnum;
 import reciter.model.pubmed.PubMedArticle;
 import reciter.model.pubmed.PubMedData;
@@ -172,6 +176,16 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private String getPubStatus(Attributes attributes) {
     	String pubStatus = attributes.getValue("PubStatus");
     	return pubStatus;
+    }
+    
+    private String getAbstractTextLabel(Attributes attributes) {
+    	String abstractTextLabel = attributes.getValue("Label");
+    	return abstractTextLabel;
+    }
+    
+    private String getAbstractTextNlmCategory(Attributes attributes) {
+    	String abstractTextNlmCategory = attributes.getValue("NlmCategory");
+    	return abstractTextNlmCategory;
     }
     
     /**
@@ -364,6 +378,33 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (qName.equalsIgnoreCase("Affiliation")) {
                 bAffiliation = true;
             }
+            if (qName.equalsIgnoreCase("AuthorList") &&
+                    pubmedArticle != null) {
+                pubmedArticle.getMedlinecitation().getArticle().setAuthorlist(new ArrayList<>()); // set the PubmedArticle's MedlineCitation's MedlineCitationArticle's title.
+                bAuthorList = true;
+            }
+            if (qName.equalsIgnoreCase("Abstract") &&
+                    pubmedArticle != null) {
+            	pubmedArticle.getMedlinecitation().getArticle().setPublicationAbstract(MedlineCitationArticleAbstract.builder().abstractTexts(new ArrayList<>()).build());
+                bAbstract = true;
+            }
+            if (qName.equalsIgnoreCase("AbstractText") && bAbstract) {
+            	MedlineCitationArticleAbstractText abstractText = MedlineCitationArticleAbstractText.builder().abstractTextLabel(getAbstractTextLabel(attributes)).abstractTextNlmCategory(getAbstractTextNlmCategory(attributes)).build();
+            	pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().add(abstractText);
+                bAbstractText = true;
+            }
+            if (qName.equalsIgnoreCase("CopyrightInformation") && bAbstract) {
+                bCopyrightInformation = true;
+            }
+            if (qName.equalsIgnoreCase("PublicationTypeList") &&
+                    pubmedArticle != null) {
+                pubmedArticle.getMedlinecitation().getArticle().setPublicationtypelist(new ArrayList<>()); // set the PubmedArticle's MedlineCitation's MedlineCitationArticle's title.
+                bPublicationTypeList = true;
+            }
+            if (qName.equalsIgnoreCase("PublicationType") && bPublicationTypeList) {
+                bPublicationType = true;
+            }
+            
             if (qName.equalsIgnoreCase("KeywordList")) {
                 pubmedArticle.getMedlinecitation().setKeywordlist(
                         MedlineCitationKeywordList
@@ -691,7 +732,38 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 }
                 bMedlinePgn = false;
             }
+            
+            //Publication Type
+            if (bPublicationTypeList && bPublicationType) {
+                MedlineCitationPublicationType publicationType = MedlineCitationPublicationType.builder().build();
+                publicationType.setPublicationtype(chars.toString());
+                pubmedArticle.getMedlinecitation().getArticle().getPublicationtypelist().add(publicationType);
+                bPublicationType = false;
+            }
+            
+            if (qName.equalsIgnoreCase("PublicationTypeList")) {
+                bPublicationTypeList = false;
+            }
 
+            //Abstract
+            if (bAbstractText && bAbstract) {
+                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().size() - 1;
+                String publicationAbstractText = chars.toString();
+                pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().get(lastInsertedIndex).setAbstractText(publicationAbstractText);
+                bAbstractText = false;
+            }
+            
+            if (bCopyrightInformation && bAbstract) {
+                MedlineCitationArticleAbstract publicationAbstract = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract();
+                publicationAbstract.setCopyrightInformation(chars.toString());
+                //pubmedArticle.getMedlinecitation().getArticle().setPublicationAbstract(publicationAbstract);
+                bCopyrightInformation = false;
+            }
+            
+            if (qName.equalsIgnoreCase("Abstract")) {
+            	bAbstract = false;
+            }
+            
             // Keyword.
             if (bKeywordList && bKeyword) {
                 MedlineCitationKeyword keyword = MedlineCitationKeyword.builder().build();
@@ -738,7 +810,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (qName.equalsIgnoreCase("Pagination")) {
                 bPagination = false;
             }
-
+            
             // End of GrantID tag.
             if (bGrant && bGrantId) {
                 String grantId = chars.toString();
@@ -974,6 +1046,18 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (chars.length() == 0) {
                 chars.append(ch, start, length);
             }
+        }
+        
+        if(bPublicationTypeList && bPublicationType) {
+        	chars.append(ch, start, length);
+        }
+        
+        if(bAbstractText &&  bAbstract) {
+        	chars.append(ch, start, length);
+        }
+        
+        if(bCopyrightInformation &&  bAbstract) {
+        	chars.append(ch, start, length);
         }
         
         if(bArticleDate && bArticleDateYear) {
