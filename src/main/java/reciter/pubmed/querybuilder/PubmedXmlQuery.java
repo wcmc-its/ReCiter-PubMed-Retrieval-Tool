@@ -65,7 +65,7 @@ public class PubmedXmlQuery {
      */
     private String webEnv;
     
-    private String apiKey = "ce4b255ef02d1b1bd00050761a1cbdd1f808";
+    private String apiKey = System.getenv("PUBMED_API_KEY");//"ce4b255ef02d1b1bd00050761a1cbdd1f808";
 
     /**
      * Integer query key returned by a previous ESearch, EPost or Elink call.
