@@ -928,11 +928,19 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bPubmedData = false;
             }
             
-            if (qName.equalsIgnoreCase("ArticleIdList") && bArticleId && bArticleIdPmc) {
+            if (bArticleIdPmc) {
                 pubmedArticle.getPubmeddata().getArticleIdList().setPmc(chars.toString());
                 bArticleIdPmc = false;
                 bArticleId = false;
                 bArticleIdList = false;
+            }
+            
+            if (qName.equalsIgnoreCase("ArticleId") && bArticleIdList) {
+	            bArticleId = false;
+            }
+            
+            if (qName.equalsIgnoreCase("ArticleIdList")) {
+	            bArticleIdList = false;
             }
 
             /*if (qName.equalsIgnoreCase("ArticleIdList")) {
