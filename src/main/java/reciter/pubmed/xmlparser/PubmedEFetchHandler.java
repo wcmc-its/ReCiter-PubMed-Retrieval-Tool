@@ -22,6 +22,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import reciter.model.pubmed.ArticleIdList;
 import reciter.model.pubmed.History;
 import reciter.model.pubmed.MedlineCitation;
 import reciter.model.pubmed.MedlineCitationArticle;
@@ -69,6 +70,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bPubmedArticle;
     private boolean bMedlineCitation;
     private boolean bPMID;
+    private boolean bPMCID;
     private boolean bDateCreated;
     private boolean bDateCreatedYear;
     private boolean bDateCreatedMonth;
@@ -550,8 +552,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             if (qName.equalsIgnoreCase("ArticleIdList")) {
                 bArticleIdList = true;
-                // TODO figure out what's going on here.
-                //            pubmedArticle.getPubmeddata().setArticleIdList(new ArticleIdList());
             }
 
             if (qName.equalsIgnoreCase("ArticleId")) {
@@ -564,6 +564,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 } else if ("doi".equals(idType)) {
                     bArticleIdDoi = true;
                 } else if ("pmc".equals(idType)) {
+                	pubmedArticle.getPubmeddata().setArticleIdList(new ArticleIdList());
                     bArticleIdPmc = true;
                 }
             }
@@ -926,20 +927,23 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (qName.equalsIgnoreCase("PubmedData")) {
                 bPubmedData = false;
             }
+            
+            if (qName.equalsIgnoreCase("ArticleIdList") && bArticleId && bArticleIdPmc) {
+                pubmedArticle.getPubmeddata().getArticleIdList().setPmc(chars.toString());
+                bArticleIdPmc = false;
+                bArticleId = false;
+                bArticleIdList = false;
+            }
 
-            if (qName.equalsIgnoreCase("ArticleIdList")) {
+            /*if (qName.equalsIgnoreCase("ArticleIdList")) {
                 bArticleIdList = false;
                 bArticleId = false;
-                bArticleIdPmc = false;
                 bArticleIdPubMed = false;
                 bArticleIdPii = false;
                 bArticleIdDoi = false;
-            }
+            }*/
 
-            if (bArticleIdPmc) {
-                // TODO figure out what's going on here.
-                //            pubmedArticle.getPubmeddata().getArticleIdList().setPmc(chars.toString());
-            }
+            
         }
     }
 
