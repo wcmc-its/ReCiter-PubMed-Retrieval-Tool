@@ -75,12 +75,12 @@ public class PubMedRetrievalToolController {
         return ResponseEntity.ok(pubMedArticles);
     }
 
-    @RequestMapping(value = "/query-doi/", method = RequestMethod.POST)
+    /*@RequestMapping(value = "/query-doi/", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<List<PubMedArticle>> queryDoi(@RequestBody PubMedQuery pubMedQuery) throws IOException {
         List<PubMedArticle> pubMedArticles = query(pubMedQuery.getDoi(), null);
         return ResponseEntity.ok(pubMedArticles);
-    }
+    }*/
 
     @RequestMapping(value = "/query-number-pubmed-articles/", method = RequestMethod.POST)
     @ResponseBody
