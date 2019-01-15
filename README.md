@@ -1,7 +1,7 @@
 # ReCiter-PubMed-Retrieval-Tool
 
 ![Build Status](https://codebuild.us-east-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiV0w5MExveXNpdzBrL1hRMDlmYjhLNjRFek1NdTVxMk9BOWZEcDdxVENuZXNQS0FGdlZxY3h3Smd1b3ArTVhNTzUvK1pXVlI3N1JkdmRXNiswc1VPcHNjPSIsIml2UGFyYW1ldGVyU3BlYyI6IllneSs4bG9NNmMyeEtWOTkiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
-[![GitHub version](https://badge.fury.io/gh/wcmc-its%2FReCiter-PubMed-Retrieval-Tool.svg)](https://badge.fury.io/gh/wcmc-its%2FReCiter-PubMed-Retrieval-Tool)
+![version](https://img.shields.io/badge/version-1.0-blue.svg?maxAge=2592000)
 [![codebeat badge](https://codebeat.co/badges/26e88904-3263-47f3-a246-7c65979cca46)](https://codebeat.co/projects/github-com-wcmc-its-reciter-pubmed-retrieval-tool-master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
