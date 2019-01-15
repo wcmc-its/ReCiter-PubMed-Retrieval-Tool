@@ -14,6 +14,7 @@
 
 ReCiter PubMed Retrieval Tool is a REST API for retrieving PubMed articles from https://www.ncbi.nlm.nih.gov/pubmed/. You can pass a PubMed query to the REST API and it will return list of PubMed article objects.
 
+
 ## Getting Started
 
 Instructions for getting started are in the simple.
@@ -28,6 +29,25 @@ where `kukafka[au]` is a sample PubMed query.
 2. Import project into Eclipse, Intellij or your favorite IDE.
 3. Clone the project into your local workspace by `git clone https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool.git`.
 -->
+
+
+
+
+
+## Getting a PubMed API key
+
+As a default, this applicaiton works without an API key, however we recommend that you get an API key issued by NCBI. This allows you to make more requests per second.
+
+Here's how you can get an API key and use it with this application:
+
+1. Get an API key as per (these directions)[https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/] from NCBI.
+
+2. Enter the API key into your Environment Variables where field name = `PUBMED_API_KEY`.
+- If you are deploying locally, go to terminal and write `export PUBMED_API_KEY={api-key}`. 
+- If you are deploying to an AWS instance, add the environorment variable in the Elastic Beanstalk configuration section.
+
+ 
+
 ## Getting Help
 
 For help with ReCiter-PubMed-Retrieval-Tool, please email Jie Lin (jie265@gmail.com). You may expect a response within one to two business days. We use GitHub issues to track bugs and feature requests. If you find a bug, please contact Jie Lin or feel free to open an issue.
