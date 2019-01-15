@@ -107,8 +107,12 @@ public class PubmedXmlQuery {
         sb.append(useHistory);
         sb.append("&retmode=");
         sb.append(retMode);
-        sb.append("&api_key=");
-        sb.append(apiKey);
+        if(apiKey != null) {
+	    		if(!apiKey.isEmpty()) {
+		        sb.append("&api_key=");
+		        sb.append(apiKey);
+	    		}
+        }
         return sb.toString();
     }
 
@@ -133,8 +137,12 @@ public class PubmedXmlQuery {
         sb.append(retMode);               
         sb.append("&WebEnv=");
         sb.append(webEnv);
-        sb.append("&api_key=");
-        sb.append(apiKey);
+        if(apiKey != null) {
+        		if(!apiKey.isEmpty()) {
+		        sb.append("&api_key=");
+		        sb.append(apiKey);
+        		}
+        }
         return sb.toString();
     }
 }
