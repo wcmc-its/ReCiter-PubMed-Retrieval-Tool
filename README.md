@@ -40,7 +40,7 @@ As a default, this applicaiton works without an API key, however we recommend th
 
 Here's how you can get an API key and use it with this application:
 
-1. Get an API key as per (these directions)[https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/] from NCBI.
+1. Get an API key as per [these directions](https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/) from NCBI.
 
 2. Enter the API key into your Environment Variables where field name = `PUBMED_API_KEY`.
 - If you are deploying locally, go to terminal and write `export PUBMED_API_KEY={api-key}`. 
