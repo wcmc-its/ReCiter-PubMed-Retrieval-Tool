@@ -30,5 +30,16 @@ Here's how you can get an API key and use it with this application:
 - If you are deploying to an AWS instance, [add the environment variable](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-cfg-softwaresettings.html#environments-cfg-softwaresettings-console) in the Elastic Beanstalk configuration section.
 
 
+## Using
+
+### Simple search
+
+1. Click on `/pubmed/query/{query}`
+2. Enter your query. This tool supports all syntax that the PubMed interface does. 
+3. Click execute.
+
+![https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/master/files/SearchPubMed.gif](https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/master/files/SearchPubMed.gif)
+
+
 
 
