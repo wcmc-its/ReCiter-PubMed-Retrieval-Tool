@@ -12,10 +12,13 @@
 [![Github All Releases](https://img.shields.io/github/downloads/wcmc-its/ReCiter-PubMed-Retrieval-Tool/total.svg)]()
 [![Open Source Love](https://badges.frapsoft.com/os/v3/open-source.svg?v=102)](https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/) 
 
-ReCiter PubMed Retrieval Tool is a REST API for retrieving PubMed articles from https://www.ncbi.nlm.nih.gov/pubmed/. You can pass a PubMed query to the REST API and it will return list of PubMed article objects.
+NCBI offers (several methods)[https://www.ncbi.nlm.nih.gov/pmc/tools/get-metadata/] for accessing its data. None of the methods fully support a RESTful interface returning JSON.
+
+The ReCiter PubMed Retrieval Tool is a REST API for retrieving PubMed articles from https://www.ncbi.nlm.nih.gov/pubmed/. You can pass a any PubMed query to the REST API and it will return list of PubMed article objects or a return count of the number of records.
 
 ## Installing
 
+To provide...
 
 ## Configuring the API key
 
@@ -32,14 +35,37 @@ Here's how you can get an API key and use it with this application:
 
 ## Using
 
-### Simple search
+The PubMed Retrieval Tool supports all syntax that the PubMed interface does, however, it does not return all fields. To see which fields are returned, view the (PubMed Data Model)[https://github.com/wcmc-its/ReCiter-PubMed-Model]. Note also that the Swagger interface translates your request into the cURL syntax.
 
-1. Click on `/pubmed/query/{query}`
-2. Enter your query. This tool supports all syntax that the PubMed interface does. 
-3. Click execute.
+### Search using "/pubmed/query/"
+
+1. Go to the Swagger interface for PubMed Retrieval Tool.
+2. Click on `/pubmed/query/{query}`
+3. Enter your query. 
+4. Click execute.
 
 ![https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/master/files/SearchPubMed.gif](https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/master/files/SearchPubMed.gif)
 
+#### Return only certain fields
 
+You may also specify which fields you'd like to return. For example: `medlinecitation.medlinecitationpmid.pmid` or `medlinecitation.medlinecitationpmid.pmid,medlinecitation.article.journal.issn.issn`. Fields have to be fully qualified by path. If you have multiple fields, they need to be comma-delimited.
+
+![https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/master/files/SearchPubMed-QualifyByField.gif](https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/master/files/SearchPubMed-QualifyByField.gif)
+
+### Get count of results using "/pubmed/query-number-pubmed-articles/"
+
+Given the number of results that can be returned for some searches, e.g., `Wang Y[au]`, it's helpful to know the number of results a given query returns.
+
+1. Go to the Swagger interface for PubMed Retrieval Tool.
+2. Click on `/pubmed/query-number-pubmed-articles/`
+3. Enter search. For example:
+```
+{
+  "strategy-query": "Bales ME[au]"
+}
+```
+4. Click execute.
+
+![https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/master/files/CountArticlesPubMed.gif](https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/master/files/CountArticlesPubMed.gif)
 
 
