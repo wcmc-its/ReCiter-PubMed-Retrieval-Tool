@@ -12,7 +12,7 @@
 [![Github All Releases](https://img.shields.io/github/downloads/wcmc-its/ReCiter-PubMed-Retrieval-Tool/total.svg)]()
 [![Open Source Love](https://badges.frapsoft.com/os/v3/open-source.svg?v=102)](https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/) 
 
-NCBI offers (several methods)[https://www.ncbi.nlm.nih.gov/pmc/tools/get-metadata/] for accessing its data. None of the methods fully support a RESTful interface returning JSON.
+NCBI offers [several methods](https://www.ncbi.nlm.nih.gov/pmc/tools/get-metadata/) for accessing its data. None of the methods fully support a RESTful interface returning JSON.
 
 The ReCiter PubMed Retrieval Tool is a REST API for retrieving PubMed articles from https://www.ncbi.nlm.nih.gov/pubmed/. You can pass a any PubMed query to the REST API and it will return list of PubMed article objects or a return count of the number of records.
 
