@@ -22,10 +22,11 @@ This application was written to work with [ReCiter](https://github.com/wcmc-its/
 2. Clone the repository: `git clone https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool.git`
 3. Navigate to the newly installed folder: `cd ReCiter-PubMed-Retrieval-Tool`
 4. Use Maven to build the project: `mvn clean install -Dmaven.test.skip=true`
-5. Set the API key. (See Configuring the API key below) 
+5. Set the API key. (See "Obtaining an API key" below) 
 - Option #1: Command line
   - Enter `export PUBMED_API_KEY=[enter your API key here]`
-- Option #2: In Eclipse application
+- Option #2: Enter as an environment variable AWS itself. If you are deploying to an AWS instance, [add the environment variable](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-cfg-softwaresettings.html#environments-cfg-softwaresettings-console) in the Elastic Beanstalk configuration section.
+- Option #3: In Eclipse application
   - Open Eclipse
   - Right-click on Application.java found here: ReCiter-PubMed-Retrieval-Tool --> src/main/java --> reciter --> Application.java
   - Click on "Run As..." --> "Run Configurations..."
@@ -38,17 +39,12 @@ This application was written to work with [ReCiter](https://github.com/wcmc-its/
 7. Build Maven instance `mvn spring-boot:run`
 8. Visit `http://localhost:[your port number]` to see the Swagger page for this service.
 
-## Configuring the API key
+## Obtaining an API key
 
 As a default, the PubMed Retrieval Tool works without a PubMed API key, however we recommend that you get an API key issued by NCBI. This allows you to make more requests per second.
 
-Here's how you can get an API key and use it with this application:
+[These directions](https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/) show how you can get an API key and use it with this application.
 
-1. Get an API key as per [these directions](https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/) from NCBI.
-
-2. Enter the API key into your Environment Variables where field name = `PUBMED_API_KEY`.
-- If you are deploying locally, go to terminal and write `export PUBMED_API_KEY={api-key}`. 
-- If you are deploying to an AWS instance, [add the environment variable](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-cfg-softwaresettings.html#environments-cfg-softwaresettings-console) in the Elastic Beanstalk configuration section.
 
 
 ## Using
