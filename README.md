@@ -37,7 +37,7 @@ This application was written to work with [ReCiter](https://github.com/wcmc-its/
 - Option #1: Set at the system level using this command `export SERVER_PORT=[your port number]`. This supersedes any ports set in application.properties.
 - Option #2: Update the application.properties file located at `/src/main/resources/` Make sure the port doesn't conflict with other services such as ReCiter or ReCiter PubMed Retrieval Tool.
 7. Build Maven instance `mvn spring-boot:run`
-8. Visit `http://localhost:[your port number]` to see the Swagger page for this service.
+8. Visit `http://localhost:[your port number]/swagger-ui.html` to see the Swagger page for this service.
 
 ## Obtaining an API key
 
