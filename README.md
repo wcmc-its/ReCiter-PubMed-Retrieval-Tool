@@ -25,7 +25,7 @@ This application was written to work with [ReCiter](https://github.com/wcmc-its/
 5. Set the API key. (See "Obtaining an API key" below) 
 - Option #1: Command line
   - Enter `export PUBMED_API_KEY=[enter your API key here]`
-- Option #2: Enter as an environment variable AWS itself. If you are deploying to an AWS instance, [add the environment variable](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-cfg-softwaresettings.html#environments-cfg-softwaresettings-console) in the Elastic Beanstalk configuration section.
+- Option #2: Enter as an environment variable in AWS itself. If you are deploying to an AWS instance, [add the environment variable](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-cfg-softwaresettings.html#environments-cfg-softwaresettings-console) in the Elastic Beanstalk configuration section.
 - Option #3: In Eclipse application
   - Open Eclipse
   - Right-click on Application.java found here: ReCiter-PubMed-Retrieval-Tool --> src/main/java --> reciter --> Application.java
