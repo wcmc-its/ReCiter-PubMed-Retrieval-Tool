@@ -18,7 +18,25 @@ This application was written to work with [ReCiter](https://github.com/wcmc-its/
 
 ## Installing
 
-To provide...
+1. Navigate to directory where you wish to install the application, e.g., `cd ~/Paul/Documents/`
+2. Clone the repository: `git clone https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool.git`
+3. Navigate to the newly installed folder: `cd ReCiter-PubMed-Retrieval-Tool`
+4. Use Maven to build the project: `mvn clean install -Dmaven.test.skip=true`
+5. Set the API key. (See Configuring the API key below) 
+- Option #1: Command line
+  - Enter `export PUBMED_API_KEY=[enter your API key here]`
+- Option #2: In Eclipse application
+  - Open Eclipse
+  - Right-click on Application.java found here: ReCiter-PubMed-Retrieval-Tool --> src/main/java --> reciter --> Application.java
+  - Click on "Run As..." --> "Run Configurations..."
+  - Click on "ReCiter-PubMed-Retrieval-Tool" in sidebar
+  - Click on "Environment" tab
+  - Under variable, add "PUBMED_API_KEY" and enter the API key.
+6. Set the desired port
+- Option #1: Set at the system level using this command `export SERVER_PORT=[your port number]`. This supersedes any ports set in application.properties.
+- Option #2: Update the application.properties file located at `/src/main/resources/` Make sure the port doesn't conflict with other services such as ReCiter or ReCiter PubMed Retrieval Tool.
+7. Build Maven instance `mvn spring-boot:run`
+8. Visit `http://localhost:[your port number]` to see the Swagger page for this service.
 
 ## Configuring the API key
 
