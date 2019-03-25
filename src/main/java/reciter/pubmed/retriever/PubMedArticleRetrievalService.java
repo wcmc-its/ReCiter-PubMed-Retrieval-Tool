@@ -2,6 +2,8 @@ package reciter.pubmed.retriever;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -16,8 +18,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.callable.PubMedUriParserCallable;
+import reciter.pubmed.model.PubmedESearchResult;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 import reciter.pubmed.xmlparser.PubmedEFetchHandler;
 import reciter.pubmed.xmlparser.PubmedESearchHandler;
@@ -27,11 +35,14 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -53,17 +64,16 @@ public class PubMedArticleRetrievalService {
      */
     public List<PubMedArticle> retrieve(String pubMedQuery) throws IOException {
     	
-    	try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			log.error("InterruptedException", e);
-		}
+    	PubmedESearchResult eSearchResult = new PubmedESearchResult();
+    	eSearchResult = getNumberOfPubMedArticles(pubMedQuery);
 
-        int numberOfPubmedArticles = getNumberOfPubMedArticles(pubMedQuery);
+        int numberOfPubmedArticles = eSearchResult.getCount();//getNumberOfPubMedArticles(pubMedQuery);
         List<PubMedArticle> pubMedArticles = new ArrayList<>();
 
         if (numberOfPubmedArticles <= RETRIEVAL_THRESHOLD) {
             ExecutorService executor = Executors.newWorkStealingPool();
+        	//ScheduledExecutorService executor = (ScheduledExecutorService) Executors.newScheduledThreadPool(10);
+        	
 
             // Get the count (number of publications for this query).
             PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery();
@@ -81,9 +91,12 @@ public class PubMedArticleRetrievalService {
             while (numberOfPubmedArticles > 0) {
                 // Get webenv value.
                 pubmedXmlQuery.setRetStart(currentRetStart);
-                String eSearchUrl = pubmedXmlQuery.buildESearchQuery();
+                //String eSearchUrl = pubmedXmlQuery.buildESearchQuery();
 
-                pubmedXmlQuery.setWebEnv(PubmedESearchHandler.executeESearchQuery(pubmedXmlQuery.getTerm()).getWebEnv());
+                //pubmedXmlQuery.setWebEnv(PubmedESearchHandler.executeESearchQuery(pubmedXmlQuery.getTerm()).getWebenv());
+                if(eSearchResult.getWebenv() != null) {
+                	pubmedXmlQuery.setWebEnv(eSearchResult.getWebenv());
+                }
 
                 // Use the webenv value to retrieve xml.
                 String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
@@ -96,6 +109,13 @@ public class PubMedArticleRetrievalService {
                 pubmedXmlQuery.setRetStart(currentRetStart);
                 numberOfPubmedArticles -= pubmedXmlQuery.getRetMax();
             }
+            
+			
+			/*
+			 * for(Callable<List<PubMedArticle>> callable: callables) {
+			 * executor.schedule(callable, 5, TimeUnit.SECONDS); }
+			 */
+			 
 
             try {
                 executor.invokeAll(callables)
@@ -117,13 +137,14 @@ public class PubMedArticleRetrievalService {
         return pubMedArticles;
     }
 
-    protected int getNumberOfPubMedArticles(String query) throws IOException {
+    protected PubmedESearchResult getNumberOfPubMedArticles(String query) throws IOException {
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(query);
         //pubmedXmlQuery.setRetMax(1);
         String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
         log.info("ESearch Query=[{}]", fullUrl);
 
         PubmedESearchHandler pubmedESearchHandler = new PubmedESearchHandler();
+        PubmedESearchResult eSearchResult = new PubmedESearchResult();
         //InputStream esearchStream = new URL(fullUrl).openStream();
 
         HttpClient httpClient = HttpClients.createDefault();
@@ -139,20 +160,48 @@ public class PubMedArticleRetrievalService {
         httppost.setEntity(new UrlEncodedFormEntity(params));
         httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
         httppost.getParams().setParameter(ClientPNames.COOKIE_POLICY, "standard");
-
+        
         //Execute and get the response.
         HttpResponse response = httpClient.execute(httppost);
+        
+        Header[] headerRateLimitRemaining = response.getHeaders("X-RateLimit-Remaining");
+        Header[] headerRetryAfter = response.getHeaders("Retry-After");
+        
+        if(headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0) {
+        	if(headerRetryAfter != null && headerRetryAfter.length > 0 && headerRetryAfter[0] != null) {
+        		try {
+        			Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()));
+        		} catch (InterruptedException e) {
+        			log.error("InterruptedException", e);
+        		}
+        		response = httpClient.execute(httppost);
+        	}
+        }
+        
+		/*
+		 * Header[] headers = response.getAllHeaders(); for (Header header : headers) {
+		 * if(header.getName().equalsIgnoreCase("X-RateLimit-Limit") ||
+		 * header.getName().equalsIgnoreCase("X-RateLimit-Remaining") ||
+		 * header.getName().equalsIgnoreCase("Retry-After")) { log.info("Key : " +
+		 * header.getName() + " ,Value : " + header.getValue()); } }
+		 */
 
         HttpEntity entity = response.getEntity();
 
         if (entity != null) {
             InputStream esearchStream = entity.getContent();
-            try {
-                SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
-            } catch (SAXException | ParserConfigurationException e) {
-                log.error("Error parsing XML file for query=[" + query + "], full url=[" + fullUrl + "]", e);
-            }
+			/*
+			 * StringWriter writer = new StringWriter(); IOUtils.copy(esearchStream, writer,
+			 * "UTF-8"); log.info(writer.toString());
+			 */
+            //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
+			ObjectMapper objectMapper = new ObjectMapper();
+			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
+			if(json != null) {
+				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+			}
         }
-        return pubmedESearchHandler.getCount();
+        return eSearchResult;
     }
 }
