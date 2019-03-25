@@ -1,6 +1,9 @@
 package reciter.pubmed.xmlparser;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -14,13 +17,18 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import reciter.pubmed.model.PubmedESearchResult;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,8 +57,9 @@ public class PubmedESearchHandler extends DefaultHandler {
      * @throws SAXException
      * @throws IOException
      */
-    public static PubmedESearchHandler executeESearchQuery(String eSearchUrl) {
+    public static PubmedESearchResult executeESearchQuery(String eSearchUrl) {
         PubmedESearchHandler webEnvHandler = new PubmedESearchHandler();
+        PubmedESearchResult eSearchResult = new PubmedESearchResult();
         /*InputStream inputStream = null;
         try {
             inputStream = new URL(eSearchUrl).openStream();
@@ -62,11 +71,6 @@ public class PubmedESearchHandler extends DefaultHandler {
         } catch (Exception e) {
             log.error("Error in executeESearchQuery. url=[" + eSearchUrl + "]", e);
         }*/
-    	try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			log.error("InterruptedException", e);
-		}
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(eSearchUrl);
         pubmedXmlQuery.setRetMax(1);
         String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
@@ -87,21 +91,53 @@ public class PubmedESearchHandler extends DefaultHandler {
             httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
             httppost.getParams().setParameter(ClientPNames.COOKIE_POLICY, "standard");
             //Execute and get the response.
+            
             HttpResponse response = httpClient.execute(httppost);
+            Header[] headerRateLimitRemaining = response.getHeaders("X-RateLimit-Remaining");
+            Header[] headerRetryAfter = response.getHeaders("Retry-After");
+            
+            if(headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0) {
+            	if(headerRetryAfter != null && headerRetryAfter.length > 0 && headerRetryAfter[0] != null) {
+            		try {
+            			Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()));
+            		} catch (InterruptedException e) {
+            			log.error("InterruptedException", e);
+            		}
+            		response = httpClient.execute(httppost);
+            	}
+            }
+            
+			/*
+			 * Header[] headers = response.getAllHeaders(); for (Header header : headers) {
+			 * if(header.getName().equalsIgnoreCase("X-RateLimit-Limit") ||
+			 * header.getName().equalsIgnoreCase("X-RateLimit-Remaining") ||
+			 * header.getName().equalsIgnoreCase("Retry-After")) { log.info("Key : " +
+			 * header.getName() + " ,Value : " + header.getValue()); } }
+			 */
 
             HttpEntity entity = response.getEntity();
 
             if (entity != null) {
                 InputStream esearchStream = entity.getContent();
+				/*
+				 * StringWriter writer = new StringWriter(); IOUtils.copy(esearchStream, writer,
+				 * "UTF-8"); log.info(writer.toString());
+				 */
                 //String sanitizedStream = IOUtils.toString(esearchStream).trim().replaceFirst("^([\\W]+)<","<");
                 //log.info(sanitizedStream);
-                SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, webEnvHandler);
+                //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, webEnvHandler);
+                ObjectMapper objectMapper = new ObjectMapper();
+    			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
+    			if(json != null) {
+    				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+    			}
             }
-        } catch (SAXException | ParserConfigurationException | IOException e) {
+        } catch (IOException e) {
             log.error("Error parsing XML file for query=[" + eSearchUrl + "], full url=[" + fullUrl + "]", e);
         }
 
-        return webEnvHandler;
+        return eSearchResult;
     }
 
     @Override

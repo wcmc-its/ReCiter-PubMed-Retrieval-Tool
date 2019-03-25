@@ -75,7 +75,7 @@ public class PubmedXmlQuery {
     /**
      * Returned format for query. xml or json.
      */
-    private String retMode = "xml";
+    private String retMode = "json";
 
     public PubmedXmlQuery() {
     }
@@ -97,7 +97,15 @@ public class PubmedXmlQuery {
     public String buildESearchQuery() {
         StringBuilder sb = new StringBuilder();
         sb.append(ESEARCH_BASE_URL);
-        sb.append("?db=");
+        if(apiKey != null) {
+    		if(!apiKey.isEmpty()) {
+	        sb.append("?api_key=");
+	        sb.append(apiKey);
+	        sb.append("&db=");
+    		}
+        } else {
+        	sb.append("?db=");
+        }
         sb.append(db);
         sb.append("&term=");
         sb.append(term);
@@ -107,12 +115,7 @@ public class PubmedXmlQuery {
         sb.append(useHistory);
         sb.append("&retmode=");
         sb.append(retMode);
-        if(apiKey != null) {
-	    		if(!apiKey.isEmpty()) {
-		        sb.append("&api_key=");
-		        sb.append(apiKey);
-	    		}
-        }
+        
         return sb.toString();
     }
 
@@ -125,7 +128,15 @@ public class PubmedXmlQuery {
     public String buildEFetchQuery() {
         StringBuilder sb = new StringBuilder();
         sb.append(EFETCH_BASE_URL);
-        sb.append("?db=");
+        if(apiKey != null) {
+    		if(!apiKey.isEmpty()) {
+	        sb.append("?api_key=");
+	        sb.append(apiKey);
+	        sb.append("&db=");
+    		}
+        } else {
+        	sb.append("?db=");
+        }
         sb.append(db);
         sb.append("&query_key=");
         sb.append(queryKey);
@@ -134,15 +145,10 @@ public class PubmedXmlQuery {
         sb.append("&retmax=");
         sb.append(retMax);
         sb.append("&retmode=");
-        sb.append(retMode);               
+        sb.append("xml");               
         sb.append("&WebEnv=");
         sb.append(webEnv);
-        if(apiKey != null) {
-        		if(!apiKey.isEmpty()) {
-		        sb.append("&api_key=");
-		        sb.append(apiKey);
-        		}
-        }
+        
         return sb.toString();
     }
 }
