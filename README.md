@@ -19,6 +19,14 @@ NCBI offers [several methods](https://www.ncbi.nlm.nih.gov/pmc/tools/get-metadat
 
 This application was written to work with [ReCiter](https://github.com/wcmc-its/ReCiter/), a tool for disambiguating articles written in PubMed. However, this application can work as a standalone service.
 
+## Advantages over using eFetch API alone
+
+This tool has several advantages over using the eFetch API.
+- The eFetch API outputs data as XML while the ReCiter PubMed Retrieval Tool outputs data as JSON, a format which is easier for developers to use
+- Even if your machine make calls that don’t exceed the published allowable calls per second, NCBI will inexplicably throttle requests. This application checks the `X-RateLimit-Remaining` and `Retry-After` response headers, and calls the API after the `retry-After` value.
+
+
+
 ## Installing
 
 1. Navigate to directory where you wish to install the application, e.g., `cd ~/Paul/Documents/`
