@@ -61,6 +61,8 @@ public class PubMedRetrievalToolController {
 
     @Autowired
     private PubMedArticleRetrievalService pubMedArticleRetrievalService;
+    
+    private static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @ApiOperation(value = "Query with field selection.", response = List.class)
     @ApiResponses(value = {
@@ -121,12 +123,16 @@ public class PubMedRetrievalToolController {
         HttpResponse response = httpClient.execute(httppost);
         
         Header[] headerRateLimitRemaining = response.getHeaders("X-RateLimit-Remaining");
+        Header[] headerRateLimit = response.getHeaders("X-RateLimit-Limit");
         Header[] headerRetryAfter = response.getHeaders("Retry-After");
+        
+        log.info("Query : " + pubMedQuery.toString()  + " " + headerRateLimit[0].toString() + " " + headerRateLimitRemaining[0].toString());
         
         if(headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0) {
         	if(headerRetryAfter != null && headerRetryAfter.length > 0 && headerRetryAfter[0] != null) {
+        		log.info("Query : " + pubMedQuery.toString()  + " " + headerRetryAfter[0].toString());
         		try {
-        			Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()));
+        			Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()) * 1000L);
         		} catch (InterruptedException e) {
         			log.error("InterruptedException", e);
         		}
@@ -148,8 +154,6 @@ public class PubMedRetrievalToolController {
 			 * "UTF-8"); log.info(writer.toString());
 			 */
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
-			ObjectMapper objectMapper = new ObjectMapper();
-			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
 			if(json !=  null) {
 				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);

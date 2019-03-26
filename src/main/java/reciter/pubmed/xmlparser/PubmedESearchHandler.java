@@ -45,6 +45,8 @@ public class PubmedESearchHandler extends DefaultHandler {
     private boolean bWebEnv;
     private boolean bCount;
     private int numCountEncounteredSoFar = 0;
+    
+    private static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private StringBuilder chars = new StringBuilder();
 
@@ -99,7 +101,7 @@ public class PubmedESearchHandler extends DefaultHandler {
             if(headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0) {
             	if(headerRetryAfter != null && headerRetryAfter.length > 0 && headerRetryAfter[0] != null) {
             		try {
-            			Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()));
+            			Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()) * 1000L);
             		} catch (InterruptedException e) {
             			log.error("InterruptedException", e);
             		}
@@ -126,8 +128,6 @@ public class PubmedESearchHandler extends DefaultHandler {
                 //String sanitizedStream = IOUtils.toString(esearchStream).trim().replaceFirst("^([\\W]+)<","<");
                 //log.info(sanitizedStream);
                 //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, webEnvHandler);
-                ObjectMapper objectMapper = new ObjectMapper();
-    			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
     			if(json != null) {
     				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
