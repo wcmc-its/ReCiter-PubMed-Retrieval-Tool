@@ -22,7 +22,7 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
     private final SAXParser saxParser;
     private final InputSource inputSource;
 
-    public synchronized List<PubMedArticle> parse(InputSource inputSource) throws SAXException, IOException {
+    public List<PubMedArticle> parse(InputSource inputSource) throws SAXException, IOException {
         inputSource = preprocessSpecialCharacters(inputSource);
         saxParser.parse(inputSource, xmlHandler);
         return xmlHandler.getPubmedArticles();
