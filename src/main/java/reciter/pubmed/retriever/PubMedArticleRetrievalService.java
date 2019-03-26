@@ -49,14 +49,32 @@ import java.util.concurrent.TimeUnit;
 public class PubMedArticleRetrievalService {
 
     private static final int RETRIEVAL_THRESHOLD = 2000;
+    
+    private static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    @Autowired
+    /*@Autowired
     private SAXParser saxParser;
 
     @Bean
     public SAXParser saxParser() throws ParserConfigurationException, SAXException {
         return SAXParserFactory.newInstance().newSAXParser();
-    }
+    }*/
+    
+    //To avoid thread errors - FWK005 parse may not be called while parsing.
+    //https://stackoverflow.com/questions/39658247/singleton-thread-safe-sax-parser-instance
+    private final ThreadLocal<SAXParserFactory> factoryThreadLocal = new ThreadLocal<SAXParserFactory>() {
+        public SAXParserFactory initialValue() {
+            try {
+                return SAXParserFactory.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+   };
+   
+   public SAXParser getSaxParser() throws ParserConfigurationException, SAXException {
+	   return factoryThreadLocal.get().newSAXParser();
+   }
 
     /**
      * Initializes and starts threads that handles the retrieval process. Partition the number of articles
@@ -102,7 +120,11 @@ public class PubMedArticleRetrievalService {
                 String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
                 log.info("eFetchUrl=[{}].", eFetchUrl);
 
-                callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), saxParser, new InputSource(eFetchUrl)));
+                try {
+					callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(), new InputSource(eFetchUrl)));
+				} catch (ParserConfigurationException | SAXException e) {
+					log.error("Exception", e);
+				}
 
                 // Update the retstart value.
                 currentRetStart += pubmedXmlQuery.getRetMax();
@@ -165,12 +187,16 @@ public class PubMedArticleRetrievalService {
         HttpResponse response = httpClient.execute(httppost);
         
         Header[] headerRateLimitRemaining = response.getHeaders("X-RateLimit-Remaining");
+        Header[] headerRateLimit = response.getHeaders("X-RateLimit-Limit");
         Header[] headerRetryAfter = response.getHeaders("Retry-After");
+        
+        log.info("Query : " + query  + " " + headerRateLimit[0].toString() + " " + headerRateLimitRemaining[0].toString());
         
         if(headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0) {
         	if(headerRetryAfter != null && headerRetryAfter.length > 0 && headerRetryAfter[0] != null) {
+        		log.info("Query : " + query  + " " + headerRetryAfter[0].toString());
         		try {
-        			Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()));
+        			Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()) * 1000L);
         		} catch (InterruptedException e) {
         			log.error("InterruptedException", e);
         		}
@@ -195,8 +221,6 @@ public class PubMedArticleRetrievalService {
 			 * "UTF-8"); log.info(writer.toString());
 			 */
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
-			ObjectMapper objectMapper = new ObjectMapper();
-			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
 			if(json != null) {
 				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
