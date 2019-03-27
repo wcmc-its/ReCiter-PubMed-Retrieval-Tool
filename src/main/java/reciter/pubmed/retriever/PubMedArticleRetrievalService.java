@@ -164,13 +164,20 @@ public class PubMedArticleRetrievalService {
         //pubmedXmlQuery.setRetMax(1);
         String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
         log.info("ESearch Query=[{}]", fullUrl);
+        
+        if(pubmedXmlQuery.getApiKey() != null &&
+         		  !pubmedXmlQuery.getApiKey().isEmpty()) {
+          	fullUrl = PubmedXmlQuery.ESEARCH_BASE_URL + "?api_key=" + pubmedXmlQuery.getApiKey();
+	      } else {
+	      	fullUrl = PubmedXmlQuery.ESEARCH_BASE_URL;
+	      }
 
-        PubmedESearchHandler pubmedESearchHandler = new PubmedESearchHandler();
+        //PubmedESearchHandler pubmedESearchHandler = new PubmedESearchHandler();
         PubmedESearchResult eSearchResult = new PubmedESearchResult();
         //InputStream esearchStream = new URL(fullUrl).openStream();
 
         HttpClient httpClient = HttpClients.createDefault();
-        HttpPost httppost = new HttpPost(PubmedXmlQuery.ESEARCH_BASE_URL);
+        HttpPost httppost = new HttpPost(fullUrl);
         // Request parameters and other properties.
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("db", pubmedXmlQuery.getDb()));
@@ -182,6 +189,7 @@ public class PubMedArticleRetrievalService {
         httppost.setEntity(new UrlEncodedFormEntity(params));
         httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
         httppost.getParams().setParameter(ClientPNames.COOKIE_POLICY, "standard");
+        httppost.setHeader("cache-control", "no-cache");
         
         //Execute and get the response.
         HttpResponse response = httpClient.execute(httppost);

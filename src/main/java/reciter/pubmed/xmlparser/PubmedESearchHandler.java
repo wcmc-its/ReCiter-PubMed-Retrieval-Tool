@@ -77,9 +77,16 @@ public class PubmedESearchHandler extends DefaultHandler {
         pubmedXmlQuery.setRetMax(1);
         String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
         log.info("ESearch Query=[" + fullUrl + "]");
+        if(pubmedXmlQuery.getApiKey() != null &&
+       		  !pubmedXmlQuery.getApiKey().isEmpty()) {
+        	fullUrl = PubmedXmlQuery.ESEARCH_BASE_URL + "?api_key=" + pubmedXmlQuery.getApiKey();
+	      } else {
+	      	fullUrl = PubmedXmlQuery.ESEARCH_BASE_URL;
+	      }
+
         try {
             HttpClient httpClient = HttpClients.createDefault();
-            HttpPost httppost = new HttpPost(PubmedXmlQuery.ESEARCH_BASE_URL);
+            HttpPost httppost = new HttpPost(fullUrl);
             //httppost.setHeader(HttpHeaders.ACCEPT, "application/xml");
             // Request parameters and other properties.
             List<NameValuePair> params = new ArrayList<NameValuePair>();
