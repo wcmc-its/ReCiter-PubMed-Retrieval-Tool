@@ -22,6 +22,12 @@ import org.xml.sax.SAXException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.rholder.retry.RetryException;
+import com.github.rholder.retry.Retryer;
+import com.github.rholder.retry.RetryerBuilder;
+import com.github.rholder.retry.StopStrategies;
+import com.github.rholder.retry.WaitStrategies;
+import com.google.common.base.Predicates;
 
 import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.callable.PubMedUriParserCallable;
@@ -39,6 +45,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -119,9 +126,26 @@ public class PubMedArticleRetrievalService {
                 // Use the webenv value to retrieve xml.
                 String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
                 log.info("eFetchUrl=[{}].", eFetchUrl);
+                
+                
 
                 try {
-					callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(), new InputSource(eFetchUrl)));
+                	PubMedUriParserCallable callable = new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(), new InputSource(eFetchUrl));
+                	Retryer<List<PubMedArticle>> retryer = RetryerBuilder.<List<PubMedArticle>>newBuilder()
+                            .retryIfResult(Predicates.<List<PubMedArticle>>isNull())
+                            .retryIfExceptionOfType(IOException.class)
+                            .retryIfRuntimeException()
+                            .withWaitStrategy(WaitStrategies.fixedWait(2L, TimeUnit.SECONDS))
+                            .withStopStrategy(StopStrategies.stopAfterAttempt(3))
+                            .build();
+                    try {
+                        retryer.call(callable);
+                    } catch (RetryException e) {
+                    	log.error("RetryException", e);
+                    } catch (ExecutionException e) {
+                    	log.error("ExecutionException", e);
+                    }
+					callables.add(callable);
 				} catch (ParserConfigurationException | SAXException e) {
 					log.error("Exception", e);
 				}
