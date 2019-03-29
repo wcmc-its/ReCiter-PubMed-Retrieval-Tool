@@ -26,6 +26,7 @@ import com.github.rholder.retry.RetryException;
 import com.github.rholder.retry.Retryer;
 import com.github.rholder.retry.RetryerBuilder;
 import com.github.rholder.retry.StopStrategies;
+import com.github.rholder.retry.StopStrategy;
 import com.github.rholder.retry.WaitStrategies;
 import com.google.common.base.Predicates;
 
@@ -135,8 +136,7 @@ public class PubMedArticleRetrievalService {
                             .retryIfResult(Predicates.<List<PubMedArticle>>isNull())
                             .retryIfExceptionOfType(IOException.class)
                             .retryIfRuntimeException()
-                            .withWaitStrategy(WaitStrategies.fixedWait(2L, TimeUnit.SECONDS))
-                            .withStopStrategy(StopStrategies.stopAfterAttempt(3))
+                            .withWaitStrategy(WaitStrategies.fibonacciWait(100L, 2L, TimeUnit.MINUTES))
                             .build();
                     try {
                         retryer.call(callable);
