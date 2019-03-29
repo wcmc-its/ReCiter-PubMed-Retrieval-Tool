@@ -23,12 +23,13 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
     private final InputSource inputSource;
 
     public List<PubMedArticle> parse(InputSource inputSource) throws SAXException, IOException {
-        inputSource = preprocessSpecialCharacters(inputSource);
+        //inputSource = preprocessSpecialCharacters(inputSource);
         saxParser.parse(inputSource, xmlHandler);
         return xmlHandler.getPubmedArticles();
     }
 
     public List<PubMedArticle> call() throws Exception {
+    	InputSource inputSource = preprocessSpecialCharacters(this.inputSource);
         return parse(inputSource);
     }
 
