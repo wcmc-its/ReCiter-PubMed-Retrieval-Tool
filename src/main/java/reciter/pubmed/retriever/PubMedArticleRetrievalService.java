@@ -136,7 +136,8 @@ public class PubMedArticleRetrievalService {
                             .retryIfResult(Predicates.<List<PubMedArticle>>isNull())
                             .retryIfExceptionOfType(IOException.class)
                             .retryIfRuntimeException()
-                            .withWaitStrategy(WaitStrategies.fibonacciWait(100L, 2L, TimeUnit.MINUTES))
+                            .withWaitStrategy(WaitStrategies.fibonacciWait(500L, 3L, TimeUnit.MINUTES))
+                            .withStopStrategy(StopStrategies.neverStop())
                             .build();
                     try {
                         retryer.call(callable);
