@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rholder.retry.RetryException;
 import com.github.rholder.retry.Retryer;
+import com.github.rholder.retry.Retryer.RetryerCallable;
 import com.github.rholder.retry.RetryerBuilder;
 import com.github.rholder.retry.StopStrategies;
 import com.github.rholder.retry.StopStrategy;
@@ -111,7 +112,15 @@ public class PubMedArticleRetrievalService {
             // Retrieve the publications retMax records at one time and store to disk.
             int currentRetStart = 0;
 
-            List<Callable<List<PubMedArticle>>> callables = new ArrayList<>();
+            List<RetryerCallable<List<PubMedArticle>>> callables = new ArrayList<RetryerCallable<List<PubMedArticle>>>();
+            
+            Retryer<List<PubMedArticle>> retryer = RetryerBuilder.<List<PubMedArticle>>newBuilder()
+                    .retryIfResult(Predicates.<List<PubMedArticle>>isNull())
+                    .retryIfExceptionOfType(IOException.class)
+                    .retryIfRuntimeException()
+                    .withWaitStrategy(WaitStrategies.incrementingWait(2, TimeUnit.SECONDS, 1, TimeUnit.SECONDS))
+                    .withStopStrategy(StopStrategies.stopAfterAttempt(10))
+                    .build();
 
             // Use the retstart value to iteratively fetch all XMLs.
             while (numberOfPubmedArticles > 0) {
@@ -132,21 +141,7 @@ public class PubMedArticleRetrievalService {
 
                 try {
                 	PubMedUriParserCallable callable = new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(), new InputSource(eFetchUrl));
-                	Retryer<List<PubMedArticle>> retryer = RetryerBuilder.<List<PubMedArticle>>newBuilder()
-                            .retryIfResult(Predicates.<List<PubMedArticle>>isNull())
-                            .retryIfExceptionOfType(IOException.class)
-                            .retryIfRuntimeException()
-                            .withWaitStrategy(WaitStrategies.incrementingWait(2, TimeUnit.SECONDS, 1, TimeUnit.SECONDS))
-                            .withStopStrategy(StopStrategies.stopAfterAttempt(10))
-                            .build();
-                    try {
-                        retryer.call(callable);
-                    } catch (RetryException e) {
-                    	log.error("RetryException", e);
-                    } catch (ExecutionException e) {
-                    	log.error("ExecutionException", e);
-                    }
-					callables.add(callable);
+                	retryer.wrap(callable);
 				} catch (ParserConfigurationException | SAXException e) {
 					log.error("Exception", e);
 				}
