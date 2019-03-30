@@ -111,9 +111,6 @@ public class PubMedArticleRetrievalService {
 
             // Retrieve the publications retMax records at one time and store to disk.
             int currentRetStart = 0;
-
-            List<RetryerCallable<List<PubMedArticle>>> callables = new ArrayList<RetryerCallable<List<PubMedArticle>>>();
-            
             Retryer<List<PubMedArticle>> retryer = RetryerBuilder.<List<PubMedArticle>>newBuilder()
                     .retryIfResult(Predicates.<List<PubMedArticle>>isNull())
                     .retryIfExceptionOfType(IOException.class)
@@ -121,6 +118,10 @@ public class PubMedArticleRetrievalService {
                     .withWaitStrategy(WaitStrategies.incrementingWait(2, TimeUnit.SECONDS, 1, TimeUnit.SECONDS))
                     .withStopStrategy(StopStrategies.stopAfterAttempt(10))
                     .build();
+
+            List<RetryerCallable<List<PubMedArticle>>> callables = new ArrayList<RetryerCallable<List<PubMedArticle>>>();
+            
+            
 
             // Use the retstart value to iteratively fetch all XMLs.
             while (numberOfPubmedArticles > 0) {
@@ -141,7 +142,8 @@ public class PubMedArticleRetrievalService {
 
                 try {
                 	PubMedUriParserCallable callable = new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(), new InputSource(eFetchUrl));
-                	retryer.wrap(callable);
+                	RetryerCallable<List<PubMedArticle>> retryerCallable = retryer.wrap(callable);
+                	callables.add(retryerCallable);
 				} catch (ParserConfigurationException | SAXException e) {
 					log.error("Exception", e);
 				}
