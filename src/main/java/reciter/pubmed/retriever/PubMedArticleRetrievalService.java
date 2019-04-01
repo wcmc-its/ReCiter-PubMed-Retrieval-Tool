@@ -115,8 +115,8 @@ public class PubMedArticleRetrievalService {
                     .retryIfResult(Predicates.<List<PubMedArticle>>isNull())
                     .retryIfExceptionOfType(IOException.class)
                     .retryIfRuntimeException()
-                    .withWaitStrategy(WaitStrategies.incrementingWait(2, TimeUnit.SECONDS, 1, TimeUnit.SECONDS))
-                    .withStopStrategy(StopStrategies.stopAfterAttempt(10))
+                    .withWaitStrategy(WaitStrategies.fibonacciWait(1000L, 3L, TimeUnit.MINUTES))
+                    .withStopStrategy(StopStrategies.stopAfterAttempt(15))
                     .build();
 
             List<RetryerCallable<List<PubMedArticle>>> callables = new ArrayList<RetryerCallable<List<PubMedArticle>>>();
