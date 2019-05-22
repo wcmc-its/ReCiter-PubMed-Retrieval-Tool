@@ -294,6 +294,9 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             
             if(qName.equalsIgnoreCase("ISSNLinking")) {
+            	if(pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn() == null) {
+            		pubmedArticle.getMedlinecitation().getArticle().getJournal().setIssn(new ArrayList<MedlineCitationJournalISSN>());
+            	}
             	MedlineCitationJournalISSN journalLIssn = MedlineCitationJournalISSN.builder().issntype("Linking").build();
             	pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().add(journalLIssn);
             	bISSNLinking = true;
