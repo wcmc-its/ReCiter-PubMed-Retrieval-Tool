@@ -31,16 +31,14 @@ public class PubMedUriParserCallableTest {
 
     /**
      * Test that the PubMed XML handler is able to handle special characters.
-     *
-     * @throws SAXException
-     * @throws IOException
+     * @throws Exception 
      */
     @Test
-    public void testInvalidCharacterParse() throws SAXException, IOException {
+    public void testInvalidCharacterParse() throws Exception {
         File initialFile = new File("src/test/resources/pubmed/callable/28356292.xml");
         inputSource = new InputSource(new FileInputStream(initialFile));
         pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
-        List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.parse(inputSource);
+        List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
         String articleTitle = pubMedArticle.getMedlinecitation().getArticle().getArticletitle();
         assertEquals(articleTitle, "<i>Responses</i> of <b>distal</b> nephron Na<sup>+</sup> transporters <sub>-</sub> to acute volume depletion and hyperkalemia.");
