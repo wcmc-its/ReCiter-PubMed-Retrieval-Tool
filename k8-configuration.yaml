@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name:  reciter
+  labels:
+    name:  reciter
+    environment: dev
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name:  pubmed-api-key
+  namespace: reciter
+  labels:
+    app: reciter-pubmed
+    environment: dev
+    owner: szd2013
+stringData:
+  PUBMED_API_KEY: {{pubmed_api_key}}
+type: Opaque
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config
+  namespace: reciter
+  labels:
+    app: reciter-pubmed
+    environment: dev
+    owner: szd2013
+data:
+  SERVER_PORT: "5000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reciter-pubmed
+  labels:
+    app: reciter-pubmed
+    environment: dev
+    tier: backend
+    owner: szd2013
+spec:
+  ports:
+    - port: 5000
+  selector:
+    app: reciter-pubmed
+    tier: backend
+  type: LoadBalancer
+---
+apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: reciter-pubmed
+  labels:
+    app: reciter-pm
+    environment: dev
+    tier: backend
+    owner: szd2013
+spec:
+  selector:
+    matchLabels:
+      app: reciter-pubmed
+      environment: dev
+      tier: backend
+      owner: szd2013
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: reciter-pubmed
+        environment: dev
+        tier: backend
+        owner: szd2013
+    spec:
+      containers:
+      - image: reciter-pubmed:1.0
+        name: reciter-pubmed
+        imagePullPolicy: Never
+        env:
+        - name: PUBMED_API_KEY
+          valueFrom: 
+            secretKeyRef:
+              name: pubmed-api-key
+              key: PUBMED_API_KEY
+        - name: SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: env-config
+              key: SERVER_PORT
+        ports:
+        - containerPort: 5000
+          name: reciter-pubmed
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-reciter-pubmed
+  namespace: reciter
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: reciter-pubmed
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
