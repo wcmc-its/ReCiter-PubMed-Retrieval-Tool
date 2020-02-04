@@ -1,0 +1,333 @@
+<?xml version="1.0" ?>
+<!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2019//EN" "https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_190101.dtd">
+<PubmedArticleSet>
+<PubmedArticle>
+    <MedlineCitation Status="Publisher" Owner="NLM">
+        <PMID Version="1">31746150</PMID>
+        <DateRevised>
+            <Year>2020</Year>
+            <Month>01</Month>
+            <Day>08</Day>
+        </DateRevised>
+        <Article PubModel="Print-Electronic">
+            <Journal>
+                <ISSN IssnType="Electronic">2045-8827</ISSN>
+                <JournalIssue CitedMedium="Internet">
+                    <PubDate>
+                        <Year>2019</Year>
+                        <Month>Nov</Month>
+                        <Day>19</Day>
+                    </PubDate>
+                </JournalIssue>
+                <Title>MicrobiologyOpen</Title>
+                <ISOAbbreviation>Microbiologyopen</ISOAbbreviation>
+            </Journal>
+            <ArticleTitle>Evolutionary changes of an intestinal Lactobacillus reuteri during probiotic manufacture.</ArticleTitle>
+            <Pagination>
+                <MedlinePgn>e972</MedlinePgn>
+            </Pagination>
+            <ELocationID EIdType="doi" ValidYN="Y">10.1002/mbo3.972</ELocationID>
+            <Abstract>
+                <AbstractText>Probiotic bacteria are frequently used to treat intestinal diseases or to improve health; however, little is known about the evolutionary changes of these bacteria during probiotic manufacture and the bacterial ability to colonize the intestine. It has been observed that when bacteria adapt to a new environment, they lose some traits required to thrive in the original niche. In this study, a strain of Lactobacillus reuteri was isolated from mouse duodenum and subjected to 150 serial passes in milk to simulate the industrial propagation of probiotic bacteria. The strains adapted to milk outperformed their ancestor when grown in milk; we also showed evidence of reduced intestinal colonization of milk-adapted strains. Whole-genome sequencing showed that bacterial adaptation to milk selects mutants with altered metabolic functions.</AbstractText>
+                <CopyrightInformation>© 2019 The Authors. MicrobiologyOpen published by John Wiley &amp; Sons Ltd.</CopyrightInformation>
+            </Abstract>
+            <AuthorList CompleteYN="Y">
+                <Author ValidYN="Y">
+                    <LastName>López</LastName>
+                    <ForeName>Lázaro</ForeName>
+                    <Initials>L</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Instituto de Microbiología, Colegio de Ciencias Biológicas y Ambientales, Universidad San Francisco de Quito, Quito, Ecuador.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Calderón</LastName>
+                    <ForeName>Diana</ForeName>
+                    <Initials>D</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Instituto de Microbiología, Colegio de Ciencias Biológicas y Ambientales, Universidad San Francisco de Quito, Quito, Ecuador.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Cardenas</LastName>
+                    <ForeName>Paúl</ForeName>
+                    <Initials>P</Initials>
+                    <Identifier Source="ORCID">https://orcid.org/0000-0001-9626-4489</Identifier>
+                    <AffiliationInfo>
+                        <Affiliation>Instituto de Microbiología, Colegio de Ciencias Biológicas y Ambientales, Universidad San Francisco de Quito, Quito, Ecuador.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Prado</LastName>
+                    <ForeName>María B</ForeName>
+                    <Initials>MB</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Instituto de Microbiología, Colegio de Ciencias Biológicas y Ambientales, Universidad San Francisco de Quito, Quito, Ecuador.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Valle</LastName>
+                    <ForeName>Carlos</ForeName>
+                    <Initials>C</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Instituto de Microbiología, Colegio de Ciencias Biológicas y Ambientales, Universidad San Francisco de Quito, Quito, Ecuador.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Trueba</LastName>
+                    <ForeName>Gabriel</ForeName>
+                    <Initials>G</Initials>
+                    <Identifier Source="ORCID">https://orcid.org/0000-0003-2617-9021</Identifier>
+                    <AffiliationInfo>
+                        <Affiliation>Instituto de Microbiología, Colegio de Ciencias Biológicas y Ambientales, Universidad San Francisco de Quito, Quito, Ecuador.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+            </AuthorList>
+            <Language>eng</Language>
+            <DataBankList CompleteYN="Y">
+                <DataBank>
+                    <DataBankName>GENBANK</DataBankName>
+                    <AccessionNumberList>
+                        <AccessionNumber>NC_009513.1</AccessionNumber>
+                    </AccessionNumberList>
+                </DataBank>
+            </DataBankList>
+            <GrantList CompleteYN="Y">
+                <Grant>
+                    <GrantID>HUBI12441</GrantID>
+                    <Agency>Universidad San Francisco de Quito</Agency>
+                    <Country/>
+                </Grant>
+            </GrantList>
+            <PublicationTypeList>
+                <PublicationType UI="D016428">Journal Article</PublicationType>
+            </PublicationTypeList>
+            <ArticleDate DateType="Electronic">
+                <Year>2019</Year>
+                <Month>11</Month>
+                <Day>19</Day>
+            </ArticleDate>
+        </Article>
+        <MedlineJournalInfo>
+            <Country>England</Country>
+            <MedlineTA>Microbiologyopen</MedlineTA>
+            <NlmUniqueID>101588314</NlmUniqueID>
+            <ISSNLinking>2045-8827</ISSNLinking>
+        </MedlineJournalInfo>
+        <CitationSubset>IM</CitationSubset>
+        <KeywordList Owner="NOTNLM">
+            <Keyword MajorTopicYN="N">
+Lactobacillus reuteri
+</Keyword>
+            <Keyword MajorTopicYN="N">antagonistic pleiotropy</Keyword>
+            <Keyword MajorTopicYN="N">experimental evolution</Keyword>
+            <Keyword MajorTopicYN="N">probiotics</Keyword>
+        </KeywordList>
+    </MedlineCitation>
+    <PubmedData>
+        <History>
+            <PubMedPubDate PubStatus="received">
+                <Year>2019</Year>
+                <Month>09</Month>
+                <Day>06</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="revised">
+                <Year>2019</Year>
+                <Month>10</Month>
+                <Day>30</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="accepted">
+                <Year>2019</Year>
+                <Month>10</Month>
+                <Day>31</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="entrez">
+                <Year>2019</Year>
+                <Month>11</Month>
+                <Day>21</Day>
+                <Hour>6</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="pubmed">
+                <Year>2019</Year>
+                <Month>11</Month>
+                <Day>21</Day>
+                <Hour>6</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="medline">
+                <Year>2019</Year>
+                <Month>11</Month>
+                <Day>21</Day>
+                <Hour>6</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+        </History>
+        <PublicationStatus>aheadofprint</PublicationStatus>
+        <ArticleIdList>
+            <ArticleId IdType="pubmed">31746150</ArticleId>
+            <ArticleId IdType="doi">10.1002/mbo3.972</ArticleId>
+        </ArticleIdList>
+        <ReferenceList>
+            <Title>REFERENCES</Title>
+            <Reference>
+                <Citation>Ausubel, F. M. (1987). Current protocols in molecular biology. Brooklyn, NY: Greene Pub. Associates.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Azcarate-Peril, M. A., Tallon, R., &amp; Klaenhammer, T. R. (2009). Temporal gene expression and probiotic attributes of Lactobacillus acidophilus during growth in milk. Journal of Dairy Science, 92, 870-886.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Barros, M. R., Andreatti Filho, R. L., Oliveira, D. E., Lima, E. T., &amp; Crocci, A. J. (2009). Comparação entre método bioquímico e reação em cadeia de polimerase para identificação de Lactobacillus spp., isolados de aves. Arquivo Brasileiro De Medicina Veterinária E Zootecnia, 61, 319-325.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Bäumler, A. J., &amp; Sperandio, V. (2016). Interactions between the microbiota and pathogenic bacteria in the gut. Nature, 535, 85-93.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Bono, L. M., Smith, L. B., Pfennig, D. W., &amp; Burch, C. L. (2017). The emergence of performance trade-offs during local adaptation: Insights from experimental evolution. Molecular Ecology, 26, 1720-1733.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Boone, D. R., Castenholz, R. W., &amp; Garrity, G. M. (2001). Bergey's manual of systematic bacteriology. New York, NY: Springer.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Conrad, T. M., Frazier, M., Joyce, A. R., Cho, B.-K., Knight, E. M., Lewis, N. E., … Palsson, B. O. (2010). RNA polymerase mutants found through adaptive evolution reprogram Escherichia coli for optimal growth in minimal media. Proceedings of the National Academy of Sciences of the United States of America, 107, 20500-20505.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Cooper, V. S. (2014). The origins of specialization: Insights from bacteria held 25 years in captivity. PLoS Biology, 12, e1001790.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Darling, A. C. E., Mau, B., Blattner, F. R., &amp; Perna, N. T. (2004). Mauve: Multiple alignment of conserved genomic sequence with rearrangements. Genome Research, 14, 1394-1403.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Darling, A. E., Mau, B., &amp; Perna, N. T. (2010). ProgressiveMauve: Multiple genome alignment with gene gain, loss and rearrangement. PLoS ONE, 5, e11147.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Draper, K., Ley, C., &amp; Parsonnet, J. (2017). Probiotic guidelines and physician practice: A cross-sectional survey and overview of the literature. Benef Microbes., 24, 507-519. https://doi.org/10.3920/BM2016.0146</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Fernandez, A., Ogawa, J., Penaud, S., Boudebbouze, S., Ehrlich, D., van de Guchte, M., &amp; Maguin, E. (2008). Rerouting of pyruvate metabolism during acid adaptation in Lactobacillus bulgaricus. Proteomics, 8, 3154-3163. https://doi.org/10.1002/pmic.200700974</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Ferreira, R. B. R., Gill, N., Willing, B. P., Antunes, L. C. M., Russell, S. L., Croxen, M. A., &amp; Finlay, B. B. (2011). The intestinal microbiota plays a role in Salmonella-induced colitis independent of pathogen colonization. PLoS ONE, 6, e20338. https://doi.org/10.1371/journal.pone.0020338</Citation>
+            </Reference>
+            <Reference>
+                <Citation>García-Bayona, L., &amp; Comstock, L. E. (2018). Bacterial antagonism in host-associated microbial communities. Science, 361, eaat2456. https://doi.org/10.1126/science.aat2456</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Hamilton, I. R., &amp; Buckley, N. D. (1991). Adaptation by Streptococcus mutans to acid tolerance. Oral Microbiology and Immunology, 6, 65-71. https://doi.org/10.1111/j.1399-302X.1991.tb00453.x</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Hill, C., Guarner, F., Reid, G., Gibson, G. R., Merenstein, D. J., Pot, B., … Sanders, M. E. (2014). The International Scientific Association for Probiotics and Prebiotics consensus statement on the scope and appropriate use of the term probiotic. Nature Reviews Gastroenterology and Hepatology, 11, 506-514. https://doi.org/10.1038/nrgastro.2014.66</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Hottes, A. K., Freddolino, P. L., Khare, A., Donnell, Z. N., Liu, J. C., &amp; Tavazoie, S. (2013). Bacterial adaptation through loss of function. PLoS Genetics, 9, e1003617. https://doi.org/10.1371/journal.pgen.1003617</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Hoy-Schulz, Y. E., Jannat, K., Roberts, T., Zaidi, S. H., Unicomb, L., Luby, S., &amp; Parsonnet, J. (2015). Safety and acceptability of Lactobacillus reuteri DSM 17938 and Bifidobacterium longum subspecies infantis 35624 in Bangladeshi infants: A phase I randomized clinical trial. BMC Complementary and Alternative Medicine, 16, 44. https://doi.org/10.1186/s12906-016-1016-1</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Islam, S. U. (2016). Clinical uses of probiotics. Medicine (Baltimore)., 95, e2658.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Jacobsen, C. N., Rosenfeldt Nielsen, V., Hayford, A. E., Møller, P. L., Michaelsen, K. F., Paerregaard, A., … Jakobsen, M. (1999). Screening of probiotic activities of forty-seven strains of Lactobacillus spp. by in vitro techniques and evaluation of the colonization ability of five selected strains in humans. Applied and Environment Microbiology, 65, 4949-4956.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Jensen, R. G. (1995). Handbook of milk composition. San Diego, California: Academic Press.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Jones, M. L., Martoni, C. J., Di Pietro, E., Simon, R. R., &amp; Prakash, S. (2012). Evaluation of clinical safety and tolerance of a Lactobacillus reuteri NCIMB 30242 supplement capsule: A randomized control trial. Regulatory Toxicology and Pharmacology, 63, 313-320.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Kawecki, T. J., Lenski, R. E., Ebert, D., Hollis, B., Olivieri, I., &amp; Whitlock, M. C. (2012). Experimental evolution. Trends in Ecology and Evolution, 27, 547-560.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Kram, K. E., Geiger, C., Ismail, W. M., Lee, H., Tang, H., Foster, P. L., &amp; Finkel, S. E. (2017). Adaptation of Escherichia coli to long-term serial passage in complex medium: Evidence of parallel evolution. Msystems, 2, e00192-e216.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Kumar, S., Stecher, G., &amp; Tamura, K. (2016). MEGA7: Molecular evolutionary genetics analysis version 7.0 for bigger datasets. Molecular Biology and Evolution, 33, 1870-1874.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Lenski, R. E., Wiser, M. J., Ribeck, N., Blount, Z. D., Nahum, J. R., Morris, J. J., … Hajela, N. (2015). Sustained fitness gains and variability in fitness trajectories in the long-term evolution experiment with Escherichia coli. Proceedings. Biological Sciences, 282, 20152292.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Li, Y., Wu, F., Cai, D., Zhan, Y., Li, J., Chen, X., … Ma, X. (2018). Enhanced production of bacitracin by knocking out of amino acid permease gene yhdG in Bacillus licheniformis DW2. Sheng Wu Gong Cheng Xue Bao, 34, 916-927.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>MacLean, R. C., Bell, G., &amp; Rainey, P. B. (2004). The evolution of a pleiotropic fitness tradeoff in Pseudomonas fluorescens. Proceedings of the National Academy of Sciences of the United States of America, 101, 8072-8077. https://doi.org/10.1073/pnas.0307195101</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Mangalat, N., Liu, Y., Fatheree, N. Y., Ferris, M. J., Van Arsdall, M. R., Chen, Z., … Rhoads, J. M. (2012). Safety and tolerability of Lactobacillus reuteri DSM 17938 and effects on biomarkers in healthy adults: Results from a randomized masked trial. PLoS ONE, 7, e43910. https://doi.org/10.1371/journal.pone.0043910</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Maughan, H., Galeano, B., &amp; Nicholson, W. L. (2004). Novel rpoB mutations conferring rifampin resistance on Bacillus subtilis: Global effects on growth, competence, sporulation, and germination. Journal of Bacteriology, 186, 2481-2486. https://doi.org/10.1128/JB.186.8.2481-2486.2004</Citation>
+            </Reference>
+            <Reference>
+                <Citation>McNulty, N. P., Yatsunenko, T., Hsiao, A., Faith, J. J., Muegge, B. D., Goodman, A. L., … Gordon, J. I. (2011). The impact of a consortium of fermented milk strains on the gut microbiome of gnotobiotic mice and monozygotic twins. Science Translational Medicine, 3, 106ra106. https://doi.org/10.1126/scitranslmed.3002701</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Miller, J. H. (1992). A short course in bacterial genetics: A laboratory manual and handbook for Escherichia coli and related bacteria. Plainview, NY: Cold Spring Harbor Laboratory Press.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Naryshkina, T., Mustaev, A., Darst, S. A., &amp; Severinov, K. (2001). The β′ Subunit of Escherichia coli RNA polymerase is not required for interaction with initiating nucleotide but is necessary for Interaction with rifampicin. Journal of Biological Chemistry, 276, 13308-13313.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Oh, P. L., Benson, A. K., Peterson, D. A., Patil, P. B., Moriyama, E. N., Roos, S., &amp; Walter, J. (2010). Diversification of the gut symbiont Lactobacillus reuteri as a result of host-driven evolution. ISME Journal, 4, 377-387. https://doi.org/10.1038/ismej.2009.123</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Papenfort, K., Sun, Y., Miyakoshi, M., Vanderpool, C. K., &amp; Vogel, J. (2013). Small RNA-mediated activation of sugar phosphatase mRNA regulates glucose homeostasis. Cell, 153, 426-437. https://doi.org/10.1016/j.cell.2013.03.003</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Pavan, S., Desreumaux, P., &amp; Mercenier, A. (2003). Use of mouse models to evaluate the persistence, safety, and immune modulation capacities of lactic acid bacteria. Clinical and Diagnostic Laboratory Immunology, 10, 696-701. https://doi.org/10.1128/CDLI.10.4.696-701.2003</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Riva, S., Villani, G., Mastromei, G., &amp; Mazza, G. (1976). Bacillus subtilis mutant temperature sensitive in the synthesis of ribonucleic acid. Journal of Bacteriology, 127, 679-690.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Rojas, M., &amp; Conway, P. L. (1996). Colonization by lactobacilli of piglet small intestinal mucus. Journal of Applied Bacteriology, 81, 474-480. https://doi.org/10.1111/j.1365-2672.1996.tb03535.x</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Sane, M., Miranda, J. J., &amp; Agashe, D. (2018). Antagonistic pleiotropy for carbon use is rare in new mutations. Evolution, 72, 2202-2213. https://doi.org/10.1111/evo.13569</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Sassone-Corsi, M., &amp; Raffatellu, M. (2015). No vacancy: How beneficial microbes cooperate with immunity to provide colonization resistance to pathogens. The Journal of Immunology, 194, 4081-4087. https://doi.org/10.4049/jimmunol.1403169</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Seemann, T. (2014). Prokka: Rapid prokaryotic genome annotation. Bioinformatics, 30, 2068-2069. https://doi.org/10.1093/bioinformatics/btu153</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Seemann, T. (2015). snippy: Fast bacterial variant calling from NGS reads [WWW Document].</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Sengupta, R., Altermann, E., Anderson, R. C., McNabb, W. C., Moughan, P. J., &amp; Roy, N. C. (2013). The role of cell surface architecture of lactobacilli in host-microbe interactions in the gastrointestinal tract. Mediators of Inflammation, 2013, 237921. https://doi.org/10.1155/2013/237921</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Senok, A. C., Ismaeel, A. Y., &amp; Botta, G. A. (2005). Probiotics: Facts and myths. Clinical Microbiology and Infection, 11, 958-966. https://doi.org/10.1111/j.1469-0691.2005.01228.x</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Tenaillon, O., Barrick, J. E., Ribeck, N., Deatherage, D. E., Blanchard, J. L., Dasgupta, A., … Lenski, R. E. (2016). Tempo and mode of genome evolution in a 50,000-generation experiment. Nature, 536, 165-170. https://doi.org/10.1038/nature18959</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Thomas, G. H., Mullins, J. G. L., &amp; Merrick, M. (2000). Membrane topology of the Mep/Amt family of ammonium transporters. Molecular Microbiology, 37, 331-344. https://doi.org/10.1046/j.1365-2958.2000.01994.x</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Valeur, N., Engel, P., Carbajal, N., Connolly, E., &amp; Ladefoged, K. (2004). Colonization and immunomodulation by Lactobacillus reuteri ATCC 55730 in the human gastrointestinal tract. Applied and Environment Microbiology, 70, 1176-1181. https://doi.org/10.1128/AEM.70.2.1176-1181.2004</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Wang, C.-H., Chiang-Ni, C., Kuo, H.-T., Zheng, P.-X., Tsou, C.-C., Wang, S., … Wu, J.-J. (2013). Peroxide responsive regulator PerR of group A Streptococcus is required for the expression of phage-associated DNase Sda1 under oxidative stress. PLoS ONE, 8, e81882. https://doi.org/10.1371/journal.pone.0081882</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Wattam, A. R., Abraham, D., Dalay, O., Disz, T. L., Driscoll, T., Gabbard, J. L., … Sobral, B. W. (2014). PATRIC, the bacterial bioinformatics database and analysis resource. Nucleic Acids Research, 42, D581-591. https://doi.org/10.1093/nar/gkt1099</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Weizman, Z., &amp; Alsheikh, A. (2006). Safety and tolerance of a probiotic formula in early infancy comparing two probiotic agents: A pilot study. Journal of the American College of Nutrition, 25, 415-419. https://doi.org/10.1080/07315724.2006.10719554</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Wiser, M. J., &amp; Lenski, R. E. (2015). A comparison of methods to measure fitness in Escherichia coli. PLoS ONE, 10, e0126210. https://doi.org/10.1371/journal.pone.0126210</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Wolf, B. W., Wheeler, K. B., Ataya, D. G., &amp; Garleb, K. A. (1998). Safety and tolerance of Lactobacillus reuteri supplementation to a population infected with the human immunodeficiency virus. Food and Chemical Toxicology, 36, 1085-1094. https://doi.org/10.1016/S0278-6915(98)00090-8</Citation>
+            </Reference>
+        </ReferenceList>
+    </PubmedData>
+</PubmedArticle>
+
+</PubmedArticleSet>
