@@ -273,7 +273,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bArticle = true;
             }
 
-            if (qName.equalsIgnoreCase("ArticleTitle")) {
+            if (bArticle && qName.equalsIgnoreCase("ArticleTitle")) {
                 bArticleTitle = true;
             }
 
@@ -345,7 +345,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bJournalISOAbbreviation = true;
             }
 
-            if (qName.equalsIgnoreCase("Title")) {
+            if (bArticle && qName.equalsIgnoreCase("Title")) {
                 bJournalTitle = true;
             }
 
@@ -528,7 +528,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 pubmedArticle.setPubmeddata(new PubMedData());
             }
             
-            if(qName.equalsIgnoreCase("History")) {
+            if(bPubmedData && qName.equalsIgnoreCase("History")) {
             	bHistory = true;
             	History history = History.builder().pubmedPubDate(new ArrayList<PubMedPubDate>()).build();
             	pubmedArticle.getPubmeddata().setHistory(history);
@@ -662,7 +662,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
 
             // Journal title
-            if (bJournalTitle) {
+            if (bArticle && bJournalTitle) {
                 String journalTitle = chars.toString();
                 pubmedArticle.getMedlinecitation().getArticle().getJournal().setTitle(journalTitle);
                 bJournalTitle = false;
@@ -795,12 +795,12 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 meshHeadingQualifierName.setQualifiername(qualifierName);
                 bQualifierName = false;
             }
-
+            
             // End of PubmedArticle tag. Add the PubmedArticle to the pubmedArticleList.
             if (qName.equalsIgnoreCase("PubmedArticle")) {
                 pubmedArticles.add(pubmedArticle);
             }
-
+            
             // End of Article tag.
             if (qName.equalsIgnoreCase("Article")) {
                 bArticle = false;
@@ -1005,7 +1005,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
             chars.append(ch, start, length);
         }
 
-        if (bJournalTitle) {
+        if (bArticle && bJournalTitle) {
             chars.append(ch, start, length);
         }
 
