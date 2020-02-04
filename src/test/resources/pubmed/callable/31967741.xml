@@ -1,0 +1,345 @@
+<?xml version="1.0" ?>
+<!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2019//EN" "https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_190101.dtd">
+<PubmedArticleSet>
+<PubmedArticle>
+    <MedlineCitation Status="Publisher" Owner="NLM">
+        <PMID Version="1">31967741</PMID>
+        <DateRevised>
+            <Year>2020</Year>
+            <Month>01</Month>
+            <Day>22</Day>
+        </DateRevised>
+        <Article PubModel="Print-Electronic">
+            <Journal>
+                <ISSN IssnType="Electronic">2328-9503</ISSN>
+                <JournalIssue CitedMedium="Internet">
+                    <PubDate>
+                        <Year>2020</Year>
+                        <Month>Jan</Month>
+                        <Day>22</Day>
+                    </PubDate>
+                </JournalIssue>
+                <Title>Annals of clinical and translational neurology</Title>
+                <ISOAbbreviation>Ann Clin Transl Neurol</ISOAbbreviation>
+            </Journal>
+            <ArticleTitle>Metachromatic leukodystrophy and transplantation: remyelination, no cross-correction.</ArticleTitle>
+            <ELocationID EIdType="doi" ValidYN="Y">10.1002/acn3.50975</ELocationID>
+            <Abstract>
+                <AbstractText Label="OBJECTIVE" NlmCategory="OBJECTIVE">In metachromatic leukodystrophy, a lysosomal storage disorder due to decreased arylsulfatase A activity, hematopoietic stem cell transplantation may stop brain demyelination and allow remyelination, thereby halting white matter degeneration. This is the first study to define the effects and therapeutic mechanisms of hematopoietic stem cell transplantation on brain tissue of transplanted metachromatic leukodystrophy patients.</AbstractText>
+                <AbstractText Label="METHODS" NlmCategory="METHODS">Autopsy brain tissue was obtained from eight (two transplanted and six nontransplanted) metachromatic leukodystrophy patients, and two age-matched controls. We examined the presence of donor cells by immunohistochemistry and microscopy. In addition, we assessed myelin content, oligodendrocyte numbers, and macrophage phenotypes. An unpaired t-test, linear regression or the nonparametric Mann-Whitney U-test was performed to evaluate differences between the transplanted, nontransplanted, and control group.</AbstractText>
+                <AbstractText Label="RESULTS" NlmCategory="RESULTS">In brain tissue of transplanted patients, we found metabolically competent donor macrophages expressing arylsulfatase A distributed throughout the entire white matter. Compared to nontransplanted patients, these macrophages preferentially expressed markers of alternatively activated, anti-inflammatory cells that may support oligodendrocyte survival and differentiation. Additionally, transplanted patients showed higher numbers of oligodendrocytes and evidence for remyelination. Contrary to the current hypothesis on therapeutic mechanism of hematopoietic cell transplantation in metachromatic leukodystrophy, we detected no enzymatic cross-correction to resident astrocytes and oligodendrocytes.</AbstractText>
+                <AbstractText Label="INTERPRETATION" NlmCategory="CONCLUSIONS">In conclusion, donor macrophages are able to digest accumulated sulfatides and may play a neuroprotective role for resident oligodendrocytes, thereby enabling remyelination, albeit without evidence of cross-correction of oligo- and astroglia. These results emphasize the importance of immunomodulation in addition to the metabolic correction, which might be exploited for improved outcomes.</AbstractText>
+                <CopyrightInformation>© 2020 The Authors. Annals of Clinical and Translational Neurology published by Wiley Periodicals, Inc on behalf of American Neurological Association.</CopyrightInformation>
+            </Abstract>
+            <AuthorList CompleteYN="Y">
+                <Author ValidYN="Y">
+                    <LastName>Wolf</LastName>
+                    <ForeName>Nicole I</ForeName>
+                    <Initials>NI</Initials>
+                    <Identifier Source="ORCID">https://orcid.org/0000-0003-1721-0728</Identifier>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Child Neurology, Center for Childhood White Matter Diseases, Emma Children's Hospital, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, and Amsterdam Neuroscience, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Breur</LastName>
+                    <ForeName>Marjolein</ForeName>
+                    <Initials>M</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Child Neurology, Center for Childhood White Matter Diseases, Emma Children's Hospital, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, and Amsterdam Neuroscience, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Pathology, Amsterdam Neuroscience, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Plug</LastName>
+                    <ForeName>Bonnie</ForeName>
+                    <Initials>B</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Child Neurology, Center for Childhood White Matter Diseases, Emma Children's Hospital, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, and Amsterdam Neuroscience, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Pathology, Amsterdam Neuroscience, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Beerepoot</LastName>
+                    <ForeName>Shanice</ForeName>
+                    <Initials>S</Initials>
+                    <Identifier Source="ORCID">https://orcid.org/0000-0003-2945-6784</Identifier>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Child Neurology, Center for Childhood White Matter Diseases, Emma Children's Hospital, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, and Amsterdam Neuroscience, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Center for Translational Immunology, University Medical Center Utrecht, Utrecht, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Westerveld</LastName>
+                    <ForeName>Aimee S R</ForeName>
+                    <Initials>ASR</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Child Neurology, Center for Childhood White Matter Diseases, Emma Children's Hospital, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, and Amsterdam Neuroscience, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Pathology, Amsterdam Neuroscience, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>van Rappard</LastName>
+                    <ForeName>Diane F</ForeName>
+                    <Initials>DF</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Child Neurology, Center for Childhood White Matter Diseases, Emma Children's Hospital, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, and Amsterdam Neuroscience, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>de Vries</LastName>
+                    <ForeName>Sharon I</ForeName>
+                    <Initials>SI</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Axonal Signaling, Netherlands Institute for Neuroscience, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Kole</LastName>
+                    <ForeName>Maarten H P</ForeName>
+                    <Initials>MHP</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Axonal Signaling, Netherlands Institute for Neuroscience, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Cell Biology Faculty of Science, Utrecht University, Utrecht, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Vanderver</LastName>
+                    <ForeName>Adeline</ForeName>
+                    <Initials>A</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Division of Neurology, Department of Pediatrics, Children's Hospital of Philadelphia, University of Pennsylvania, Philadelphia, Pennsylvania.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Neurology, Perelman School of Medicine, University of Pennsylvania, Philadelphia, Pennsylvania.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>van der Knaap</LastName>
+                    <ForeName>Marjo S</ForeName>
+                    <Initials>MS</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Child Neurology, Center for Childhood White Matter Diseases, Emma Children's Hospital, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, and Amsterdam Neuroscience, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Functional Genomics, Center for Neurogenomics and Cognitive Research, VU University, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Lindemans</LastName>
+                    <ForeName>Caroline A</ForeName>
+                    <Initials>CA</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Pediatrics, University Medical Center Utrecht, Utrecht, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Pediatric Blood and Marrow Transplantation Program, Princess Maxima Center, Utrecht, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>van Hasselt</LastName>
+                    <ForeName>Peter M</ForeName>
+                    <Initials>PM</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Metabolic Diseases, Wilhelmina Children's Hospital, University Medical Center Utrecht, Utrecht, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Boelens</LastName>
+                    <ForeName>Jaap J</ForeName>
+                    <Initials>JJ</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Pediatrics, University Medical Center Utrecht, Utrecht, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Matzner</LastName>
+                    <ForeName>Ulrich</ForeName>
+                    <Initials>U</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Institute of Biochemistry and Molecular Biology, Rheinische Friedrich-Wilhelms University, Bonn, Germany.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Gieselmann</LastName>
+                    <ForeName>Volkmar</ForeName>
+                    <Initials>V</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Institute of Biochemistry and Molecular Biology, Rheinische Friedrich-Wilhelms University, Bonn, Germany.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Bugiani</LastName>
+                    <ForeName>Marianna</ForeName>
+                    <Initials>M</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Child Neurology, Center for Childhood White Matter Diseases, Emma Children's Hospital, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, and Amsterdam Neuroscience, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Pathology, Amsterdam Neuroscience, Amsterdam University Medical Centers, Vrije Universiteit Amsterdam, Amsterdam, The Netherlands.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+            </AuthorList>
+            <Language>eng</Language>
+            <GrantList CompleteYN="Y">
+                <Grant>
+                    <Agency>Hersenstichting</Agency>
+                    <Country/>
+                </Grant>
+            </GrantList>
+            <PublicationTypeList>
+                <PublicationType UI="D016428">Journal Article</PublicationType>
+            </PublicationTypeList>
+            <ArticleDate DateType="Electronic">
+                <Year>2020</Year>
+                <Month>01</Month>
+                <Day>22</Day>
+            </ArticleDate>
+        </Article>
+        <MedlineJournalInfo>
+            <Country>United States</Country>
+            <MedlineTA>Ann Clin Transl Neurol</MedlineTA>
+            <NlmUniqueID>101623278</NlmUniqueID>
+            <ISSNLinking>2328-9503</ISSNLinking>
+        </MedlineJournalInfo>
+        <CitationSubset>IM</CitationSubset>
+    </MedlineCitation>
+    <PubmedData>
+        <History>
+            <PubMedPubDate PubStatus="received">
+                <Year>2019</Year>
+                <Month>11</Month>
+                <Day>07</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="accepted">
+                <Year>2019</Year>
+                <Month>12</Month>
+                <Day>17</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="entrez">
+                <Year>2020</Year>
+                <Month>1</Month>
+                <Day>23</Day>
+                <Hour>6</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="pubmed">
+                <Year>2020</Year>
+                <Month>1</Month>
+                <Day>23</Day>
+                <Hour>6</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="medline">
+                <Year>2020</Year>
+                <Month>1</Month>
+                <Day>23</Day>
+                <Hour>6</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+        </History>
+        <PublicationStatus>aheadofprint</PublicationStatus>
+        <ArticleIdList>
+            <ArticleId IdType="pubmed">31967741</ArticleId>
+            <ArticleId IdType="doi">10.1002/acn3.50975</ArticleId>
+        </ArticleIdList>
+        <ReferenceList>
+            <Title>References</Title>
+            <Reference>
+                <Citation>van Rappard DF, Boelens JJ, Wolf NI. Metachromatic leukodystrophy: disease spectrum and approaches for treatment. Best Pract Res Clin Endocrinol Met 2015;29:261-273.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Givogri M, Bottai D, Zhu H, et al. Multipotential neural precursors transplanted into the metachromatic leukodystrophy brain fail to generate oligodendrocytes but contribute to limit brain dysfunction. Dev Neurosci 2008;30:340-357.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Groeschel S, Kühl J-SS, Bley AE, et al. Long-term outcome of allogeneic hematopoietic stem cell transplantation in patients with juvenile metachromatic leukodystrophy compared with nontransplanted control patients. JAMA Neurol 2016;73:1133-1140.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>van Rappard DF, Boelens JJ, van Egmond ME, et al. Efficacy of hematopoietic cell transplantation in metachromatic leukodystrophy: the Dutch experience. Blood 2016;127:3098-3101.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Egmond M, Pouwels P, Boelens J, et al. Improvement of white matter changes on neuroimaging modalities after stem cell transplant in metachromatic leukodystrophy. JAMA Neurol 2013;70:779-782.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Krägeloh-Mann I, Groeschel S, Kehrer C, et al. Juvenile metachromatic leukodystrophy 10 years post transplant compared with a non-transplanted cohort. Bone Marrow Transplant 2013;48:369-375.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Krägeloh-Mann I, Groeschel S. Therapies of lysosomal storage disorders targeting the brain. Lancet 2016;388:440-442.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Biffi A, Montini E, Lorioli L, et al. Lentiviral hematopoietic stem cell gene therapy benefits metachromatic leukodystrophy. Science 2013;341:1233158.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Sessa M, Lorioli L, Fumagalli F, et al. Lentiviral haemopoietic stem-cell gene therapy in early-onset metachromatic leukodystrophy: an ad-hoc analysis of a non-randomised, open-label, phase 1/2 trial. Lancet 2016;388:476-487.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Kevelam SH, Bugiani M, Salomons GS, et al. Exome sequencing reveals mutated SLC19A3 in patients with an early-infantile, lethal encephalopathy. Brain 2013;136:1534-1543.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Geuze H, Slot J, Strous G, et al. Ultrastructural localization of the mannose 6-phosphate receptor in rat liver. J Cell Biol 1984;98:2047-2054.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Kuhlmann T, Miron V, Cui Q, et al. Differentiation block of oligodendroglial progenitor cells as a cause for remyelination failure in chronic multiple sclerosis. Brain 2008;131:1749-1758.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Dubey M, Bugiani M, Ridder MC, et al. Mice with megalencephalic leukoencephalopathy with cysts: a developmental angle. Ann Neurol 2015;77:114-131.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Schneider CA, Rasband WS, Eliceiri KW. NIH Image to ImageJ: 25 years of image analysis. Nat Methods 2012;9:671-675.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Franklin RJ, Ffrench-Constant C, Edgar JM, Smith K. Neuroprotection and repair in multiple sclerosis. Nat Rev Neurol 2012;8:624-634.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Jeong H-K, Ji K, Min K, Joe E-H. Brain inflammation and microglia: facts and misconceptions. Exp Neurobiol 2013;22:59-67.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Ransohoff RM. A polarizing question: do M1 and M2 microglia exist? Nat Neurosci 2016;19:987-991.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Mosser DM, Edwards JP. Exploring the full spectrum of macrophage activation. Nat Rev Immunol 2008;8:958-969.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Muschol N, Matzner U, Tiede S, et al. Secretion of phosphomannosyl-deficient arylsulphatase A and cathepsin D from isolated human macrophages. Biochem J 2002;368:845-853.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Plemel JR, Manesh SB, Sparling JS, Tetzlaff W. Myelin inhibits oligodendroglial maturation and regulates oligodendrocytic transcription factor expression. Glia 2013;61:1471-1487.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Lloyd AF, Davies CL, Holloway RK, et al. Central nervous system regeneration is driven by microglia necroptosis and repopulation. Nat Neurosci 2019;22:1046-1052.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Baron W, Bijlard M, Nomden A, et al. Sulfatide-mediated control of extracellular matrix-dependent oligodendrocyte maturation. Glia 2014;62:927-942.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Miron VE, Boyd A, Zhao J-WW, et al. M2 microglia and macrophages drive oligodendrocyte differentiation during CNS remyelination. Nat Neurosci 2013;16:1211-1218.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Franklin RJ, Ffrench-Constant C. Remyelination in the CNS: from biology to therapy. Nat Rev Neurosci 2008;9:839-855.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Peferoen L, Kipp M, van der Valk P, et al. Oligodendrocyte-microglia cross-talk in the central nervous system. Immunology 2014;141:302-313.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Hawkins-Salsbury JA, Shea L, Jiang X, et al. Mechanism-based combination treatment dramatically increases therapeutic efficacy in murine globoid cell leukodystrophy. J Neurosci 2015;35:6495-505.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>Sevin C, Dali C, Giugliani R, et al. Intrathecal delivery of recombinant human arylsulfatase A in children with late-infantile metachromatic leukodystrophy: an update following extended treatment. Mol Gen Metab 2017;120:S121.</Citation>
+            </Reference>
+            <Reference>
+                <Citation>van der Knaap MS, Schiffmann R, Mochel F, Wolf NI. Diagnosis, prognosis, and treatment of leukodystrophies. Lancet Neurol 2019;18:962-972.</Citation>
+            </Reference>
+        </ReferenceList>
+    </PubmedData>
+</PubmedArticle>
+</PubmedArticleSet>
