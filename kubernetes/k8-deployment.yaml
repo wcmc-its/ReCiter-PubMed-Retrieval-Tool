@@ -19,7 +19,7 @@ spec:
     rollingUpdate:
       maxUnavailable: 0
     type: RollingUpdate
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
@@ -29,7 +29,7 @@ spec:
         owner: szd2013
     spec:
       containers:
-      - image: xxxxxxxxxxxxx.dkr.ecr.us-east-1.amazonaws.com/wcmc/reciter/reciter-pubmed-retrieval-tool:tag
+      - image: CONTAINER_IMAGE
         name: reciter-pubmed
         imagePullPolicy: IfNotPresent
         env:
@@ -48,7 +48,7 @@ spec:
           name: reciter-pubmed
         resources:
           requests:
-            memory: 1750m
+            memory: 1.7G
             cpu: 0.8
           limits:
             memory: 2G
@@ -116,8 +116,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: reciter-pubmed
-  minReplicas: 3
-  maxReplicas: 6
+  minReplicas: 1
+  maxReplicas: 4
   metrics:
   - type: Resource
     resource:
