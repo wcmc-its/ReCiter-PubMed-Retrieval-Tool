@@ -15,11 +15,11 @@ phases:
         - echo "${CODEBUILD_WEBHOOK_HEAD_REF}"
         - |
           if expr "${CODEBUILD_WEBHOOK_HEAD_REF}" : ".*dev" >/dev/null; then
-            sed -i '' -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVIRONMENT_LABEL@'"dev"'@' kubernetes/k8-deployment.yaml;
+            sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVIRONMENT_LABEL@'"dev"'@' kubernetes/k8-deployment.yaml;
           fi
         - |
           if expr "${CODEBUILD_WEBHOOK_HEAD_REF}" : ".*master" >/dev/null; then
-            sed -i '' -e 's@NAMESPACE@'"reciter-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
+            sed -i.bak -e 's@NAMESPACE@'"reciter-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
           fi
         - $(aws ecr get-login --no-include-email)
         - export KUBECONFIG=$HOME/.kube/config
