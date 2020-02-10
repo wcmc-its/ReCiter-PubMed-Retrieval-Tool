@@ -13,12 +13,13 @@ phases:
         - echo $TAG
         - sed -i.bak -e 's@CONTAINER_IMAGE@'"$REPOSITORY_URI:$TAG"'@' kubernetes/k8-deployment.yaml
         - echo "${CODEBUILD_WEBHOOK_HEAD_REF}"
+        - echo "${BRANCH}"
         - |
-          if expr "${CODEBUILD_WEBHOOK_HEAD_REF}" : ".*dev" >/dev/null; then
+          if expr "${BRANCH}" : ".*dev" >/dev/null; then
             sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVIRONMENT_LABEL@'"dev"'@' kubernetes/k8-deployment.yaml;
           fi
         - |
-          if expr "${CODEBUILD_WEBHOOK_HEAD_REF}" : ".*master" >/dev/null; then
+          if expr "${BRANCH}" : ".*master" >/dev/null; then
             sed -i.bak -e 's@NAMESPACE@'"reciter-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
           fi
         - $(aws ecr get-login --no-include-email)
@@ -28,14 +29,14 @@ phases:
     commands:
       - mvn clean install -Dmaven.test.skip=true
       - |
-        if expr "${CODEBUILD_WEBHOOK_HEAD_REF}" : ".*master" >/dev/null || expr "${CODEBUILD_WEBHOOK_HEAD_REF}" : ".*dev" >/dev/null; then
+        if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null; then
           docker build --tag $REPOSITORY_URI:$TAG .
         fi
 
   post_build:
     commands:
       - |
-        if expr "${CODEBUILD_WEBHOOK_HEAD_REF}" : ".*master" >/dev/null || expr "${CODEBUILD_WEBHOOK_HEAD_REF}" : ".*dev" >/dev/null; then
+        if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null; then
           docker push $REPOSITORY_URI:$TAG
           CREDENTIALS=$(aws sts assume-role --role-arn $EKS_KUBECTL_ROLE_ARN --role-session-name codebuild-kubectl --duration-seconds 900)
           export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
@@ -46,5 +47,3 @@ phases:
           kubectl apply -f ./kubernetes/k8-deployment.yaml
           printf '[{"name":"k8-deployment.yaml","imageUri":"%s"}]' $REPOSITORY_URI:$TAG > build.json
         fi
-artifacts:
-  files: build.json
