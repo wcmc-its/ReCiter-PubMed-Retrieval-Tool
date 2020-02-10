@@ -2,17 +2,17 @@ apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and befor
 kind: Deployment
 metadata:
   name: reciter-pubmed
-  namespace: reciter
+  namespace: NAMESPACE
   labels:
     app: reciter-pm
-    environment: dev
+    environment: ENVIRONMENT_LABEL
     tier: backend
     owner: szd2013
 spec:
   selector:
     matchLabels:
       app: reciter-pubmed
-      environment: dev
+      environment: ENVIRONMENT_LABEL
       tier: backend
       owner: szd2013
   strategy:
@@ -24,7 +24,7 @@ spec:
     metadata:
       labels:
         app: reciter-pubmed
-        environment: dev
+        environment: ENVIRONMENT_LABEL
         tier: backend
         owner: szd2013
     spec:
@@ -111,6 +111,9 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: hpa-reciter-pubmed
   namespace: reciter
+  labels:
+    app: reciter-pubmed
+    environment: ENVIRONMENT_LABEL
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -124,4 +127,10 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 70
+        averageUtilization: 80
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 85
