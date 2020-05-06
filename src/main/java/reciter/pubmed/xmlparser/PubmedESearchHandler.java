@@ -1,8 +1,16 @@
 package reciter.pubmed.xmlparser;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.commons.io.IOUtils;
+import javax.xml.parsers.ParserConfigurationException;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -17,20 +25,9 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import lombok.extern.slf4j.Slf4j;
 import reciter.pubmed.model.PubmedESearchResult;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A SAX handler for parsing the ESearch query from PubMed.
