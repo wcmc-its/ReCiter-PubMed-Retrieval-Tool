@@ -18,6 +18,15 @@
  *******************************************************************************/
 package reciter.pubmed.xmlparser;
 
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -28,7 +37,6 @@ import reciter.model.pubmed.MedlineCitation;
 import reciter.model.pubmed.MedlineCitationArticle;
 import reciter.model.pubmed.MedlineCitationArticleAbstract;
 import reciter.model.pubmed.MedlineCitationArticleAbstractText;
-import reciter.model.pubmed.MedlineCitationArticleAbstractText.MedlineCitationArticleAbstractTextBuilder;
 import reciter.model.pubmed.MedlineCitationArticleAuthor;
 import reciter.model.pubmed.MedlineCitationArticleELocationID;
 import reciter.model.pubmed.MedlineCitationArticlePagination;
@@ -49,15 +57,6 @@ import reciter.model.pubmed.MedlineCitationYNEnum;
 import reciter.model.pubmed.PubMedArticle;
 import reciter.model.pubmed.PubMedData;
 import reciter.model.pubmed.PubMedPubDate;
-
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A SAX handler that parses PubMed XML content.
@@ -110,6 +109,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bAuthorInitials;
     private boolean bAffiliationInfo;
     private boolean bAffiliation;
+    private boolean bOrcid;
     private boolean bPublicationTypeList;
     private boolean bPublicationType;
     private boolean bMedlineJournalInfo;
@@ -189,7 +189,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
     	String abstractTextNlmCategory = attributes.getValue("NlmCategory");
     	return abstractTextNlmCategory;
     }
-    
+
+    private boolean isOrcid(Attributes attributes) {
+        return attributes.getValue("Source").equalsIgnoreCase("ORCID");
+    }
     /**
      * Pull out year. Year is the first four consecutive numbers in the string.
 	 * Attempt to pull out month. (This won't always work.) Month is the first three consecutive letters. Map these letters to a two-digit month equivalent, e.g., "Feb" --> "02", "Oct" --> "10"
@@ -382,6 +385,9 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             if (qName.equalsIgnoreCase("Affiliation")) {
                 bAffiliation = true;
+            }
+            if(qName.equalsIgnoreCase("Identifier") && bAuthorList && isOrcid(attributes)) {
+                bOrcid = true;
             }
             if (qName.equalsIgnoreCase("AuthorList") &&
                     pubmedArticle != null) {
@@ -631,6 +637,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliation);
                 bAffiliation = false;
+            }
+            
+            // Author ORCID identifier
+            if (bOrcid) {
+                String orcid = chars.toString();
+                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setOrcid(orcid);
+                bOrcid = false;
             }
             
             if(bISSN) {
@@ -986,6 +1000,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
 
         if (bAffiliation) {
+            chars.append(ch, start, length);
+        }
+
+        if (bOrcid) {
             chars.append(ch, start, length);
         }
 
