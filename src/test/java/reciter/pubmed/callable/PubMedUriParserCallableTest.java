@@ -35,7 +35,7 @@ public class PubMedUriParserCallableTest {
      */
     @Test
     public void testInvalidCharacterParse() throws Exception {
-        File initialFile = new File("src/test/resources/pubmed/callable/28356292.xml");
+        File initialFile = new File("src/test/resources/reciter/pubmed/callable/28356292.xml");
         inputSource = new InputSource(new FileInputStream(initialFile));
         pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
