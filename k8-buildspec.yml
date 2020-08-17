@@ -1,0 +1,40 @@
+---
+version: 0.2
+phases:
+  install:
+    commands:
+      - kubectl version --short --client   
+  pre_build:
+      commands:
+        - TAG="${BRANCH}-$CODEBUILD_BUILD_NUMBER.$(date +%Y-%m-%d.%H.%M.%S).$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
+        - echo $TAG
+        - sed -i.bak -e 's@CONTAINER_IMAGE@'"$REPOSITORY_URI:$TAG"'@' kubernetes/k8-deployment.yaml
+        - echo "${CODEBUILD_WEBHOOK_HEAD_REF}"
+        - echo "${BRANCH}"
+        - |
+          if expr "${BRANCH}" : ".*dev" >/dev/null; then
+            sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-dev"'@' -e 's@APPNAME@'"reciter-pubmed-dev"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-dev"'@' -e 's@ENVIRONMENT_LABEL@'"dev"'@' kubernetes/k8-deployment.yaml;
+          fi
+        - |
+          if expr "${BRANCH}" : ".*master" >/dev/null; then
+            sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-prod"'@'  -e 's@APPNAME@'"reciter-pubmed-prod"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
+          fi
+        - $(aws ecr get-login --no-include-email)
+        - cat ./kubernetes/k8-deployment.yaml
+  build:
+    commands:
+      - mvn clean install -Dmaven.test.skip=true
+      - |
+        if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null; then
+          docker build --tag $REPOSITORY_URI:$TAG .
+        fi
+
+
+  post_build:
+    commands:
+      - |
+        if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null; then
+          docker push $REPOSITORY_URI:$TAG
+          aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region us-east-1 --role-arn $EKS_KUBECTL_ROLE_ARN
+          kubectl apply -f ./kubernetes/k8-deployment.yaml
+        fi

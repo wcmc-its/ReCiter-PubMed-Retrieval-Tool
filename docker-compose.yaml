@@ -1,0 +1,21 @@
+version: '3'
+services:
+  nginx:
+    container_name: reciter-pubmed-nginx
+    image: nginx:alpine
+    restart: always
+    ports:
+    - 80:80
+    - 443:443
+    volumes:
+    - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+    - app
+
+  app:
+    restart: always
+    build: ./
+    working_dir: /app
+    expose:
+      - "5000"
+    command: mvn clean spring-boot:run

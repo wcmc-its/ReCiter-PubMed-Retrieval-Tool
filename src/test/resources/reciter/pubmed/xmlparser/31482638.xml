@@ -1,0 +1,252 @@
+<?xml version="1.0" ?>
+<!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st June 2018//EN" "https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_180601.dtd">
+<PubmedArticleSet>
+    <PubmedArticle>
+        <MedlineCitation Status="In-Process" Owner="NLM">
+            <PMID Version="1">31482638</PMID>
+            <DateRevised>
+                <Year>2020</Year>
+                <Month>05</Month>
+                <Day>04</Day>
+            </DateRevised>
+            <Article PubModel="Print-Electronic">
+                <Journal>
+                    <ISSN IssnType="Electronic">1365-2265</ISSN>
+                    <JournalIssue CitedMedium="Internet">
+                        <Volume>91</Volume>
+                        <Issue>6</Issue>
+                        <PubDate>
+                            <Year>2019</Year>
+                            <Month>12</Month>
+                        </PubDate>
+                    </JournalIssue>
+                    <Title>Clinical endocrinology</Title>
+                    <ISOAbbreviation>Clin. Endocrinol. (Oxf)</ISOAbbreviation>
+                </Journal>
+                <ArticleTitle>Alterations in long noncoding RNAs in women with and without polycystic ovarian syndrome.</ArticleTitle>
+                <Pagination>
+                    <MedlinePgn>793-797</MedlinePgn>
+                </Pagination>
+                <ELocationID EIdType="doi" ValidYN="Y">10.1111/cen.14087</ELocationID>
+                <Abstract>
+                    <AbstractText>Long noncoding RNAs (lncRNAs) are RNA transcripts over 200 nucleotides long that are not translated into protein; however, there is increasing evidence of their regulatory functions. To date, there are few studies measuring lncRNA in control women or women with polycystic ovary syndrome (PCOS).</AbstractText>
+                    <AbstractText Label="OBJECTIVE">To determine lncRNA differences between PCOS and control women.</AbstractText>
+                    <AbstractText Label="DESIGN">Cross sectional study.</AbstractText>
+                    <AbstractText Label="PATIENTS">Twenty four anovulatory women with all three diagnostic features of PCOS compared to 24 control women in the follicular phase of their menstrual cycle from a PCOS biobank.</AbstractText>
+                    <AbstractText Label="RESULTS">Women with PCOS were age and weight matched compared to the control women but were significantly insulin resistant and hyperandrogenemic (P &lt; .01). Eight lncRNA (P &lt; .05) were detected that differed between PCOS and control women, but only MIRLET7BHG correlated with body mass index (r = .66, P &lt; .05). No lncRNA correlated with antimullerian hormone (AMH) levels, insulin resistance (HOMA-IR) or the free androgen index (FAI). Ingenuity pathway assessment (IPA) did not identify any functional pathways for the lncRNAs.</AbstractText>
+                    <AbstractText Label="CONCLUSION">LncRNAs differ between anovulatory PCOS and control women in the follicular phase of the menstrual cycle. It is unclear if this is due to inherent differences between PCOS and control women or due to changes in lncRNA that are menstrual cycle dependent. However, their IPA did not identify linked pathways, likely because few functions are as yet assigned to these lncRNAs.</AbstractText>
+                    <CopyrightInformation>© 2019 John Wiley &amp; Sons Ltd.</CopyrightInformation>
+                </Abstract>
+                <AuthorList CompleteYN="Y">
+                    <Author ValidYN="Y">
+                        <LastName>Butler</LastName>
+                        <ForeName>Alexandra E</ForeName>
+                        <Initials>AE</Initials>
+                        <Identifier Source="ORCID">0000-0002-5762-3917</Identifier>
+                        <AffiliationInfo>
+                            <Affiliation>Diabetes Research Center (DRC), Qatar Biomedical Research Institute (QBRI), Hamad Bin Khalifa University (HBKU), Qatar Foundation (QF), Doha, Qatar.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Hayat</LastName>
+                        <ForeName>Shahina</ForeName>
+                        <Initials>S</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>Weill Cornell Medicine-Qatar, Education City, Doha, Qatar.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Dargham</LastName>
+                        <ForeName>Soha R</ForeName>
+                        <Initials>SR</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>Weill Cornell Medicine-Qatar, Education City, Doha, Qatar.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Malek</LastName>
+                        <ForeName>Joel A</ForeName>
+                        <Initials>JA</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>Weill Cornell Medicine-Qatar, Education City, Doha, Qatar.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Abdulla</LastName>
+                        <ForeName>Silvana A</ForeName>
+                        <Initials>SA</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>Weill Cornell Medicine-Qatar, Education City, Doha, Qatar.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Mohamoud</LastName>
+                        <ForeName>Yasmin A</ForeName>
+                        <Initials>YA</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>Weill Cornell Medicine-Qatar, Education City, Doha, Qatar.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Suhre</LastName>
+                        <ForeName>Karsten</ForeName>
+                        <Initials>K</Initials>
+                        <AffiliationInfo>
+                            <Affiliation>Weill Cornell Medicine-Qatar, Education City, Doha, Qatar.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Sathyapalan</LastName>
+                        <ForeName>Thozhukat</ForeName>
+                        <Initials>T</Initials>
+                        <Identifier Source="ORCID">0000-0003-3544-2231</Identifier>
+                        <AffiliationInfo>
+                            <Affiliation>Academic Diabetes and Endocrinology, Hull York Medical School, Hull, UK.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Atkin</LastName>
+                        <ForeName>Stephen L</ForeName>
+                        <Initials>SL</Initials>
+                        <Identifier Source="ORCID">0000-0002-5887-7257</Identifier>
+                        <AffiliationInfo>
+                            <Affiliation>Weill Cornell Medicine-Qatar, Education City, Doha, Qatar.</Affiliation>
+                        </AffiliationInfo>
+                        <AffiliationInfo>
+                            <Affiliation>Royal College of Surgeons Ireland, Busaiteen, Bahrain.</Affiliation>
+                        </AffiliationInfo>
+                    </Author>
+                </AuthorList>
+                <Language>eng</Language>
+                <PublicationTypeList>
+                    <PublicationType UI="D016428">Journal Article</PublicationType>
+                    <PublicationType UI="D013485">Research Support, Non-U.S. Gov't</PublicationType>
+                </PublicationTypeList>
+                <ArticleDate DateType="Electronic">
+                    <Year>2019</Year>
+                    <Month>10</Month>
+                    <Day>01</Day>
+                </ArticleDate>
+            </Article>
+            <MedlineJournalInfo>
+                <Country>England</Country>
+                <MedlineTA>Clin Endocrinol (Oxf)</MedlineTA>
+                <NlmUniqueID>0346653</NlmUniqueID>
+                <ISSNLinking>0300-0664</ISSNLinking>
+            </MedlineJournalInfo>
+            <CitationSubset>IM</CitationSubset>
+            <KeywordList Owner="NOTNLM">
+                <Keyword MajorTopicYN="Y">long noncoding RNA</Keyword>
+                <Keyword MajorTopicYN="Y">polycystic ovarian syndrome</Keyword>
+            </KeywordList>
+        </MedlineCitation>
+        <PubmedData>
+            <History>
+                <PubMedPubDate PubStatus="received">
+                    <Year>2019</Year>
+                    <Month>06</Month>
+                    <Day>18</Day>
+                </PubMedPubDate>
+                <PubMedPubDate PubStatus="revised">
+                    <Year>2019</Year>
+                    <Month>08</Month>
+                    <Day>12</Day>
+                </PubMedPubDate>
+                <PubMedPubDate PubStatus="accepted">
+                    <Year>2019</Year>
+                    <Month>08</Month>
+                    <Day>29</Day>
+                </PubMedPubDate>
+                <PubMedPubDate PubStatus="pubmed">
+                    <Year>2019</Year>
+                    <Month>9</Month>
+                    <Day>5</Day>
+                    <Hour>6</Hour>
+                    <Minute>0</Minute>
+                </PubMedPubDate>
+                <PubMedPubDate PubStatus="medline">
+                    <Year>2019</Year>
+                    <Month>9</Month>
+                    <Day>5</Day>
+                    <Hour>6</Hour>
+                    <Minute>0</Minute>
+                </PubMedPubDate>
+                <PubMedPubDate PubStatus="entrez">
+                    <Year>2019</Year>
+                    <Month>9</Month>
+                    <Day>5</Day>
+                    <Hour>6</Hour>
+                    <Minute>0</Minute>
+                </PubMedPubDate>
+            </History>
+            <PublicationStatus>ppublish</PublicationStatus>
+            <ArticleIdList>
+                <ArticleId IdType="pubmed">31482638</ArticleId>
+                <ArticleId IdType="doi">10.1111/cen.14087</ArticleId>
+            </ArticleIdList>
+            <ReferenceList>
+                <Title>REFERENCES</Title>
+                <Reference>
+                    <Citation>Azziz R, Woods KS, Reyna R, Key TJ, Knochenhauer ES, Yildiz BO. The prevalence and features of the polycystic ovary syndrome in an unselected population. J Clin Endocrinol Metab. 2004;89(6):2745-2749.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Franks S. Polycystic ovary syndrome. N Engl J Med. 1995;333(13):853-861.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Shi Y, Zhao H, Shi Y, et al. Genome-wide association study identifies eight new risk loci for polycystic ovary syndrome. Nat Genet. 2012;44(9):1020-1025.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Wang XX, Wei JZ, Jiao J, Jiang SY, Yu DH, Li D. Genome-wide DNA methylation and gene expression patterns provide insight into polycystic ovary syndrome development. Oncotarget. 2014;5(16):6603-6610.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Sorensen AE, Wissing ML, Salo S, Englund AL, Dalgaard LT. MicroRNAs related to polycystic ovary syndrome (PCOS). Genes. 2014;5(3):684-708.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Djebali S, Davis CA, Merkel A, et al. Landscape of transcription in human cells. Nature. 2012;489(7414):101-108.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Hangauer MJ, Vaughn IW, McManus MT. Pervasive transcription of the human genome produces thousands of previously unidentified long intergenic noncoding RNAs. PLoS Genet. 2013;9(6):e1003569.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Sullivan MD, Katon WJ, Lovato LC, et al. Association of depression with accelerated cognitive decline among patients with type 2 diabetes in the ACCORD-MIND trial. JAMA Psychiatry. 2013;70(10):1041-1047.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Broadbent HM, Peden JF, Lorkowski S, et al. Susceptibility to coronary artery disease and diabetes is encoded by distinct, tightly linked SNPs in the ANRIL locus on chromosome 9p. Hum Mol Genet. 2008;17(6):806-814.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Gopalakrishnan K, Kumarasamy S, Mell B, Joe B. Genome-wide identification of long noncoding RNAs in rat models of cardiovascular and renal disease. Hypertension. 2015;65(1):200-210.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Modarresi F, Faghihi MA, Patel NS, Sahagan BG, Wahlestedt C, Lopez-Toledano MA. Knockdown of BACE1-AS nonprotein-coding transcript modulates beta-amyloid-related hippocampal neurogenesis. Int J Alzheimers Dis. 2011;2011:929042.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Liu YD, Li Y, Feng SX, et al. Long noncoding RNAs: potential regulators involved in the pathogenesis of polycystic ovary syndrome. Endocrinology. 2017;158(11):3890-3899.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Revised 2003 consensus on diagnostic criteria and long-term health risks related to polycystic ovary syndrome (PCOS). Hum Reprod. 2004;19(1):41-47.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Birkett MA, Day SJ. Internal pilot studies for estimating sample size. Stat Med. 1994;13(23-24):2455-2463.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Derrien T, Guigo R, Johnson R. The long non-coding RNAs: a new (P)layer in the “Dark Matter”. Front Genet. 2011;2:107.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Fernandes J, Acuna SM, Aoki JI, Floeter-Winter L, Muxel S. Long non-coding RNAs in the regulation of gene expression: physiology and disease. Non-Coding RNA. 2019;5(1):17.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>He X, Ou C, Xiao Y, Han Q, Li H, Zhou S. LncRNAs: key players and novel insights into diabetes mellitus. Oncotarget. 2017;8(41):71325-71341.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Yan C, Chen J, Chen N. Long noncoding RNA MALAT1 promotes hepatic steatosis and insulin resistance by increasing nuclear SREBP-1c protein stability. Sci Rep. 2016;6:22640.</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>R Core Team. R: A language and environment for statistical computing. Vienna, Austria: R Foundation for Statistical Computing; 2019. Available online at: http://www.R-project.org/</Citation>
+                </Reference>
+                <Reference>
+                    <Citation>Love MI, Huber W, Anders S. Moderated estimation of fold change and dispersion for RNAseq data with DESeq2. Genome Biology. 2014;15(12):550.</Citation>
+                </Reference>
+            </ReferenceList>
+        </PubmedData>
+    </PubmedArticle>
+</PubmedArticleSet>
