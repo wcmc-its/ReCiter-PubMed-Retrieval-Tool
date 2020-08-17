@@ -1,17 +1,17 @@
 apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
 kind: Deployment
 metadata:
-  name: reciter-pubmed
+  name: APPNAME
   namespace: NAMESPACE
   labels:
-    app: reciter-pm
+    app: APPNAME
     environment: ENVIRONMENT_LABEL
     tier: backend
     owner: szd2013
 spec:
   selector:
     matchLabels:
-      app: reciter-pubmed
+      app: APPNAME
       environment: ENVIRONMENT_LABEL
       tier: backend
       owner: szd2013
@@ -23,85 +23,87 @@ spec:
   template:
     metadata:
       labels:
-        app: reciter-pubmed
+        app: APPNAME
         environment: ENVIRONMENT_LABEL
         tier: backend
         owner: szd2013
     spec:
       containers:
-      - image: CONTAINER_IMAGE
-        name: reciter-pubmed
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: PUBMED_API_KEY
-          valueFrom: 
-            secretKeyRef:
-              name: pubmed-secret
-              key: PUBMED_API_KEY
-        - name: SERVER_PORT
-          valueFrom:
-            configMapKeyRef:
-              name: env-config
-              key: SERVER_PORT
-        ports:
-        - containerPort: 5000
+        - image: CONTAINER_IMAGE
           name: reciter-pubmed
-        resources:
-          requests:
-            memory: 1.7G
-            cpu: 0.8
-          limits:
-            memory: 2G
-            cpu: 1
-        livenessProbe:
-          httpGet:
-            path: "/swagger-ui.html"
-            port: 5000
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          failureThreshold: 3
-          timeoutSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: "/swagger-ui.html"
-            port: 5000
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          failureThreshold: 3
-          timeoutSeconds: 3
-      - image: nginx:alpine
-        name:  nginx
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 80
-        resources:
-          limits:
-            cpu: 200m
-            memory: 300Mi
-          requests:
-            cpu: 200m
-            memory: 256Mi
-        livenessProbe:
-          httpGet:
-            path: "/nginx-health"
-            port: 80
-          initialDelaySeconds: 3
-          periodSeconds: 5
-          failureThreshold: 1
-          timeoutSeconds: 1
-        readinessProbe:
-          httpGet:
-            path: "/nginx-health"
-            port: 80
-          initialDelaySeconds: 5
-          periodSeconds: 1
-          failureThreshold: 1
-          timeoutSeconds: 1
-        volumeMounts:
-          - name:  nginx-conf
-            mountPath:  /etc/nginx/conf.d
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PUBMED_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pubmed-secret
+                  key: PUBMED_API_KEY
+            - name: SERVER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: ENVCONFIG
+                  key: SERVER_PORT
+          ports:
+            - containerPort: 5000
+              name: reciter-pubmed
+          resources:
+            requests:
+              memory: 1.3G
+              cpu: 0.6
+            limits:
+              memory: 1.5G
+              cpu: 0.8
+          livenessProbe:
+            httpGet:
+              path: "/swagger-ui.html"
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: "/swagger-ui.html"
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+        - image: nginx:alpine
+          name: nginx
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: 200m
+              memory: 300Mi
+            requests:
+              cpu: 200m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: "/nginx-health"
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: "/nginx-health"
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 1
+            failureThreshold: 1
+            timeoutSeconds: 1
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+      nodeSelector:
+        lifecycle: Ec2Spot
       volumes:
-        - name: nginx-conf  
+        - name: nginx-conf
           configMap:
             name: pubmed-nginx-configmap
 
@@ -109,28 +111,28 @@ spec:
 apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: hpa-reciter-pubmed
-  namespace: reciter
+  name: HPANAME
+  namespace: NAMESPACE
   labels:
-    app: reciter-pubmed
+    app: APPNAME
     environment: ENVIRONMENT_LABEL
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: reciter-pubmed
+    name: APPNAME
   minReplicas: 1
   maxReplicas: 4
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 80
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 85
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 85
