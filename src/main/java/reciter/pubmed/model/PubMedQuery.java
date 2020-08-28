@@ -64,8 +64,9 @@ public class PubMedQuery {
             //parts.add(author + " [au]");
         	parts.add(author);
         }
+        //Switched from [DP] to [EDAT] for better capture of pubs : Date of publication - Date added to Entrez
         if (start != null && end != null) {
-            parts.add("(" + dt.format(start) + "[DP]" + ":" + dt.format(end) + "[DP])");
+            parts.add("(" + dt.format(start) + "[EDAT]" + ":" + dt.format(end) + "[EDAT])");
         }
         if (strategyQuery != null && !strategyQuery.isEmpty()) {
             parts.add(strategyQuery);
