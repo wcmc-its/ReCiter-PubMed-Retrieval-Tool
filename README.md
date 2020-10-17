@@ -60,7 +60,7 @@ As a default, the PubMed Retrieval Tool works without a PubMed API key, however 
 
 ## Using
 
-The PubMed Retrieval Tool supports all syntax that the PubMed interface does, however, it does not return all fields. To see which fields are returned, view the (PubMed Data Model)[https://github.com/wcmc-its/ReCiter-PubMed-Model]. Note also that the Swagger interface translates your request into the cURL syntax.
+The PubMed Retrieval Tool supports all syntax that the PubMed interface does, however, it does not return all fields. To see which fields are returned, view the [PubMed Data Model](https://github.com/wcmc-its/ReCiter-PubMed-Model). Note also that the Swagger interface translates your request into the cURL syntax.
 
 ### Search using "/pubmed/query/"
 
