@@ -69,4 +69,13 @@ public class PubmedEFetchHandlerTest {
         assertEquals("0000-0002-5887-7257", pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(8).getOrcid());
         assertNull(pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(1).getOrcid());
     }
+
+    @Test
+    public void testReferenceList() throws Exception {
+        inputSource = new InputSource(this.getClass().getResourceAsStream("32025781.xml"));
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
+        List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
+        PubMedArticle pubMedArticle = pubMedArticles.get(0);
+        assertEquals(38, pubMedArticle.getMedlinecitation().getCommentscorrectionslist().size(), "The referenceList matches");
+    }
 }
