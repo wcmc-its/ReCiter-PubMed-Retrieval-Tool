@@ -152,6 +152,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bCommentsCorrectionsRefSource;
     private boolean bCommentsCorrectionsPmidVersion;
     private boolean bCommentsCorrectionsPmid;
+    private boolean bReferenceList;
+    private boolean bReference;
+    private boolean bReferenceArticleIdList;
+    private boolean bReferenceArticleId;
 
     private List<PubMedArticle> pubmedArticles;
     private PubMedArticle pubmedArticle;
@@ -173,6 +177,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
     	} else {
     		return "Electronic";
     	}
+    }
+
+    private String getReferenceArticleIdType(Attributes attributes) {
+        String articleIdType = attributes.getValue("IdType");
+        return articleIdType;
     }
     
     private String getPubStatus(Attributes attributes) {
@@ -501,6 +510,22 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (qName.equalsIgnoreCase("CommentsCorrections") && bCommentsCorrectionsList) {
                 bCommentsCorrections = true;
             }
+
+            if (qName.equalsIgnoreCase("ReferenceList")) {
+                bReferenceList = true;
+            }
+            
+            if (qName.equalsIgnoreCase("Reference") && bReferenceList) {
+                if(pubmedArticle.getMedlinecitation().getCommentscorrectionslist() == null) {
+                    List<MedlineCitationCommentsCorrections> medlineCitationCommentsCorrections = new ArrayList<>();
+                    pubmedArticle.getMedlinecitation().setCommentscorrectionslist(medlineCitationCommentsCorrections);
+                }
+                bReference = true;
+            }
+
+            if (qName.equalsIgnoreCase("ArticleIdList") && bReference) {
+                bReferenceArticleIdList = true;
+            }
             
             if(qName.equalsIgnoreCase("ArticleDate")) {
             	bArticleDate = true;
@@ -527,6 +552,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (qName.equalsIgnoreCase("PMID") && bCommentsCorrections) {
                 //			bCommentsCorrectionsPmidVersion = true;
                 bCommentsCorrectionsPmid = true;
+            }
+
+            if (qName.equalsIgnoreCase("ArticleId") && bReferenceArticleIdList) {
+                if(getReferenceArticleIdType(attributes).equalsIgnoreCase("pubmed")) {
+                    bReferenceArticleId = true;
+                    MedlineCitationCommentsCorrections medlineCitationCommentsCorrections = MedlineCitationCommentsCorrections.builder().build();
+                    pubmedArticle.getMedlinecitation().getCommentscorrectionslist().add(medlineCitationCommentsCorrections);
+                }
             }
 
             if (qName.equalsIgnoreCase("PubmedData")) {
@@ -881,14 +914,33 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bCommentsCorrections = false;
             }
 
+            if (bReferenceArticleId && bReferenceArticleIdList) {
+                String articleId = chars.toString();
+                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getCommentscorrectionslist().size() - 1;
+                pubmedArticle.getMedlinecitation().getCommentscorrectionslist().get(lastInsertedIndex).setPmid(articleId);
+                bReferenceArticleId = false;
+            }
+
             if (qName.equalsIgnoreCase("CommentsCorrections") && bCommentsCorrectionsList) {
                 bCommentsCorrections = false;
+            }
+
+            if (qName.equalsIgnoreCase("ArticleIdList") && bReference) {
+                bReferenceArticleIdList = false;
             }
 
             if (qName.equalsIgnoreCase("CommentsCorrectionsList")) {
                 bCommentsCorrectionsList = false;
             }
-            
+
+            if (qName.equalsIgnoreCase("Reference") && bReferenceList) {
+                bReference = false;
+            }
+
+            if (qName.equalsIgnoreCase("ReferenceList")) {
+                bReferenceList = false;
+            }
+
             //End of <ArticleDate> tag
             if(bArticleDate && qName.equalsIgnoreCase("Year")) {
             	String articleDateYear = chars.toString();
@@ -1106,6 +1158,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
         
         if (bCommentsCorrections && bCommentsCorrectionsPmid) {
+            chars.append(ch, start, length);
+        }
+
+        if (bReferenceArticleIdList && bReferenceArticleId) {
             chars.append(ch, start, length);
         }
         
