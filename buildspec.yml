@@ -2,6 +2,8 @@ version: 0.2
 # https://docs.aws.amazon.com/codebuild/latest/userguide/getting-started.html
 phases:
   install:
+    runtime-versions:
+      java: openjdk11
     commands:
       - echo Nothing to do in the install phase...
   pre_build:
@@ -14,9 +16,9 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
-      - cp target/reciter-pubmed-retrieval-tool-0.0.1-SNAPSHOT.jar .
+      - cp target/reciter-pubmed-retrieval-tool-1.1.0.jar .
 artifacts:
   files:
-    - reciter-pubmed-retrieval-tool-0.0.1-SNAPSHOT.jar
+    - reciter-pubmed-retrieval-tool-1.1.0.jar
     - .ebextensions/**/* 
     - Procfile
