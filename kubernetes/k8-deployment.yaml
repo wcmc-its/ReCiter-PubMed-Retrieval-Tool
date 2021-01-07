@@ -43,6 +43,8 @@ spec:
                 configMapKeyRef:
                   name: ENVCONFIG
                   key: SERVER_PORT
+            - name: JAVA_OPTIONS
+              value: "-Xmx1100m"
           ports:
             - containerPort: 5000
               name: reciter-pubmed
@@ -55,17 +57,17 @@ spec:
               cpu: 0.8
           livenessProbe:
             httpGet:
-              path: "/swagger-ui/index.html"
+              path: "/pubmed/ping"
               port: 5000
-            initialDelaySeconds: 10
+            initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 3
             timeoutSeconds: 3
           readinessProbe:
             httpGet:
-              path: "/swagger-ui/index.html"
+              path: "pubmed/ping"
               port: 5000
-            initialDelaySeconds: 10
+            initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 3
             timeoutSeconds: 3
