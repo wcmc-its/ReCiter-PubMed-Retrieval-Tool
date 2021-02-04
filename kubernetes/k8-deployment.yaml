@@ -44,17 +44,17 @@ spec:
                   name: ENVCONFIG
                   key: SERVER_PORT
             - name: JAVA_OPTIONS
-              value: "-Xmx1100m"
+              value: "-Xmx2000m"
           ports:
             - containerPort: 5000
               name: reciter-pubmed
           resources:
             requests:
-              memory: 1.3G
-              cpu: 0.6
+              memory: 2.5G
+              cpu: 1
             limits:
-              memory: 1.5G
-              cpu: 0.8
+              memory: 2.6G
+              cpu: 1
           livenessProbe:
             httpGet:
               path: "/pubmed/ping"
