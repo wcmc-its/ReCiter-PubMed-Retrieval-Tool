@@ -26,6 +26,14 @@ This tool has several advantages over using the eFetch API.
 - Even if your machine make calls that don’t exceed the published allowable calls per second, NCBI will inexplicably throttle requests. This application checks the `X-RateLimit-Remaining` and `Retry-After` response headers, and calls the API after the `retry-After` value.
 
 
+## Prerequisites
+
+- Java 11
+- Latest version of Maven. To install Maven navigate to the directory where ReCiter PubMed Retrieval Tool will be installed, execute `brew install maven` and then `mvn clean install`
+If you want to use Java 8 then update `<java.version>1.8</java.version>` in [pom.xml](https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/f30963755659e5d4cc668297e3c1e7a8d577e259/pom.xml#L20)
+
+It is not necessary to install ReCiter in order to use the API.
+
 
 ## Installing
 
@@ -48,7 +56,7 @@ This tool has several advantages over using the eFetch API.
 - Option #1: Set at the system level using this command `export SERVER_PORT=[your port number]`. This supersedes any ports set in application.properties.
 - Option #2: Update the application.properties file located at `/src/main/resources/` Make sure the port doesn't conflict with other services such as ReCiter or ReCiter PubMed Retrieval Tool.
 7. Build Maven instance `mvn spring-boot:run`
-8. Visit `http://localhost:[your port number]/swagger-ui.html` to see the Swagger page for this service.
+8. Visit `http://localhost:[your port number]/swagger-ui/index.html` or  `http://localhost:[your port number]/swagger-ui/` to see the Swagger page for this service.
 
 ## Obtaining an API key
 
