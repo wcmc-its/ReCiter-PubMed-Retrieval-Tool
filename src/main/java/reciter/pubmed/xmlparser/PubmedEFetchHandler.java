@@ -627,7 +627,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Article title.
             if (bArticle && bArticleTitle) {
-                String articleTitle = chars.toString();
+                String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); //replace new line breaks and any two or more whitespaces with single whitespace
                 pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); // set the title of the Article.
                 bArticleTitle = false;
             }
