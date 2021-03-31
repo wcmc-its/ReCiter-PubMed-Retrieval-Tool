@@ -1,7 +1,6 @@
 package reciter.pubmed.xmlparser;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.testng.Assert.assertEquals;
 
 import java.io.File;
@@ -78,4 +77,15 @@ public class PubmedEFetchHandlerTest {
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
         assertEquals(38, pubMedArticle.getMedlinecitation().getCommentscorrectionslist().size(), "The referenceList matches");
     }
+
+    @Test
+    public void testArticleTitleLineBreakRemoval() throws Exception {
+        inputSource = new InputSource(this.getClass().getResourceAsStream("32025781.xml"));
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
+        List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
+        PubMedArticle pubMedArticle = pubMedArticles.get(0);
+        assertEquals("<b> <i>Propionibacterium acnes</i> </b> Host Inflammatory Response During Periprosthetic Infection Is Joint Specific.", pubMedArticle.getMedlinecitation().getArticle().getArticletitle(), "The ArticleTitle matches");
+    }
+
+
 }
