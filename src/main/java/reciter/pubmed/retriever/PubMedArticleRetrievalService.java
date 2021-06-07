@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -15,12 +15,6 @@ import javax.xml.parsers.SAXParserFactory;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.rholder.retry.Retryer;
-import com.github.rholder.retry.Retryer.RetryerCallable;
-import com.github.rholder.retry.RetryerBuilder;
-import com.github.rholder.retry.StopStrategies;
-import com.github.rholder.retry.WaitStrategies;
-import com.google.common.base.Predicates;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -32,6 +26,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -79,6 +75,8 @@ public class PubMedArticleRetrievalService {
      * Initializes and starts threads that handles the retrieval process. Partition the number of articles
      * into manageable pieces and ask each thread to handle one partition.
      */
+    @Retryable(maxAttempts = 7, value = RuntimeException.class, 
+        backoff = @Backoff(random = true, delay = 1500, maxDelay = 9000), listeners = {"retryListener"})
     public List<PubMedArticle> retrieve(String pubMedQuery) throws IOException {
     	
     	PubmedESearchResult eSearchResult = new PubmedESearchResult();
@@ -101,15 +99,16 @@ public class PubMedArticleRetrievalService {
 
             // Retrieve the publications retMax records at one time and store to disk.
             int currentRetStart = 0;
-            Retryer<List<PubMedArticle>> retryer = RetryerBuilder.<List<PubMedArticle>>newBuilder()
+            /*Retryer<List<PubMedArticle>> retryer = RetryerBuilder.<List<PubMedArticle>>newBuilder()
                     .retryIfResult(Predicates.<List<PubMedArticle>>isNull())
                     .retryIfExceptionOfType(IOException.class)
                     .retryIfRuntimeException()
                     .withWaitStrategy(WaitStrategies.fibonacciWait(100L, 15L, TimeUnit.SECONDS))
                     .withStopStrategy(StopStrategies.stopAfterAttempt(15))
-                    .build();
+                    .build();*/
 
-            List<RetryerCallable<List<PubMedArticle>>> callables = new ArrayList<RetryerCallable<List<PubMedArticle>>>();
+            //List<RetryerCallable<List<PubMedArticle>>> callables = new ArrayList<RetryerCallable<List<PubMedArticle>>>();
+            List<Callable<List<PubMedArticle>>> callables = new ArrayList<>();
             
             
 
@@ -131,9 +130,10 @@ public class PubMedArticleRetrievalService {
                 
 
                 try {
-                	PubMedUriParserCallable callable = new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(), new InputSource(eFetchUrl));
-                	RetryerCallable<List<PubMedArticle>> retryerCallable = retryer.wrap(callable);
-                	callables.add(retryerCallable);
+                	//PubMedUriParserCallable callable = new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(), new InputSource(eFetchUrl));
+                	//RetryerCallable<List<PubMedArticle>> retryerCallable = retryer.wrap(callable);
+                	//callables.add(retryerCallable);
+                    callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(), new InputSource(eFetchUrl)));
 				} catch (ParserConfigurationException | SAXException e) {
 					log.error("Exception", e);
 				}
