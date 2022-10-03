@@ -102,3 +102,40 @@ Given the number of results that can be returned for some searches, e.g., `Wang 
 ![https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/master/files/CountArticlesPubMed.gif](https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/master/files/CountArticlesPubMed.gif)
 
 
+## Search using "/pubmed/query-complex/"
+
+This API is used by the ReCiter application proper. Everything you could search for here, you should be able to search against "/pubmed/query/." Nonetheless, here are some examples for how you can use this query.
+
+```
+{
+  "strategy-query": "Cole CL[au]"
+}
+```
+```
+{
+  "strategy-query": "10.1007/s12026-013-8413-z[doi]"
+}
+```
+```
+{
+  "doi": "10.1007/s12026-013-8413-z"
+}
+```
+```
+{
+  "author": "Cole Curtis"
+}
+```
+```
+{
+  "author": "Cole Curtis",
+  "start": "2010/01/01"
+}
+```
+```
+{
+  "author": "Cole Curtis",
+  "start": "2010/01/01",
+  "end": "2020/01/01"
+}
+```
