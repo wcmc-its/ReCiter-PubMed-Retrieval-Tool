@@ -596,7 +596,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bArticleIdList = true;
             }
 
-            if (qName.equalsIgnoreCase("ArticleId")) {
+            if (qName.equalsIgnoreCase("ArticleId") && !bReferenceArticleIdList && !bReferenceArticleId) {  
                 bArticleId = true;
                 String idType = getArticleIdType(attributes);
                 if ("pubmed".equals(idType)) {
