@@ -629,6 +629,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (bArticle && bArticleTitle) {
                 String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); //replace new line breaks and any two or more whitespaces with single whitespace
                 pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); // set the title of the Article.
+                // Check if the article title contains a hexadecimal literal
+                Matcher m = Pattern.compile("\\b0x[0-9A-Fa-f]+\\b").matcher(articleTitle);
+                // If it does, remove the hexadecimal literal from the text
+                articleTitle = m.replaceAll("");
                 bArticleTitle = false;
             }
 
@@ -642,18 +646,30 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Author last name.
             if (bAuthorLastName) {
-                String authorLastName = chars.toString();
-                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
-                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setLastname(authorLastName);
-                bAuthorLastName = false;
+              String authorLastName = chars.toString();
+            
+              // Check if the author's last name contains a hexadecimal literal
+              Matcher m = Pattern.compile("\\b0x[0-9A-Fa-f]+\\b").matcher(authorLastName);
+              // If it does, remove the hexadecimal literal from the text
+              authorLastName = m.replaceAll("");
+            
+              int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+              pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setLastname(authorLastName);
+              bAuthorLastName = false;
             }
 
             // Author fore name.
             if (bAuthorForeName) {
-                String authorForeName = chars.toString();
-                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
-                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setForename(authorForeName);
-                bAuthorForeName = false;
+              String authorForeName = chars.toString();
+            
+              // Check if the author's forename contains a hexadecimal literal
+              Matcher m = Pattern.compile("\\b0x[0-9A-Fa-f]+\\b").matcher(authorForeName);
+              // If it does, remove the hexadecimal literal from the text
+              authorForeName = m.replaceAll("");
+            
+              int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+              pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setForename(authorForeName);
+              bAuthorForeName = false;
             }
 
             // Author middle initials.
@@ -710,9 +726,15 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Journal title
             if (bArticle && bJournalTitle) {
-                String journalTitle = chars.toString();
-                pubmedArticle.getMedlinecitation().getArticle().getJournal().setTitle(journalTitle);
-                bJournalTitle = false;
+              String journalTitle = chars.toString();
+            
+              // Check if the journal title contains a hexadecimal literal
+              Matcher m = Pattern.compile("\\b0x[0-9A-Fa-f]+\\b").matcher(journalTitle);
+              // If it does, remove the hexadecimal literal from the text
+              journalTitle = m.replaceAll("");
+            
+              pubmedArticle.getMedlinecitation().getArticle().getJournal().setTitle(journalTitle);
+              bJournalTitle = false;
             }
 
             // Journal ISO abbreviation.
@@ -797,13 +819,20 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
 
             //Abstract
-            if (bAbstractText && bAbstract) {
-                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().size() - 1;
-                String publicationAbstractText = chars.toString();
-                pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().get(lastInsertedIndex).setAbstractText(publicationAbstractText);
-                bAbstractText = false;
-            }
             
+            if (bAbstractText && bAbstract) {
+              int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().size() - 1;
+              String publicationAbstractText = chars.toString();
+            
+              // Check if the abstract text contains a hexadecimal literal
+              Matcher m = Pattern.compile("\\b0x[0-9A-Fa-f]+\\b").matcher(publicationAbstractText);
+              // If it does, remove the hexadecimal literal from the text
+              publicationAbstractText = m.replaceAll("");
+            
+              pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().get(lastInsertedIndex).setAbstractText(publicationAbstractText);
+              bAbstractText = false;
+            }
+
             if (bCopyrightInformation && bAbstract) {
                 MedlineCitationArticleAbstract publicationAbstract = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract();
                 publicationAbstract.setCopyrightInformation(chars.toString());
