@@ -627,13 +627,20 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Article title.
             if (bArticle && bArticleTitle) {
-                String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); //replace new line breaks and any two or more whitespaces with single whitespace
-                // Substitute all non-printable characters including hexadecimal literals for a space
-                articleTitle = articleTitle.replaceAll(" ", " ");                
-                pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); // set the title of the Article.
+
+                // Replace new line breaks and any two or more whitespaces with single whitespace                
+                String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
+
+                // Substitute certain non-printable, hexadecimal characters for a space
+                articleTitle = articleTitle.replaceAll("[       ]", " ");                
+
+                // Delete certain non-printable, hexadecimal characters
+                articleTitle = articleTitle.replaceAll("[  ]", "");         
+
+                // Set the title of the article.
+                pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); 
                 bArticleTitle = false;
             }
-
 
             if (bELocationID) {
                 String eLocationId = chars.toString().trim();
@@ -647,26 +654,16 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (bAuthorLastName) {
               String authorLastName = chars.toString();
             
-              // Check if the author's last name contains a hexadecimal literal
-              Matcher m = Pattern.compile("<0x[0-9A-Fa-f]+>").matcher(authorLastName);
-              // If it does, remove the hexadecimal literal from the text
-              authorLastName = m.replaceAll("");
-            
               int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
               pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setLastname(authorLastName);
               bAuthorLastName = false;
             }
 
 
-            // Author fore name.
+            // Author forename.
             if (bAuthorForeName) {
               String authorForeName = chars.toString();
-            
-              // Check if the author's forename contains a hexadecimal literal
-              Matcher m = Pattern.compile("<0x[0-9A-Fa-f]+>").matcher(authorForeName);
-              // If it does, remove the hexadecimal literal from the text
-              authorForeName = m.replaceAll("");
-            
+                        
               int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
               pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setForename(authorForeName);
               bAuthorForeName = false;
@@ -727,11 +724,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
             // Journal title
             if (bArticle && bJournalTitle) {
               String journalTitle = chars.toString();
-            
-              // Check if the journal title contains a hexadecimal literal
-              Matcher m = Pattern.compile("<0x[0-9A-Fa-f]+>").matcher(journalTitle);
-              // If it does, remove the hexadecimal literal from the text
-              journalTitle = m.replaceAll("");
             
               pubmedArticle.getMedlinecitation().getArticle().getJournal().setTitle(journalTitle);
               bJournalTitle = false;
@@ -824,11 +816,12 @@ public class PubmedEFetchHandler extends DefaultHandler {
               int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().size() - 1;
               String publicationAbstractText = chars.toString();
             
-              // Check if the abstract text contains a hexadecimal literal
-              Matcher m = Pattern.compile("<0x[0-9A-Fa-f]+>").matcher(publicationAbstractText);
-              // If it does, remove the hexadecimal literal from the text
-              publicationAbstractText = m.replaceAll("");
-            
+              // Substitute certain non-printable, hexadecimal characters for a space
+              publicationAbstractText = publicationAbstractText.replaceAll("[       ]", " ");                
+
+              // Delete certain non-printable, hexadecimal characters
+              publicationAbstractText = publicationAbstractText.replaceAll("[  ]", "");   
+
               pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().get(lastInsertedIndex).setAbstractText(publicationAbstractText);
               bAbstractText = false;
             }
