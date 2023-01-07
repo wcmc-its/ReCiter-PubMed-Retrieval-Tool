@@ -628,11 +628,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
             // Article title.
             if (bArticle && bArticleTitle) {
                 String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); //replace new line breaks and any two or more whitespaces with single whitespace
-                pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); // set the title of the Article.
                 // Check if the article title contains a hexadecimal literal
                 Matcher m = Pattern.compile("<0x[0-9A-Fa-f]+>").matcher(articleTitle);
                 // If it does, remove the hexadecimal literal from the text
                 articleTitle = m.replaceAll("");
+                pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); // set the title of the Article.
                 bArticleTitle = false;
             }
 
