@@ -627,13 +627,20 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Article title.
             if (bArticle && bArticleTitle) {
-                String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); //replace new line breaks and any two or more whitespaces with single whitespace
-                // Substitute all non-printable characters including hexadecimal literals for a space
-                articleTitle = articleTitle.replaceAll(" ", " ");                
-                pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); // set the title of the Article.
+
+                // Replace new line breaks and any two or more whitespaces with single whitespace                
+                String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
+
+                // Substitute certain non-printable, hexadecimal characters for a space
+                articleTitle = articleTitle.replaceAll("[       ]", " ");                
+
+                // Delete certain non-printable, hexadecimal characters
+                articleTitle = articleTitle.replaceAll("[  ]", "");         
+
+                // Set the title of the article.
+                pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); 
                 bArticleTitle = false;
             }
-
 
             if (bELocationID) {
                 String eLocationId = chars.toString().trim();
