@@ -1,3 +1,5 @@
+Working - test
+
 /*******************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -258,6 +260,9 @@ public class PubmedEFetchHandler extends DefaultHandler {
         return attributes.getValue("IdType");
     }
 
+    // New field to store multiple affiliation values for a given author
+    private StringBuilder affiliationBuilder;
+
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 
@@ -378,11 +383,18 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 pubmedArticle.getMedlinecitation().getArticle().setAuthorlist(new ArrayList<>()); // set the PubmedArticle's MedlineCitation's MedlineCitationArticle's title.
                 bAuthorList = true;
             }
+
             if (qName.equalsIgnoreCase("Author")) {
                 MedlineCitationArticleAuthor author = MedlineCitationArticleAuthor.builder().build();
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().add(author); // add author to author list.
                 bAuthor = true;
+                StringBuilder affiliationStringBuilder = new StringBuilder(); // create new StringBuilder for building up the affiliation string for this Author element
+            } else if (qName.equalsIgnoreCase("Affiliation")) {
+                bAffiliation = true;
+                // append the current Affiliation string to the affiliationStringBuilder
+                affiliationStringBuilder.append(new String(ch, start, length));
             }
+
             if (qName.equalsIgnoreCase("LastName") && bAuthorList) {
                 bAuthorLastName = true;
             }
@@ -677,9 +689,19 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bAuthorInitials = false;
             }
 
+
+            if (qName.equalsIgnoreCase("Author")) {
+                // set the affiliation field of the MedlineCitationArticleAuthor object using the toString method of the affiliationStringBuilder
+                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1).setAffiliation(affiliationStringBuilder.toString());
+                bAuthor = false;
+            }
+
             // Author affiliations.
             if (bAffiliation) {
-                String affiliation = chars.toString().replaceAll("[ | | | | | | ]", " ");                
+                String affiliation = chars.toString();
+
+                // Substitute certain non-printable, hexadecimal characters for a space
+                affiliation = affiliation.replaceAll("[ | | | | | | ]", " ");                
 
                 // Delete certain non-printable, hexadecimal characters
                 affiliation = affiliation.replaceAll("[ || ]", "");    
@@ -688,6 +710,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliation);
                 bAffiliation = false;
             }
+
             
             // Author ORCID identifier
             if (bOrcid) {
