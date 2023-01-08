@@ -633,12 +633,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
                 // Substitute certain non-printable, hexadecimal characters for a space
                 articleTitle = articleTitle.replaceAll("[ | | | | | | ]", " ");                
-
-                articleTitle = articleTitle.replaceAll("[ ]", " ");    
 		    
                 // Delete certain non-printable, hexadecimal characters
-                articleTitle = articleTitle.replaceAll("[  ]", "");         
-
+                articleTitle = articleTitle.replaceAll("[ || ]", "");         
+         
                 // Set the title of the article.
                 pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); 
                 bArticleTitle = false;
