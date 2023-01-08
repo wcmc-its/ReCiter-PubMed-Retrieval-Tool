@@ -1,5 +1,3 @@
-Working
-
 /*******************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -634,7 +632,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
 
                 // Substitute certain non-printable, hexadecimal characters for a space
-                articleTitle = articleTitle.replaceAll("[ | | | | | | ]", " ");                
+                articleTitle = articleTitle.replaceAll("[ | | | | | | ]", " ");                
 
                 // Delete certain non-printable, hexadecimal characters
                 articleTitle = articleTitle.replaceAll("[ || ]", "");         
@@ -681,10 +679,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Author affiliations.
             if (bAffiliation) {
-                String affiliation = chars.toString();
-
-                // Substitute certain non-printable, hexadecimal characters for a space. 
-                affiliation = affiliation.replaceAll("[ | | | | | | ]", " ");                
+                String affiliation = chars.toString().replaceAll("[ | | | | | | ]", " ");                
 
                 // Delete certain non-printable, hexadecimal characters
                 affiliation = affiliation.replaceAll("[ || ]", "");    
@@ -693,7 +688,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliation);
                 bAffiliation = false;
             }
-
             
             // Author ORCID identifier
             if (bOrcid) {
@@ -827,7 +821,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
               String publicationAbstractText = chars.toString();
             
               // Substitute certain non-printable, hexadecimal characters for a space
-              publicationAbstractText = publicationAbstractText.replaceAll("[ | | | | | | ]", " ");                
+              publicationAbstractText = publicationAbstractText.replaceAll("[ | | | | | | ]", " ");                
 
               // Delete certain non-printable, hexadecimal characters
               publicationAbstractText = publicationAbstractText.replaceAll("[ || ]", "");           
