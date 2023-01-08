@@ -1,3 +1,5 @@
+Working
+
 /*******************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -380,10 +382,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             if (qName.equalsIgnoreCase("Author")) {
                 MedlineCitationArticleAuthor author = MedlineCitationArticleAuthor.builder().build();
-
-
-                affiliation = affiliation.replaceAll("[ | | | | | | ]", " ");   
-
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().add(author); // add author to author list.
                 bAuthor = true;
             }
