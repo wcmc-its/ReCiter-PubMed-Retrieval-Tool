@@ -379,7 +379,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bAuthorList = true;
             }
             if (qName.equalsIgnoreCase("Author")) {
-                MedlineCitationArticleAuthor author = MedlineCitationArticleAuthor.builder().build().replaceAll("[ | | | | | | ]", " ");   
+                MedlineCitationArticleAuthor author = MedlineCitationArticleAuthor.builder().build();
+
+
+                affiliation = affiliation.replaceAll("[ | | | | | | ]", " ");   
+
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().add(author); // add author to author list.
                 bAuthor = true;
             }
