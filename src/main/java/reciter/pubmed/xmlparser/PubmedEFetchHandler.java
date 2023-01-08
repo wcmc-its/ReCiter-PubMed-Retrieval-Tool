@@ -633,10 +633,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
                 // Substitute certain non-printable, hexadecimal characters for a space
                 articleTitle = articleTitle.replaceAll("[ | | | | | | ]", " ");                
-		    
+
                 // Delete certain non-printable, hexadecimal characters
                 articleTitle = articleTitle.replaceAll("[ || ]", "");         
-         
+
                 // Set the title of the article.
                 pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); 
                 bArticleTitle = false;
@@ -680,6 +680,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
             // Author affiliations.
             if (bAffiliation) {
                 String affiliation = chars.toString();
+
+                // Substitute certain non-printable, hexadecimal characters for a space
+                affiliation = affiliation.replaceAll("[ | | | | | | ]", " ");                
+
+                // Delete certain non-printable, hexadecimal characters
+                affiliation = affiliation.replaceAll("[ || ]", "");    
+
                 int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliation);
                 bAffiliation = false;
@@ -817,10 +824,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
               String publicationAbstractText = chars.toString();
             
               // Substitute certain non-printable, hexadecimal characters for a space
-              publicationAbstractText = publicationAbstractText.replaceAll("[       ]", " ");                
+              publicationAbstractText = publicationAbstractText.replaceAll("[ | | | | | | ]", " ");                
 
               // Delete certain non-printable, hexadecimal characters
-              publicationAbstractText = publicationAbstractText.replaceAll("[  ]", "");   
+              publicationAbstractText = publicationAbstractText.replaceAll("[ || ]", "");           
 
               pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().get(lastInsertedIndex).setAbstractText(publicationAbstractText);
               bAbstractText = false;
