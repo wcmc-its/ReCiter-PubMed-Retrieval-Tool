@@ -632,8 +632,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
 
                 // Substitute certain non-printable, hexadecimal characters for a space
-                articleTitle = articleTitle.replaceAll("[       ]", " ");                
+                articleTitle = articleTitle.replaceAll("[       ]", " ");
 
+                articleTitle = articleTitle.replaceAll("[ ]", " ");    
+		    
                 // Delete certain non-printable, hexadecimal characters
                 articleTitle = articleTitle.replaceAll("[  ]", "");         
 
