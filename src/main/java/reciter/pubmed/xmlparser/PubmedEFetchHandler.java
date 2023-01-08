@@ -679,10 +679,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Author affiliations.
             if (bAffiliation) {
-                String affiliation = chars.toString();         
-		    
-                // Substitute certain non-printable, hexadecimal characters for a space
-                affiliation = affiliation.replaceAll("[&#x2005;| | | | | | | ]", " ");  
+                String affiliation = chars.toString().replaceAll("[ | | | | | | ]", " ");                
 
                 // Delete certain non-printable, hexadecimal characters
                 affiliation = affiliation.replaceAll("[ || ]", "");    
