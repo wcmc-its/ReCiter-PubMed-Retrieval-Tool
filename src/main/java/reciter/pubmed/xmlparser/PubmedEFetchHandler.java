@@ -659,7 +659,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
               bAuthorLastName = false;
             }
 
-
             // Author forename.
             if (bAuthorForeName) {
               String authorForeName = chars.toString();
@@ -679,15 +678,20 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Author affiliations.
             if (bAffiliation) {
-                String affiliation = chars.toString().replaceAll("[ | | | | | | ]", " ");                
+
+                // Replace new line breaks and any two or more whitespaces with single whitespace                
+                String affiliation = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
+
+                // Substitute certain non-printable, hexadecimal characters for a space
+                affiliation = affiliation.replaceAll("[ | | | | | | ]", " ");                
 
                 // Delete certain non-printable, hexadecimal characters
-                affiliation = affiliation.replaceAll("[ || ]", "");    
+                affiliation = affiliation.replaceAll("[ || ]", "");      
 
                 int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliation);
                 bAffiliation = false;
-            }
+            }    
             
             // Author ORCID identifier
             if (bOrcid) {
