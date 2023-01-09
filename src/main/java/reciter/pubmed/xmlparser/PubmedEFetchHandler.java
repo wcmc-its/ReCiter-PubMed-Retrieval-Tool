@@ -818,14 +818,16 @@ public class PubmedEFetchHandler extends DefaultHandler {
             
             if (bAbstractText && bAbstract) {
               int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().size() - 1;
-              String publicationAbstractText = chars.toString();
-            
-              // Substitute certain non-printable, hexadecimal characters for a space
-              publicationAbstractText = publicationAbstractText.replaceAll("[ | | | | | | ]", " ");                
 
-              // Delete certain non-printable, hexadecimal characters
-              publicationAbstractText = publicationAbstractText.replaceAll("[ || ]", "");           
+                // Replace new line breaks and any two or more whitespaces with single whitespace                
+                String publicationAbstractText = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
 
+                // Substitute certain non-printable, hexadecimal characters for a space
+                publicationAbstractText = publicationAbstractText.replaceAll("[ | | | | | | ]", " ");                
+
+                // Delete certain non-printable, hexadecimal characters
+                publicationAbstractText = publicationAbstractText.replaceAll("[ || ]", "");   
+         
               pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().get(lastInsertedIndex).setAbstractText(publicationAbstractText);
               bAbstractText = false;
             }
