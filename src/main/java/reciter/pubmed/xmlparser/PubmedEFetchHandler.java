@@ -294,6 +294,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bELocationID = true;
             }
 
+// Get DOI from <ArticleId IdType="doi">DOI here</ArticleId> in cases where ELocationID is missing. This is typically for older publications
+
+            if (qName.equalsIgnoreCase("ArticleId") && attributes.getValue("IdType").equalsIgnoreCase("doi") && bELocationID != true) {
+                pubmedArticle.getMedlinecitation().getArticle().setElocationid(MedlineCitationArticleELocationID.builder().build());
+                bELocationID = true;
+            }
+
             if (qName.equalsIgnoreCase("Journal")) {
                 pubmedArticle.getMedlinecitation().getArticle().setJournal(MedlineCitationJournal.builder().build()); // add journal information.
             }
