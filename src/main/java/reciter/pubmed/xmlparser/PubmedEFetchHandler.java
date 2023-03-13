@@ -160,7 +160,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private List<PubMedArticle> pubmedArticles;
     private PubMedArticle pubmedArticle;
     private StringBuilder chars = new StringBuilder();
-    
+
     public List<PubMedArticle> getPubmedArticles() {
         return pubmedArticles;
     }
@@ -696,7 +696,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 affiliation = affiliation.replaceAll("[ || ]", "");      
 
                 int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
-                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliation);
+                String affiliationInfo = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).getAffiliation();
+                String affiliations = "";
+                if (affiliationInfo == null) {
+                    affiliations = affiliation;
+                } else {
+                    affiliations = affiliationInfo + ", " + affiliation;
+                }
+                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliations);
                 bAffiliation = false;
             }    
             
