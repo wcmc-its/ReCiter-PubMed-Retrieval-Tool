@@ -638,8 +638,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 // Replace new line breaks and any two or more whitespaces with single whitespace                
                 String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
 
-                // Substitute certain non-printable, hexadecimal characters for a space
+                // Substitute certain non-printable, hexadecimal characters for a space (e.g., PMID = 26160633)
                 articleTitle = articleTitle.replaceAll("[\u0020\u00A0\u2009\u202F\u2005\u200A\u2008\u2002]", " ");
+
+                // For some reason, substituting for "\u00A0" doesn't work, so we're inputting the hexadecimal literal here directly                
+                articleTitle = articleTitle.replaceAll(" ", " ");
 
                 // Delete certain non-printable, hexadecimal characters
                 articleTitle = articleTitle.replaceAll("[\u2029\u0099\u2003]", "");
@@ -691,6 +694,9 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
                 // Substitute certain non-printable, hexadecimal characters for a space
                 affiliation = affiliation.replaceAll("[\u0020\u00A0\u2009\u202F\u2005\u200A\u2008\u2002]", " ");
+
+                // For some reason, substituting for "\u00A0" doesn't work, so we're inputting the hexadecimal literal here directly                
+                affiliation = affiliation.replaceAll(" ", " ");
 
                 // Delete certain non-printable, hexadecimal characters
                 affiliation = affiliation.replaceAll("[\u2029\u0099\u2003]", "");
@@ -842,6 +848,9 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
                 // Substitute certain non-printable, hexadecimal characters for a space
                 publicationAbstractText = publicationAbstractText.replaceAll("[\u0020\u00A0\u2009\u202F\u2005\u200A\u2008\u2002]", " ");
+
+                // For some reason, substituting for "\u00A0" doesn't work, so we're inputting the hexadecimal literal here directly
+                publicationAbstractText = publicationAbstractText.replaceAll(" ", " ");
 
                 // Delete certain non-printable, hexadecimal characters
                 publicationAbstractText = publicationAbstractText.replaceAll("[\u2029\u0099\u2003]", "");
