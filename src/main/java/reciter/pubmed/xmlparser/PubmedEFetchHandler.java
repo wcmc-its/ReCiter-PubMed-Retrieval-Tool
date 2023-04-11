@@ -18,6 +18,7 @@
  *******************************************************************************/
 package reciter.pubmed.xmlparser;
 
+import java.nio.charset.Charset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
