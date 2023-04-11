@@ -649,10 +649,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 articleTitle = articleTitle.replaceAll("[\u2029\u0099\u2003]", "");
             
                 // Output the encoding being used
-                System.out.println("Encoding: " + Charset.defaultCharset().displayName());
+                // System.out.println("Encoding: " + Charset.defaultCharset().displayName());
             
                 // Output the value of articleTitle
-                System.out.println("Article Title: " + articleTitle);
+                // System.out.println("Article Title: " + articleTitle);
             
                 // Set the title of the article.
                 pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); 
