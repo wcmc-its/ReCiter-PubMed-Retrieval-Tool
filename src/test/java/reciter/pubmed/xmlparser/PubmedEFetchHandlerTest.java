@@ -87,5 +87,13 @@ public class PubmedEFetchHandlerTest {
         assertEquals("<b> <i>Propionibacterium acnes</i> </b> Host Inflammatory Response During Periprosthetic Infection Is Joint Specific.", pubMedArticle.getMedlinecitation().getArticle().getArticletitle(), "The ArticleTitle matches");
     }
 
+    @Test
+    public void testHexadecimalLiteralRemoval() throws Exception {
+        inputSource = new InputSource(this.getClass().getResourceAsStream("32025781.xml"));
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
+        List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
+        String articleTitle = pubMedArticles.get(0).getMedlinecitation().getArticle().getArticletitle();
+        assertEquals("<b> <i>Propionibacterium acnes</i> </b> Host Inflammatory Response During Periprosthetic Infection Is Joint Specific.", articleTitle);
+    }
 
 }

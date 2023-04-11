@@ -18,6 +18,7 @@
  *******************************************************************************/
 package reciter.pubmed.xmlparser;
 
+import java.nio.charset.Charset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
@@ -160,7 +161,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private List<PubMedArticle> pubmedArticles;
     private PubMedArticle pubmedArticle;
     private StringBuilder chars = new StringBuilder();
-    
+
     public List<PubMedArticle> getPubmedArticles() {
         return pubmedArticles;
     }
@@ -290,6 +291,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
 
             if (qName.equalsIgnoreCase("ELocationID") && attributes.getValue("EIdType").equalsIgnoreCase("doi")) {
+                pubmedArticle.getMedlinecitation().getArticle().setElocationid(MedlineCitationArticleELocationID.builder().build());
+                bELocationID = true;
+            }
+
+// Get DOI from <ArticleId IdType="doi">DOI here</ArticleId> in cases where ELocationID is missing. This is typically for older publications
+
+            if (qName.equalsIgnoreCase("ArticleId") && attributes.getValue("IdType").equalsIgnoreCase("doi") && bELocationID != true) {
                 pubmedArticle.getMedlinecitation().getArticle().setElocationid(MedlineCitationArticleELocationID.builder().build());
                 bELocationID = true;
             }
@@ -627,10 +635,30 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Article title.
             if (bArticle && bArticleTitle) {
-                String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); //replace new line breaks and any two or more whitespaces with single whitespace
-                pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); // set the title of the Article.
+            
+                // Replace new line breaks and any two or more whitespaces with single whitespace
+                String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim();
+            
+                // Substitute certain non-printable, hexadecimal characters for a space (e.g., PMID = 26160633)
+                articleTitle = articleTitle.replaceAll("[\u0020\u00A0\u2009\u202F\u2005\u200A\u2008\u2002]", " ");
+            
+                // For some reason, substituting for "\u00A0" doesn't work, so we're inputting the hexadecimal literal here directly                
+                articleTitle = articleTitle.replaceAll(" ", " ");
+            
+                // Delete certain non-printable, hexadecimal characters
+                articleTitle = articleTitle.replaceAll("[\u2029\u0099\u2003]", "");
+            
+                // Output the encoding being used
+                // System.out.println("Encoding: " + Charset.defaultCharset().displayName());
+            
+                // Output the value of articleTitle
+                // System.out.println("Article Title: " + articleTitle);
+            
+                // Set the title of the article.
+                pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); 
                 bArticleTitle = false;
             }
+
 
             if (bELocationID) {
                 String eLocationId = chars.toString().trim();
@@ -642,18 +670,20 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Author last name.
             if (bAuthorLastName) {
-                String authorLastName = chars.toString();
-                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
-                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setLastname(authorLastName);
-                bAuthorLastName = false;
+              String authorLastName = chars.toString();
+            
+              int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+              pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setLastname(authorLastName);
+              bAuthorLastName = false;
             }
 
-            // Author fore name.
+            // Author forename.
             if (bAuthorForeName) {
-                String authorForeName = chars.toString();
-                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
-                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setForename(authorForeName);
-                bAuthorForeName = false;
+              String authorForeName = chars.toString();
+                        
+              int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+              pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setForename(authorForeName);
+              bAuthorForeName = false;
             }
 
             // Author middle initials.
@@ -666,11 +696,30 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Author affiliations.
             if (bAffiliation) {
-                String affiliation = chars.toString();
+
+                // Replace new line breaks and any two or more whitespaces with single whitespace                
+                String affiliation = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
+
+                // Substitute certain non-printable, hexadecimal characters for a space
+                affiliation = affiliation.replaceAll("[\u0020\u00A0\u2009\u202F\u2005\u200A\u2008\u2002]", " ");
+
+                // For some reason, substituting for "\u00A0" doesn't work, so we're inputting the hexadecimal literal here directly                
+                affiliation = affiliation.replaceAll(" ", " ");
+
+                // Delete certain non-printable, hexadecimal characters
+                affiliation = affiliation.replaceAll("[\u2029\u0099\u2003]", "");
+
                 int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
-                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliation);
+                String affiliationInfo = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).getAffiliation();
+                String affiliations = "";
+                if (affiliationInfo == null) {
+                    affiliations = affiliation;
+                } else {
+                    affiliations = affiliationInfo + ", " + affiliation;
+                }
+                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliations);
                 bAffiliation = false;
-            }
+            }    
             
             // Author ORCID identifier
             if (bOrcid) {
@@ -710,9 +759,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             // Journal title
             if (bArticle && bJournalTitle) {
-                String journalTitle = chars.toString();
-                pubmedArticle.getMedlinecitation().getArticle().getJournal().setTitle(journalTitle);
-                bJournalTitle = false;
+              String journalTitle = chars.toString();
+            
+              pubmedArticle.getMedlinecitation().getArticle().getJournal().setTitle(journalTitle);
+              bJournalTitle = false;
             }
 
             // Journal ISO abbreviation.
@@ -797,11 +847,24 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
 
             //Abstract
+            
             if (bAbstractText && bAbstract) {
-                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().size() - 1;
-                String publicationAbstractText = chars.toString();
-                pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().get(lastInsertedIndex).setAbstractText(publicationAbstractText);
-                bAbstractText = false;
+              int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().size() - 1;
+
+                // Replace new line breaks and any two or more whitespaces with single whitespace                
+                String publicationAbstractText = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
+
+                // Substitute certain non-printable, hexadecimal characters for a space
+                publicationAbstractText = publicationAbstractText.replaceAll("[\u0020\u00A0\u2009\u202F\u2005\u200A\u2008\u2002]", " ");
+
+                // For some reason, substituting for "\u00A0" doesn't work, so we're inputting the hexadecimal literal here directly
+                publicationAbstractText = publicationAbstractText.replaceAll(" ", " ");
+
+                // Delete certain non-printable, hexadecimal characters
+                publicationAbstractText = publicationAbstractText.replaceAll("[\u2029\u0099\u2003]", "");
+         
+              pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().get(lastInsertedIndex).setAbstractText(publicationAbstractText);
+              bAbstractText = false;
             }
             
             if (bCopyrightInformation && bAbstract) {
