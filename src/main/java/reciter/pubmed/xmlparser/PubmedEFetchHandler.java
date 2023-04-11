@@ -639,10 +639,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 String articleTitle = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
 
                 // Substitute certain non-printable, hexadecimal characters for a space
-                articleTitle = articleTitle.replaceAll("[ | | | | | | ]", " ");                
+                articleTitle = articleTitle.replaceAll("[ |\u2009|\u202F|\u2005|\u200A|\u2008|\u2002]", " ");
 
                 // Delete certain non-printable, hexadecimal characters
-                articleTitle = articleTitle.replaceAll("[ || ]", "");         
+                articleTitle = articleTitle.replaceAll("[\u2029|\u0099|\u2003]", "");
 
                 // Set the title of the article.
                 pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); 
@@ -690,10 +690,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 String affiliation = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
 
                 // Substitute certain non-printable, hexadecimal characters for a space
-                affiliation = affiliation.replaceAll("[ | | | | | | ]", " ");                
+                affiliation = affiliation.replaceAll("[\u00A0|\u2009|\u202F|\u2005|\u200A|\u2008|\u2002]", " ");
 
                 // Delete certain non-printable, hexadecimal characters
-                affiliation = affiliation.replaceAll("[ || ]", "");      
+                affiliation = affiliation.replaceAll("[\u2029|\u0099|\u2003]", "");
 
                 int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
                 String affiliationInfo = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).getAffiliation();
@@ -841,10 +841,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 String publicationAbstractText = chars.toString().replaceAll("\\R+\\s{2,}", " ").trim(); 
 
                 // Substitute certain non-printable, hexadecimal characters for a space
-                publicationAbstractText = publicationAbstractText.replaceAll("[ | | | | | | ]", " ");                
+                publicationAbstractText = publicationAbstractText.replaceAll("[\u00A0|\u2009|\u202F|\u2005|\u200A|\u2008|\u2002]", " ");
 
                 // Delete certain non-printable, hexadecimal characters
-                publicationAbstractText = publicationAbstractText.replaceAll("[ || ]", "");   
+                publicationAbstractText = publicationAbstractText.replaceAll("[\u2029|\u0099|\u2003]", "");
          
               pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().get(lastInsertedIndex).setAbstractText(publicationAbstractText);
               bAbstractText = false;
