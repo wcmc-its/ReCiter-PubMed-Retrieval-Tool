@@ -110,6 +110,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bAuthorInitials;
     private boolean bAffiliationInfo;
     private boolean bAffiliation;
+    private boolean bAuthorEqualContrib;    
     private boolean bOrcid;
     private boolean bPublicationTypeList;
     private boolean bPublicationType;
@@ -198,6 +199,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private String getAbstractTextNlmCategory(Attributes attributes) {
     	String abstractTextNlmCategory = attributes.getValue("NlmCategory");
     	return abstractTextNlmCategory;
+    }
+
+
+    private boolean hasEqualContrib(Attributes attributes) {
+      return attributes.getValue("EqualContrib") != null;
     }
 
     private boolean isOrcid(Attributes attributes) {
@@ -402,6 +408,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             if (qName.equalsIgnoreCase("Affiliation")) {
                 bAffiliation = true;
+            }
+            // Check if author has EqualContrib attribute
+            if (qName.equalsIgnoreCase("Author") && hasEqualContrib(attributes)) {
+              bAuthorEqualContrib = true; 
             }
             if(qName.equalsIgnoreCase("Identifier") && bAuthorList && isOrcid(attributes)) {
                 bOrcid = true;
@@ -692,6 +702,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setInitials(authorInitials);
                 bAuthorInitials = false;
+            }
+
+            // Author equal contribution
+            if (bAuthorEqualContrib) {
+              int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+              pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setEqualContrib("Y");
+              bAuthorEqualContrib = false; 
             }
 
             // Author affiliations.
@@ -1097,6 +1114,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
         if (bArticle && bArticleTitle) {
         	chars.append(ch, start, length);
         }
+
+        // Added handling for EqualContrib
+        if (bAuthorEqualContrib) {
+          chars.append(ch, start, length);
+        }              
 
         if (bELocationID) {
             chars.append(ch, start, length);
