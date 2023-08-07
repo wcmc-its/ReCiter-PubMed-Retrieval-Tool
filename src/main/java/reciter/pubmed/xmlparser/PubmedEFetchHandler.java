@@ -157,6 +157,8 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bReference;
     private boolean bReferenceArticleIdList;
     private boolean bReferenceArticleId;
+    private boolean bEqualContrib;
+    private boolean bCoiStatement;
 
     private List<PubMedArticle> pubmedArticles;
     private PubMedArticle pubmedArticle;
@@ -203,6 +205,15 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean isOrcid(Attributes attributes) {
         return attributes.getValue("Source").equalsIgnoreCase("ORCID");
     }
+    private String getEqualContrib(Attributes attributes)
+    {
+    	if(attributes.getValue("EqualContrib")!=null && attributes.getValue("EqualContrib").equalsIgnoreCase("Y"))
+    	{	
+    		return attributes.getValue("EqualContrib");
+    	}
+		return null;
+    }
+    
     /**
      * Pull out year. Year is the first four consecutive numbers in the string.
      * Attempt to pull out month. (This won't always work.) Month is the first three consecutive letters. Map these letters to a two-digit month equivalent, e.g., "Feb" --> "02", "Oct" --> "10"
@@ -396,6 +407,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (qName.equalsIgnoreCase("Affiliation")) {
                 bAffiliation = true;
             }
+			if (qName.equalsIgnoreCase("Author") && bAuthorList && getEqualContrib(attributes)!=null)
+            {
+				MedlineCitationArticleAuthor author = MedlineCitationArticleAuthor.builder().build();
+				author.setEqualContrib(getEqualContrib(attributes));
+                pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().add(author); // add author to author list.
+            	bEqualContrib = true;
+            }
             if(qName.equalsIgnoreCase("Identifier") && bAuthorList && isOrcid(attributes)) {
                 bOrcid = true;
             }
@@ -439,6 +457,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             if (qName.equalsIgnoreCase("MeshHeadingList")) {
                 pubmedArticle.getMedlinecitation().setMeshheadinglist(new ArrayList<>());
+            }
+            if(qName.equalsIgnoreCase("CoiStatement"))
+            {
+            	bCoiStatement = true;
             }
             if (qName.equalsIgnoreCase("DescriptorName")) {
                 // Set MedlineCitationYNEnum.
@@ -619,6 +641,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
                     bArticleIdPmc = true;
                 }
             }
+            /*if(qName.equalsIgnoreCase("CoiStatement"))
+            {
+            	 String coiStatment = chars.toString();
+                 pubmedArticle.getMedlinecitation().setCoiStatement(coiStatment);
+            }*/
         }
     }
 
@@ -720,7 +747,16 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 }
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliations);
                 bAffiliation = false;
-            }    
+            }
+            //Author EqualContrib flag
+            if(qName.equalsIgnoreCase("Author") && bAuthorList && bEqualContrib)
+            {
+            	
+            	int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+            	String equalContrib = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).getEqualContrib();
+            	pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setEqualContrib(equalContrib);
+                bEqualContrib = false;
+            }
             
             // Author ORCID identifier
             if (bOrcid) {
@@ -1078,7 +1114,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             if (qName.equalsIgnoreCase("Reference")) {
                 bReference = false;
-            }            
+            }
+            if(qName.equalsIgnoreCase("CoiStatement") && bCoiStatement) {
+            	
+            	  String coiStatement = chars.toString();
+                  pubmedArticle.getMedlinecitation().setCoiStatement(coiStatement); 
+                  bCoiStatement = false;
+            }
 
             /*if (qName.equalsIgnoreCase("ArticleIdList")) {
                 bArticleIdList = false;
@@ -1248,6 +1290,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
         if (bArticleIdPmc) {
             chars.append(ch, start, length);
         }
+        if(bCoiStatement) {
+        	chars.append(ch, start, length);
+        }
+        	
         
         /*if (bPubmedData) {
             chars.append(ch, start, length);
