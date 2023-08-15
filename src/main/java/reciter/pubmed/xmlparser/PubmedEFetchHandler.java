@@ -158,6 +158,8 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bReference;
     private boolean bReferenceArticleIdList;
     private boolean bReferenceArticleId;
+    private boolean bEqualContrib;
+    private boolean bCoiStatement;
 
     private List<PubMedArticle> pubmedArticles;
     private PubMedArticle pubmedArticle;
@@ -173,12 +175,12 @@ public class PubmedEFetchHandler extends DefaultHandler {
     }
     
     private String getIssnType(Attributes attributes) {
-    	String issnType = attributes.getValue("IssnType");
-    	if(issnType.equalsIgnoreCase("Print")) {
-    		return "Print";
-    	} else {
-    		return "Electronic";
-    	}
+        String issnType = attributes.getValue("IssnType");
+        if(issnType.equalsIgnoreCase("Print")) {
+            return "Print";
+        } else {
+            return "Electronic";
+        }
     }
 
     private String getReferenceArticleIdType(Attributes attributes) {
@@ -187,18 +189,18 @@ public class PubmedEFetchHandler extends DefaultHandler {
     }
     
     private String getPubStatus(Attributes attributes) {
-    	String pubStatus = attributes.getValue("PubStatus");
-    	return pubStatus;
+        String pubStatus = attributes.getValue("PubStatus");
+        return pubStatus;
     }
     
     private String getAbstractTextLabel(Attributes attributes) {
-    	String abstractTextLabel = attributes.getValue("Label");
-    	return abstractTextLabel;
+        String abstractTextLabel = attributes.getValue("Label");
+        return abstractTextLabel;
     }
     
     private String getAbstractTextNlmCategory(Attributes attributes) {
-    	String abstractTextNlmCategory = attributes.getValue("NlmCategory");
-    	return abstractTextNlmCategory;
+        String abstractTextNlmCategory = attributes.getValue("NlmCategory");
+        return abstractTextNlmCategory;
     }
 
 
@@ -209,48 +211,57 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean isOrcid(Attributes attributes) {
         return attributes.getValue("Source").equalsIgnoreCase("ORCID");
     }
+    private String getEqualContrib(Attributes attributes)
+    {
+    	if(attributes.getValue("EqualContrib")!=null && attributes.getValue("EqualContrib").equalsIgnoreCase("Y"))
+    	{	
+    		return attributes.getValue("EqualContrib");
+    	}
+		return null;
+    }
+    
     /**
      * Pull out year. Year is the first four consecutive numbers in the string.
-	 * Attempt to pull out month. (This won't always work.) Month is the first three consecutive letters. Map these letters to a two-digit month equivalent, e.g., "Feb" --> "02", "Oct" --> "10"
-	 * Use "01" for day. Don't bother trying to parse that.
-	 * PMID(23849565) OR PMID(29756752)
+     * Attempt to pull out month. (This won't always work.) Month is the first three consecutive letters. Map these letters to a two-digit month equivalent, e.g., "Feb" --> "02", "Oct" --> "10"
+     * Use "01" for day. Don't bother trying to parse that.
+     * PMID(23849565) OR PMID(29756752)
      * @param medlineDate MedlineDate tag value
      * @param medlineCitationDate
      */
     private void getStandardizedDate(String medlineDate, MedlineCitationDate medlineCitationDate) {
-    	if(medlineDate != null && medlineDate.length() >=4) {
-	    	String year = null;
-	    	String month = null;
-	    	Pattern pattern = Pattern.compile("\\b\\d{4}\\b");
-			Matcher matcher = pattern.matcher(medlineDate);
-			if(matcher.find()) {
-				year = matcher.group();
-			}
-			
-			//Trying to retrieve month
-			
-			pattern = Pattern.compile("\\b[a-zA-Z]{3}\\b", Pattern.CASE_INSENSITIVE);
-			matcher = pattern.matcher(medlineDate);
-			
-			if(matcher.find()) {
-				month = matcher.group();
-				DateTimeFormatter parser = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.ENGLISH);
-				TemporalAccessor accessor = parser.parse(month);
-				int monthNumber = accessor.get(ChronoField.MONTH_OF_YEAR);
-				if(monthNumber != 0 && monthNumber < 10) {
-					month = "0" + String.valueOf(monthNumber);
-				} else {
-					month = String.valueOf(monthNumber);
-				}
-				
-			}
-			if(month == null) {
-				month = "01";
-			}
-			medlineCitationDate.setYear(year);
-			medlineCitationDate.setMonth(month);
-			medlineCitationDate.setDay("01");
-    	}
+        if(medlineDate != null && medlineDate.length() >=4) {
+            String year = null;
+            String month = null;
+            Pattern pattern = Pattern.compile("\\b\\d{4}\\b");
+            Matcher matcher = pattern.matcher(medlineDate);
+            if(matcher.find()) {
+                year = matcher.group();
+            }
+            
+            //Trying to retrieve month
+            
+            pattern = Pattern.compile("\\b[a-zA-Z]{3}\\b", Pattern.CASE_INSENSITIVE);
+            matcher = pattern.matcher(medlineDate);
+            
+            if(matcher.find()) {
+                month = matcher.group();
+                DateTimeFormatter parser = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.ENGLISH);
+                TemporalAccessor accessor = parser.parse(month);
+                int monthNumber = accessor.get(ChronoField.MONTH_OF_YEAR);
+                if(monthNumber != 0 && monthNumber < 10) {
+                    month = "0" + String.valueOf(monthNumber);
+                } else {
+                    month = String.valueOf(monthNumber);
+                }
+                
+            }
+            if(month == null) {
+                month = "01";
+            }
+            medlineCitationDate.setYear(year);
+            medlineCitationDate.setMonth(month);
+            medlineCitationDate.setDay("01");
+        }
     }
 
     /**
@@ -301,13 +312,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bELocationID = true;
             }
 
-// Get DOI from <ArticleId IdType="doi">DOI here</ArticleId> in cases where ELocationID is missing. This is typically for older publications
-
-            if (qName.equalsIgnoreCase("ArticleId") && attributes.getValue("IdType").equalsIgnoreCase("doi") && bELocationID != true) {
-                pubmedArticle.getMedlinecitation().getArticle().setElocationid(MedlineCitationArticleELocationID.builder().build());
-                bELocationID = true;
-            }
-
             if (qName.equalsIgnoreCase("Journal")) {
                 pubmedArticle.getMedlinecitation().getArticle().setJournal(MedlineCitationJournal.builder().build()); // add journal information.
             }
@@ -320,13 +324,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             
             if(qName.equalsIgnoreCase("ISSNLinking")) {
-            	if(pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn() == null) {
-            		pubmedArticle.getMedlinecitation().getArticle().getJournal().setIssn(new ArrayList<MedlineCitationJournalISSN>());
-            	}
-            	MedlineCitationJournalISSN journalLIssn = MedlineCitationJournalISSN.builder().issntype("Linking").build();
-            	pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().add(journalLIssn);
-            	bISSNLinking = true;
-            	
+                if(pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn() == null) {
+                    pubmedArticle.getMedlinecitation().getArticle().getJournal().setIssn(new ArrayList<MedlineCitationJournalISSN>());
+                }
+                MedlineCitationJournalISSN journalLIssn = MedlineCitationJournalISSN.builder().issntype("Linking").build();
+                pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().add(journalLIssn);
+                bISSNLinking = true;
+                
             }
 
             if (qName.equalsIgnoreCase("JournalIssue")) {
@@ -410,8 +414,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bAffiliation = true;
             }
             // Check if author has EqualContrib attribute
-            if (qName.equalsIgnoreCase("Author") && hasEqualContrib(attributes)) {
-              bAuthorEqualContrib = true; 
+
+						if (qName.equalsIgnoreCase("Author") && bAuthorList && getEqualContrib(attributes)!=null)
+            			{
+							  MedlineCitationArticleAuthor author = MedlineCitationArticleAuthor.builder().build();
+							  author.setEqualContrib(getEqualContrib(attributes));
+            		pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().add(author); // add author to author list.
+			          bEqualContrib = true;
             }
             if(qName.equalsIgnoreCase("Identifier") && bAuthorList && isOrcid(attributes)) {
                 bOrcid = true;
@@ -423,12 +432,12 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             if (qName.equalsIgnoreCase("Abstract") &&
                     pubmedArticle != null) {
-            	pubmedArticle.getMedlinecitation().getArticle().setPublicationAbstract(MedlineCitationArticleAbstract.builder().abstractTexts(new ArrayList<>()).build());
+                pubmedArticle.getMedlinecitation().getArticle().setPublicationAbstract(MedlineCitationArticleAbstract.builder().abstractTexts(new ArrayList<>()).build());
                 bAbstract = true;
             }
             if (qName.equalsIgnoreCase("AbstractText") && bAbstract) {
-            	MedlineCitationArticleAbstractText abstractText = MedlineCitationArticleAbstractText.builder().abstractTextLabel(getAbstractTextLabel(attributes)).abstractTextNlmCategory(getAbstractTextNlmCategory(attributes)).build();
-            	pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().add(abstractText);
+                MedlineCitationArticleAbstractText abstractText = MedlineCitationArticleAbstractText.builder().abstractTextLabel(getAbstractTextLabel(attributes)).abstractTextNlmCategory(getAbstractTextNlmCategory(attributes)).build();
+                pubmedArticle.getMedlinecitation().getArticle().getPublicationAbstract().getAbstractTexts().add(abstractText);
                 bAbstractText = true;
             }
             if (qName.equalsIgnoreCase("CopyrightInformation") && bAbstract) {
@@ -456,6 +465,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             if (qName.equalsIgnoreCase("MeshHeadingList")) {
                 pubmedArticle.getMedlinecitation().setMeshheadinglist(new ArrayList<>());
+            }
+            if(qName.equalsIgnoreCase("CoiStatement"))
+            {
+            	bCoiStatement = true;
             }
             if (qName.equalsIgnoreCase("DescriptorName")) {
                 // Set MedlineCitationYNEnum.
@@ -533,7 +546,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bReferenceList = true;
             }
             
-            if (qName.equalsIgnoreCase("Reference") && bReferenceList) {
+            if (qName.equalsIgnoreCase("Reference")) {
                 if(pubmedArticle.getMedlinecitation().getCommentscorrectionslist() == null) {
                     List<MedlineCitationCommentsCorrections> medlineCitationCommentsCorrections = new ArrayList<>();
                     pubmedArticle.getMedlinecitation().setCommentscorrectionslist(medlineCitationCommentsCorrections);
@@ -541,34 +554,42 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bReference = true;
             }
 
+        // Get DOI from <ArticleId IdType="doi">DOI here</ArticleId> in cases where ELocationID is missing. This is typically for older publications
+        // But only extract DOI if we are NOT inside a Reference tag
+
+            if (qName.equalsIgnoreCase("ArticleId") && !bReference && !bReferenceList && attributes.getValue("IdType").equalsIgnoreCase("doi") && bELocationID != true) {
+                pubmedArticle.getMedlinecitation().getArticle().setElocationid(MedlineCitationArticleELocationID.builder().build());
+                bELocationID = true;
+            }
+
             if (qName.equalsIgnoreCase("ArticleIdList") && bReference) {
                 bReferenceArticleIdList = true;
             }
             
             if(qName.equalsIgnoreCase("ArticleDate")) {
-            	bArticleDate = true;
-            	pubmedArticle.getMedlinecitation().getArticle().setArticledate(MedlineCitationDate.builder().build());
+                bArticleDate = true;
+                pubmedArticle.getMedlinecitation().getArticle().setArticledate(MedlineCitationDate.builder().build());
             }
             
             if(bArticleDate && qName.equalsIgnoreCase("Year")) {
-            	bArticleDateYear = true;
+                bArticleDateYear = true;
             }
             
             if(bArticleDate && qName.equalsIgnoreCase("Month")) {
-            	bArticleDateMonth = true;
+                bArticleDateMonth = true;
             }
             
             if(bArticleDate && qName.equalsIgnoreCase("Day")) {
-            	bArticleDateDay = true;
+                bArticleDateDay = true;
             }
             
 
             // not used.
-            //		if (qName.equalsIgnoreCase("RefSource") && bCommentsCorrections) {
-            //			bCommentsCorrectionsRefSource = true;
-            //		}
+            //      if (qName.equalsIgnoreCase("RefSource") && bCommentsCorrections) {
+            //          bCommentsCorrectionsRefSource = true;
+            //      }
             if (qName.equalsIgnoreCase("PMID") && bCommentsCorrections) {
-                //			bCommentsCorrectionsPmidVersion = true;
+                //          bCommentsCorrectionsPmidVersion = true;
                 bCommentsCorrectionsPmid = true;
             }
 
@@ -586,35 +607,35 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             
             if(bPubmedData && qName.equalsIgnoreCase("History")) {
-            	bHistory = true;
-            	History history = History.builder().pubmedPubDate(new ArrayList<PubMedPubDate>()).build();
-            	pubmedArticle.getPubmeddata().setHistory(history);
+                bHistory = true;
+                History history = History.builder().pubmedPubDate(new ArrayList<PubMedPubDate>()).build();
+                pubmedArticle.getPubmeddata().setHistory(history);
             }
             
             if(qName.equalsIgnoreCase("PubMedPubDate")) {
-            	bPubMedPubDate = true;
-            	MedlineCitationDate medlineCitationDate = MedlineCitationDate.builder().build();
-            	PubMedPubDate pubmedPubDate = PubMedPubDate.builder().pubMedPubDate(medlineCitationDate).pubStatus(getPubStatus(attributes)).build();
-            	pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().add(pubmedPubDate);
+                bPubMedPubDate = true;
+                MedlineCitationDate medlineCitationDate = MedlineCitationDate.builder().build();
+                PubMedPubDate pubmedPubDate = PubMedPubDate.builder().pubMedPubDate(medlineCitationDate).pubStatus(getPubStatus(attributes)).build();
+                pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().add(pubmedPubDate);
             }
             
             if(bPubMedPubDate && qName.equalsIgnoreCase("Year")) {
-            	bPubMedPubDateYear = true;
+                bPubMedPubDateYear = true;
             }
             
             if(bPubMedPubDate && qName.equalsIgnoreCase("Month")) {
-            	bPubMedPubDateMonth = true;
+                bPubMedPubDateMonth = true;
             }
             
             if(bPubMedPubDate && qName.equalsIgnoreCase("Day")) {
-            	bPubMedPubDateDay = true;
+                bPubMedPubDateDay = true;
             }
 
             if (qName.equalsIgnoreCase("ArticleIdList")) {
                 bArticleIdList = true;
             }
 
-            if (qName.equalsIgnoreCase("ArticleId") && !bReferenceArticleIdList && !bReferenceArticleId) {  
+            if (qName.equalsIgnoreCase("ArticleId") && !bReferenceArticleIdList && !bReferenceArticleId && !bReference) {  
                 bArticleId = true;
                 String idType = getArticleIdType(attributes);
                 if ("pubmed".equals(idType)) {
@@ -624,10 +645,15 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 } else if ("doi".equals(idType)) {
                     bArticleIdDoi = true;
                 } else if ("pmc".equals(idType)) {
-                	pubmedArticle.getPubmeddata().setArticleIdList(new ArticleIdList());
+                    pubmedArticle.getPubmeddata().setArticleIdList(new ArticleIdList());
                     bArticleIdPmc = true;
                 }
             }
+            /*if(qName.equalsIgnoreCase("CoiStatement"))
+            {
+            	 String coiStatment = chars.toString();
+                 pubmedArticle.getMedlinecitation().setCoiStatement(coiStatment);
+            }*/
         }
     }
 
@@ -653,7 +679,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 articleTitle = articleTitle.replaceAll("[\u0020\u00A0\u2009\u202F\u2005\u200A\u2008\u2002]", " ");
             
                 // For some reason, substituting for "\u00A0" doesn't work, so we're inputting the hexadecimal literal here directly                
-                articleTitle = articleTitle.replaceAll(" ", " ");
+                articleTitle = articleTitle.replaceAll(" ", " ");
             
                 // Delete certain non-printable, hexadecimal characters
                 articleTitle = articleTitle.replaceAll("[\u2029\u0099\u2003]", "");
@@ -673,7 +699,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (bELocationID) {
                 String eLocationId = chars.toString().trim();
                 if(!eLocationId.contains(" ")) { //Case where doi would have a space in between doi which causes exception when retrieving scopus articles using doi - pmid - 24763504
-                	pubmedArticle.getMedlinecitation().getArticle().getElocationid().setElocationid(eLocationId);
+                    pubmedArticle.getMedlinecitation().getArticle().getElocationid().setElocationid(eLocationId);
                 }
                 bELocationID = false;
             }
@@ -721,7 +747,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 affiliation = affiliation.replaceAll("[\u0020\u00A0\u2009\u202F\u2005\u200A\u2008\u2002]", " ");
 
                 // For some reason, substituting for "\u00A0" doesn't work, so we're inputting the hexadecimal literal here directly                
-                affiliation = affiliation.replaceAll(" ", " ");
+                affiliation = affiliation.replaceAll(" ", " ");
 
                 // Delete certain non-printable, hexadecimal characters
                 affiliation = affiliation.replaceAll("[\u2029\u0099\u2003]", "");
@@ -736,7 +762,16 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 }
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliations);
                 bAffiliation = false;
-            }    
+            }
+            //Author EqualContrib flag
+            if(qName.equalsIgnoreCase("Author") && bAuthorList && bEqualContrib)
+            {
+            	
+            	int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
+            	String equalContrib = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).getEqualContrib();
+            	pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setEqualContrib(equalContrib);
+                bEqualContrib = false;
+            }
             
             // Author ORCID identifier
             if (bOrcid) {
@@ -747,17 +782,17 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             
             if(bISSN) {
-            	String issn = chars.toString();
-            	int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().size() - 1;
-            	pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().get(lastInsertedIndex).setIssn(issn);
-            	bISSN = false;
+                String issn = chars.toString();
+                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().size() - 1;
+                pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().get(lastInsertedIndex).setIssn(issn);
+                bISSN = false;
             }
             
             if(bISSNLinking) {
-            	String lissn = chars.toString();
-            	int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().size() - 1;
-            	pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().get(lastInsertedIndex).setIssn(lissn);
-            	bISSNLinking = false;
+                String lissn = chars.toString();
+                int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().size() - 1;
+                pubmedArticle.getMedlinecitation().getArticle().getJournal().getIssn().get(lastInsertedIndex).setIssn(lissn);
+                bISSNLinking = false;
             }
 
             // Journal Volume
@@ -800,14 +835,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (bPubDate && bPubDateMonth) {
                 String pubDateMonth = chars.toString();
                 if(pubDateMonth.trim().length() == 3) {
-                	DateTimeFormatter parser = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.ENGLISH);
-        			TemporalAccessor accessor = parser.parse(pubDateMonth);
-        			int monthNumber = accessor.get(ChronoField.MONTH_OF_YEAR);
-    				if(monthNumber != 0 && monthNumber < 10 ) {
-    					pubDateMonth = "0" + String.valueOf(monthNumber);
-    				} else {
-    					pubDateMonth = String.valueOf(monthNumber);
-    				}
+                    DateTimeFormatter parser = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.ENGLISH);
+                    TemporalAccessor accessor = parser.parse(pubDateMonth);
+                    int monthNumber = accessor.get(ChronoField.MONTH_OF_YEAR);
+                    if(monthNumber != 0 && monthNumber < 10 ) {
+                        pubDateMonth = "0" + String.valueOf(monthNumber);
+                    } else {
+                        pubDateMonth = String.valueOf(monthNumber);
+                    }
                 }
                 pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate().setMonth(pubDateMonth);
                 //bPubDate = false;
@@ -838,15 +873,15 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             
             if(qName.equalsIgnoreCase("PubDate")) {
-            	bPubDate = false;
+                bPubDate = false;
             }
 
             if (bPagination && bMedlinePgn) {
                 String pagination = chars.toString();
                 if(pagination != null 
-                		&&
-                		!pagination.isEmpty()) {
-                	pubmedArticle.getMedlinecitation().getArticle().getPagination().getMedlinepgns().add(pagination);
+                        &&
+                        !pagination.isEmpty()) {
+                    pubmedArticle.getMedlinecitation().getArticle().getPagination().getMedlinepgns().add(pagination);
                 }
                 bMedlinePgn = false;
             }
@@ -875,7 +910,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 publicationAbstractText = publicationAbstractText.replaceAll("[\u0020\u00A0\u2009\u202F\u2005\u200A\u2008\u2002]", " ");
 
                 // For some reason, substituting for "\u00A0" doesn't work, so we're inputting the hexadecimal literal here directly
-                publicationAbstractText = publicationAbstractText.replaceAll(" ", " ");
+                publicationAbstractText = publicationAbstractText.replaceAll(" ", " ");
 
                 // Delete certain non-printable, hexadecimal characters
                 publicationAbstractText = publicationAbstractText.replaceAll("[\u2029\u0099\u2003]", "");
@@ -892,7 +927,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             
             if (qName.equalsIgnoreCase("Abstract")) {
-            	bAbstract = false;
+                bAbstract = false;
             }
             
             // Keyword.
@@ -1023,54 +1058,54 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
             //End of <ArticleDate> tag
             if(bArticleDate && qName.equalsIgnoreCase("Year")) {
-            	String articleDateYear = chars.toString();
-            	pubmedArticle.getMedlinecitation().getArticle().getArticledate().setYear(articleDateYear);
-            	bArticleDateYear = false;
+                String articleDateYear = chars.toString();
+                pubmedArticle.getMedlinecitation().getArticle().getArticledate().setYear(articleDateYear);
+                bArticleDateYear = false;
             }
             
             if(bArticleDate && qName.equalsIgnoreCase("Month")) {
-            	String articleDateMonth = chars.toString();
-            	pubmedArticle.getMedlinecitation().getArticle().getArticledate().setMonth(articleDateMonth);
-            	bArticleDateMonth = false;
+                String articleDateMonth = chars.toString();
+                pubmedArticle.getMedlinecitation().getArticle().getArticledate().setMonth(articleDateMonth);
+                bArticleDateMonth = false;
             }
             
             if(bArticleDate && qName.equalsIgnoreCase("Day")) {
-            	String articleDateDay = chars.toString();
-            	pubmedArticle.getMedlinecitation().getArticle().getArticledate().setDay(articleDateDay);
-            	bArticleDateDay = false;
+                String articleDateDay = chars.toString();
+                pubmedArticle.getMedlinecitation().getArticle().getArticledate().setDay(articleDateDay);
+                bArticleDateDay = false;
             }
             
             if(qName.equalsIgnoreCase("ArticleDate")) {
-            	bArticleDate = false;
+                bArticleDate = false;
             }
             
             if(bPubMedPubDate && bPubMedPubDateYear) {
-            	String pubmedPubDateYear = chars.toString();
+                String pubmedPubDateYear = chars.toString();
                 int lastInsertedIndex = pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().size() - 1;
                 pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().get(lastInsertedIndex).getPubMedPubDate().setYear(pubmedPubDateYear);
                 bPubMedPubDateYear = false;
             }
             
             if(bPubMedPubDate && bPubMedPubDateMonth) {
-            	String pubmedPubDateMonth = chars.toString();
+                String pubmedPubDateMonth = chars.toString();
                 int lastInsertedIndex = pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().size() - 1;
                 pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().get(lastInsertedIndex).getPubMedPubDate().setMonth(pubmedPubDateMonth);
                 bPubMedPubDateMonth = false;
             }
             
             if(bPubMedPubDate && bPubMedPubDateDay) {
-            	String pubmedPubDateDay = chars.toString();
+                String pubmedPubDateDay = chars.toString();
                 int lastInsertedIndex = pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().size() - 1;
                 pubmedArticle.getPubmeddata().getHistory().getPubmedPubDate().get(lastInsertedIndex).getPubMedPubDate().setDay(pubmedPubDateDay);
                 bPubMedPubDateDay = false;
             }
             
             if(qName.equalsIgnoreCase("PubMedPubDate")) {
-            	bPubMedPubDate = false;
+                bPubMedPubDate = false;
             }
             
             if(qName.equalsIgnoreCase("History")) {
-            	bHistory = false;
+                bHistory = false;
             }
 
             if (qName.equalsIgnoreCase("PubmedData")) {
@@ -1085,11 +1120,21 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             
             if (qName.equalsIgnoreCase("ArticleId") && bArticleIdList) {
-	            bArticleId = false;
+                bArticleId = false;
             }
             
             if (qName.equalsIgnoreCase("ArticleIdList")) {
-	            bArticleIdList = false;
+                bArticleIdList = false;
+            }
+
+            if (qName.equalsIgnoreCase("Reference")) {
+                bReference = false;
+            }
+            if(qName.equalsIgnoreCase("CoiStatement") && bCoiStatement) {
+            	
+            	  String coiStatement = chars.toString();
+                  pubmedArticle.getMedlinecitation().setCoiStatement(coiStatement); 
+                  bCoiStatement = false;
             }
 
             /*if (qName.equalsIgnoreCase("ArticleIdList")) {
@@ -1106,13 +1151,13 @@ public class PubmedEFetchHandler extends DefaultHandler {
 
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
-    	
+        
         if (bMedlineCitation && bPMID) {
             chars.append(ch, start, length);
         }
 
         if (bArticle && bArticleTitle) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
 
         // Added handling for EqualContrib
@@ -1149,11 +1194,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
         
         if(bISSN) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
         
         if(bISSNLinking) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
 
         if (bIssue) {
@@ -1219,27 +1264,27 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
         
         if(bPublicationTypeList && bPublicationType) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
         
         if(bAbstractText &&  bAbstract) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
         
         if(bCopyrightInformation &&  bAbstract) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
         
         if(bArticleDate && bArticleDateYear) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
         
         if(bArticleDate && bArticleDateMonth) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
         
         if(bArticleDate && bArticleDateDay) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
         
         if (bCommentsCorrections && bCommentsCorrectionsPmid) {
@@ -1251,20 +1296,24 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
         
         if(bHistory && bPubMedPubDate && bPubMedPubDateYear) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
         
         if(bHistory && bPubMedPubDate && bPubMedPubDateMonth) {
-       	 	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
         
         if(bHistory && bPubMedPubDate && bPubMedPubDateDay) {
-        	chars.append(ch, start, length);
+            chars.append(ch, start, length);
         }
 
         if (bArticleIdPmc) {
             chars.append(ch, start, length);
         }
+        if(bCoiStatement) {
+        	chars.append(ch, start, length);
+        }
+        	
         
         /*if (bPubmedData) {
             chars.append(ch, start, length);
