@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -242,9 +244,59 @@ public class PubMedArticleRetrievalService {
 			 */
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
 			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
-			if(json != null) {
+			System.out.println("json********************************"+json);
+			 //Check if the search result contains a last name or only the first initial. If the result contains only the first initial, ignore/discard all the results here.
+			 JsonNode errorListNode = json.path("errorlist");
+			 String phraseNotFound ="";
+			 
+			// Extract the "querytranslation" field
+	         String queryTranslation = json.path("querytranslation").asText();
+
+	         // Print the extracted querytranslation
+	         System.out.println("Query Translation: " + queryTranslation);
+			 
+	      // Regular expression to match M[Author], MM[Author], and M[Author] OR M[Author]
+	         String regex = "(M{1,2}\\[Author\\])|M\\[Author\\]\\s*OR\\s*M\\[Author\\]";
+
+	         // Create Pattern and Matcher
+	         Pattern pattern = Pattern.compile(regex);
+	         Matcher matcher = pattern.matcher(queryTranslation);
+
+	         // List to store the matched results
+	         List<String> matches = new ArrayList<>();
+
+	         // Find all matches
+	         while (matcher.find()) {
+	             matches.add(matcher.group());
+	         }
+			 /*System.out.println("errorListNode********************************"+errorListNode);
+			
+			 // Extract the "phrasesnotfound" array
+	            JsonNode phrasesNotFoundNode = errorListNode.path("phrasesnotfound");
+	            
+	            // Check if the "phrasesnotfound" array has values
+	            if (phrasesNotFoundNode.isArray()) {
+	                for (JsonNode phraseNode : phrasesNotFoundNode) {
+	                    // Print the value of each phrase in the array
+	                	phraseNotFound = phraseNode.asText();
+	                	 System.out.println("phraseNotFound inside if********************************"+phraseNotFound);
+	                }
+	            } */
+	         String term = java.net.URLDecoder.decode(pubmedXmlQuery.getTerm(), "UTF-8");
+	         System.out.println("term********************************"+term);
+	         
+	         //Check weather term has only phraseNotFound and Initial only if not will continue
+	        // String remainingTerm = term.replace(phraseNotFound, "");
+	       //  System.out.println("remainingTerm********************************"+remainingTerm);
+	         
+	         //allow to map the values if the leftoverterm is greater than 2 or phraseNoFound is empty.
+	         if(json != null && matches!=null && matches.size() <=3) {//(phraseNotFound == null ))|| ( remainingTerm !=null && !remainingTerm.equalsIgnoreCase("") && remainingTerm.length() > 2))) {
+				System.out.println("json inside********************************"+json+"-"+matches.toString());
 				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+				System.out.println("eSearchResults********************************"+eSearchResult.getQueryKey());
+				System.out.println("eSearchResult outside********************************"+eSearchResult.getCount());
 			}
+	         
         }
         return eSearchResult;
     }
