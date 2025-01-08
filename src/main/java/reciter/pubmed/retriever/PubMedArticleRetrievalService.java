@@ -245,57 +245,49 @@ public class PubMedArticleRetrievalService {
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
 			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
 			System.out.println("json********************************"+json);
-			 //Check if the search result contains a last name or only the first initial. If the result contains only the first initial, ignore/discard all the results here.
-			 JsonNode errorListNode = json.path("errorlist");
-			 String phraseNotFound ="";
-			 
+			
+			 boolean process = false; // Flag to track if any string before [Author] has > 2 characters
 			// Extract the "querytranslation" field
 	         String queryTranslation = json.path("querytranslation").asText();
-
-	         // Print the extracted querytranslation
-	         System.out.println("Query Translation: " + queryTranslation);
-			 
-	      // Regular expression to match M[Author], MM[Author], and M[Author] OR M[Author]
-	         String regex = "(M{1,2}\\[Author\\])|M\\[Author\\]\\s*OR\\s*M\\[Author\\]";
-
-	         // Create Pattern and Matcher
-	         Pattern pattern = Pattern.compile(regex);
-	         Matcher matcher = pattern.matcher(queryTranslation);
-
-	         // List to store the matched results
-	         List<String> matches = new ArrayList<>();
-
-	         // Find all matches
-	         while (matcher.find()) {
-	             matches.add(matcher.group());
+	         
+	         System.out.println("query translation prior to processing********************************"+queryTranslation);
+	         // Check if the string contains [Affiliation], if it does, stop processing
+	         if (!queryTranslation.contains("[Affiliation]") || !queryTranslation.contains("[All Fields]")) {
+	        	 System.out.println("coming inside if********************************"+queryTranslation);
+	        	 /// Pattern to find the text before each [Author]
+		         Pattern pattern = Pattern.compile("(.*?)\\s*\\[Author\\]");
+		         Matcher matcher = pattern.matcher(queryTranslation);
+		         while (matcher.find()) {
+		             // Extract the string before [Author] (remove leading/trailing spaces)
+		             String beforeAuthor = matcher.group(1).trim();
+		             // Remove spaces and check if the length is greater than 2
+		             String cleanedString = beforeAuthor.replaceAll("\\s", "");
+		             System.out.println("cleanedString********************************"+cleanedString);
+		             if (cleanedString.length() > 2) {
+		                 process = true;
+		                 break;
+		             }
+		            
+		         }
+		         if (process) {
+	                 System.out.println("eSearchResult if condition********************************"+eSearchResult.getCount());
+	                 if(json != null) {
+	     				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+	     				System.out.println("eSearchResult if********************************"+eSearchResult.getCount());
+	     			}
+	             }
+		         else
+		        	System.out.println("No First Name initial has more than 2 characters before [Author]. Hence stopping the process"); 
 	         }
-			 /*System.out.println("errorListNode********************************"+errorListNode);
-			
-			 // Extract the "phrasesnotfound" array
-	            JsonNode phrasesNotFoundNode = errorListNode.path("phrasesnotfound");
-	            
-	            // Check if the "phrasesnotfound" array has values
-	            if (phrasesNotFoundNode.isArray()) {
-	                for (JsonNode phraseNode : phrasesNotFoundNode) {
-	                    // Print the value of each phrase in the array
-	                	phraseNotFound = phraseNode.asText();
-	                	 System.out.println("phraseNotFound inside if********************************"+phraseNotFound);
-	                }
-	            } */
-	         String term = java.net.URLDecoder.decode(pubmedXmlQuery.getTerm(), "UTF-8");
-	         System.out.println("term********************************"+term);
-	         
-	         //Check weather term has only phraseNotFound and Initial only if not will continue
-	        // String remainingTerm = term.replace(phraseNotFound, "");
-	       //  System.out.println("remainingTerm********************************"+remainingTerm);
-	         
-	         //allow to map the values if the leftoverterm is greater than 2 or phraseNoFound is empty.
-	         if(json != null && matches!=null && matches.size() <=3) {//(phraseNotFound == null ))|| ( remainingTerm !=null && !remainingTerm.equalsIgnoreCase("") && remainingTerm.length() > 2))) {
-				System.out.println("json inside********************************"+json+"-"+matches.toString());
-				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
-				System.out.println("eSearchResults********************************"+eSearchResult.getQueryKey());
-				System.out.println("eSearchResult outside********************************"+eSearchResult.getCount());
-			}
+	         else
+	         {	  
+	        	 System.out.println("coming else********************************"+queryTranslation);
+	        	 //allow to map the values if the leftoverterm is greater than 2 or phraseNoFound is empty.
+		         if(json != null) {
+					eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+					System.out.println("eSearchResult else********************************"+eSearchResult.getCount());
+				}
+	         }
 	         
         }
         return eSearchResult;
