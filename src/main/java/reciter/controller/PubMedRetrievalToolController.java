@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -153,10 +155,49 @@ public class PubMedRetrievalToolController {
 			 * "UTF-8"); log.info(writer.toString());
 			 */
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
-			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
-			if(json !=  null) {
-				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
-			}
+            JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
+            log.info("PubMed Response Json:",json);
+			
+			 boolean process = false; // Flag to track if any string before [Author] has > 2 characters
+			// Extract the "querytranslation" field
+	         String queryTranslation = json.path("querytranslation").asText();
+	         log.info("query translation prior to processing:",queryTranslation);
+	         // Check if the string contains [Affiliation], if it does, stop processing
+	         if (!queryTranslation.contains("[Affiliation]") && !queryTranslation.contains("[All Fields]")) {
+	        	 log.info("Entered into process firstNameInitial stragey query");
+	        	 /// Pattern to find the text before each [Author]
+		         Pattern pattern = Pattern.compile("(.*?)\\s*\\[Author\\]");
+		         Matcher matcher = pattern.matcher(queryTranslation);
+		         while (matcher.find()) {
+		             // Extract the string before [Author] (remove leading/trailing spaces)
+		             String beforeAuthor = matcher.group(1).trim();
+		             // Remove spaces and check if the length is greater than 2
+		             String cleanedString = beforeAuthor.replaceAll("\\s", "");
+		             log.info("authorName after removing spaces:"+cleanedString);
+		             if (cleanedString.length() > 2) {
+		                 process = true;
+		                 break;
+		             }
+		            
+		         }
+		         if (process) {
+	                 if(json != null) {
+	     				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+	     				log.info("eSearchResult count for the firstNameInitial strategy :",eSearchResult.getCount());
+	     			}
+	             }
+		         else
+		         {	 
+		        	 eSearchResult.setCount(0);
+		        	 log.info("No First Name initial has more than 2 characters before [Author]. Hence stopping the process",queryTranslation); 
+		         }
+	         }
+	         else
+	         {	 
+				if(json !=  null) {
+					eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+				}
+	         }
         }
 
         return eSearchResult.getCount();
@@ -175,7 +216,7 @@ public class PubMedRetrievalToolController {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         List<PubMedArticle> result = new ArrayList<>();
-
+        System.out.println("query********************************"+query);
         List<PubMedArticle> pubMedArticles = pubMedArticleRetrievalService.retrieve(query);
         pubMedArticles.forEach(elem -> {
             String partialObject = SquigglyUtils.stringify(objectMapper, elem);

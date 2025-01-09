@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -244,51 +242,9 @@ public class PubMedArticleRetrievalService {
 			 */
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
 			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
-			System.out.println("json********************************"+json);
-			
-			 boolean process = false; // Flag to track if any string before [Author] has > 2 characters
-			// Extract the "querytranslation" field
-	         String queryTranslation = json.path("querytranslation").asText();
-	         
-	         System.out.println("query translation prior to processing********************************"+queryTranslation);
-	         // Check if the string contains [Affiliation], if it does, stop processing
-	         if (!queryTranslation.contains("[Affiliation]") || !queryTranslation.contains("[All Fields]")) {
-	        	 System.out.println("coming inside if********************************"+queryTranslation);
-	        	 /// Pattern to find the text before each [Author]
-		         Pattern pattern = Pattern.compile("(.*?)\\s*\\[Author\\]");
-		         Matcher matcher = pattern.matcher(queryTranslation);
-		         while (matcher.find()) {
-		             // Extract the string before [Author] (remove leading/trailing spaces)
-		             String beforeAuthor = matcher.group(1).trim();
-		             // Remove spaces and check if the length is greater than 2
-		             String cleanedString = beforeAuthor.replaceAll("\\s", "");
-		             System.out.println("cleanedString********************************"+cleanedString);
-		             if (cleanedString.length() > 2) {
-		                 process = true;
-		                 break;
-		             }
-		            
-		         }
-		         if (process) {
-	                 System.out.println("eSearchResult if condition********************************"+eSearchResult.getCount());
-	                 if(json != null) {
-	     				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
-	     				System.out.println("eSearchResult if********************************"+eSearchResult.getCount());
-	     			}
-	             }
-		         else
-		        	System.out.println("No First Name initial has more than 2 characters before [Author]. Hence stopping the process"); 
-	         }
-	         else
-	         {	  
-	        	 System.out.println("coming else********************************"+queryTranslation);
-	        	 //allow to map the values if the leftoverterm is greater than 2 or phraseNoFound is empty.
-		         if(json != null) {
-					eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
-					System.out.println("eSearchResult else********************************"+eSearchResult.getCount());
-				}
-	         }
-	         
+			if(json != null) {
+				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+			}
         }
         return eSearchResult;
     }
