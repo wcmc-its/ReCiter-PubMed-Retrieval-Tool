@@ -216,7 +216,6 @@ public class PubMedRetrievalToolController {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         List<PubMedArticle> result = new ArrayList<>();
-        System.out.println("query********************************"+query);
         List<PubMedArticle> pubMedArticles = pubMedArticleRetrievalService.retrieve(query);
         pubMedArticles.forEach(elem -> {
             String partialObject = SquigglyUtils.stringify(objectMapper, elem);
