@@ -30,7 +30,6 @@ public class SwaggerConfig {
         return new ApiInfoBuilder().title("ReCiter publication management system - PubMed Retrieval Tool")
                 .description("Retrieve publications and publication counts from PubMed. More info here: https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/").termsOfServiceUrl("")
                 .contact(new Contact("Paul J. Albert", "https://github.com/wcmc-its/ReCiter", "paa2013@med.cornell.edu"))
-                .contact(new Contact("Sarbajit Dutta", "https://github.com/wcmc-its/ReCiter", "szd2013@med.cornell.edu"))
                 .license("Apache License Version 2.0")
                 .licenseUrl("https://www.apache.org/licenses/LICENSE-2.0")
                 .version("1.1.0")
