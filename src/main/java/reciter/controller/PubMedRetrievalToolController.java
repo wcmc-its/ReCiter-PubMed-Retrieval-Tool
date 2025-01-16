@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -157,40 +159,48 @@ public class PubMedRetrievalToolController {
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
             JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
             log.info("PubMed Response Json:",json);
-			
-			 boolean process = false; // Flag to track if any string before [Author] has > 2 characters
-			// Extract the "querytranslation" field
+
+            // Extract the "querytranslation" field
 	         String queryTranslation = json.path("querytranslation").asText();
 	         log.info("query translation prior to processing:",queryTranslation);
 	         // Check if the string contains [Affiliation], if it does, stop processing
-	         if (!queryTranslation.contains("[Affiliation]") && !queryTranslation.contains("[All Fields]")) {
+	         if (isValidAuthorString(queryTranslation)) {
 	        	 log.info("Entered into process firstNameInitial stragey query");
-	        	 /// Pattern to find the text before each [Author]
-		         Pattern pattern = Pattern.compile("(.*?)\\s*\\[Author\\]");
-		         Matcher matcher = pattern.matcher(queryTranslation);
-		         while (matcher.find()) {
-		             // Extract the string before [Author] (remove leading/trailing spaces)
-		             String beforeAuthor = matcher.group(1).trim();
-		             // Remove spaces and check if the length is greater than 2
-		             String cleanedString = beforeAuthor.replaceAll("\\s", "");
-		             log.info("authorName after removing spaces:"+cleanedString);
-		             if (cleanedString.length() > 2) {
-		                 process = true;
-		                 break;
-		             }
-		            
-		         }
-		         if (process) {
-	                 if(json != null) {
-	     				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
-	     				log.info("eSearchResult count for the firstNameInitial strategy :",eSearchResult.getCount());
-	     			}
+	        	 
+	             // Split the string by [Author] and process each part
+	             List<String> segments = //Arrays.stream(queryTranslation.split("(?<=\\[Author\\])")) // Split the string by [Author]
+		            		 			 Arrays.stream(queryTranslation.split("\\[Author\\]")) // Split by [Author]
+		                                       .map(String::trim)  // Trim spaces around each part
+	                                           .map(part -> part.replaceAll("\\b(AND|OR)\\b", ""))  // Remove "AND" and "OR"
+	                                           .map(part -> part.replaceAll("\\s", ""))  // Remove all spaces
+	                                           .filter(part -> !part.isEmpty())  // Filter out empty parts
+	                                           .collect(Collectors.toList());
+	         
+	             // Flag to check if we found a valid segment (length > 2)
+	             boolean isValidSegmentFound = false;
+
+	             // Iterate over each segment
+	             for (String part : segments) {
+	                 if (part.length() > 2) {
+	                     isValidSegmentFound = true; // We found a valid segment
+	                     break;  // Once we find a valid part, we stop further checks and proceed
+	                 }
 	             }
-		         else
-		         {	 
-		        	 eSearchResult.setCount(0);
-		        	 log.info("No First Name initial has more than 2 characters before [Author]. Hence stopping the process",queryTranslation); 
-		         }
+	             
+	             
+	             // After the loop, if no valid segment was found, throw an exception
+	             if (!isValidSegmentFound) {
+	            	 log.error("No First Name initial found with more than 2 letters.Hence ignoring the " + eSearchResult.getCount() + "records returned from the PubMed");
+	            	 eSearchResult.setCount(0);
+	                 
+	             }
+	             else
+	             {
+	            	 if(json != null) {
+		     				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+		     				log.info("eSearchResult count for the firstNameInitial strategy :",eSearchResult.getCount());
+		     			} 
+	             }
 	         }
 	         else
 	         {	 
@@ -229,5 +239,25 @@ public class PubMedRetrievalToolController {
         });
         log.info("retrieved " + pubMedArticles.size() + " PubMed articles using query=[" + query + "]");
         return result;
+    }
+    private static boolean isValidAuthorString(String input) {
+        // Regular expression to match anything inside square brackets
+        Pattern pattern = Pattern.compile("\\[(.*?)\\]");
+        
+        Matcher matcher = pattern.matcher(input);
+        boolean containsAuthor = false;
+
+        while (matcher.find()) {
+            String matchedContent = matcher.group(1).trim(); // Get the content inside []
+
+            // Check if the content is neither empty nor anything other than "Author"
+            if (!"Author".equals(matchedContent) && !"All Fields".equals(matchedContent)) {
+                return false; // Found something invalid inside []
+            }
+            containsAuthor = true; // We found [Author]
+        }
+
+        // Return true if at least one [Author] exists, and no other value inside []
+        return containsAuthor;
     }
 }
