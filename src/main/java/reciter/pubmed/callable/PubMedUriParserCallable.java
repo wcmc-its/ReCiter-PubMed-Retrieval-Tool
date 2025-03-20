@@ -1,19 +1,22 @@
 package reciter.pubmed.callable;
 
-import com.amazonaws.util.IOUtils;
-import lombok.AllArgsConstructor;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import reciter.model.pubmed.PubMedArticle;
-import reciter.pubmed.xmlparser.PubmedEFetchHandler;
-
-import javax.xml.parsers.SAXParser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import javax.xml.parsers.SAXParser;
+
+import org.apache.commons.io.IOUtils;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import lombok.AllArgsConstructor;
+import reciter.model.pubmed.PubMedArticle;
+import reciter.pubmed.xmlparser.PubmedEFetchHandler;
 
 @AllArgsConstructor
 public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
@@ -40,7 +43,8 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
         } else {
             inputStream = inputSource.getByteStream();
         }
-        String xml = IOUtils.toString(inputStream);
+        String xml = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+       // String xml = IOUtils.toString(inputStream);
         xml = xml.replace("<sup>", "&lt;sup&gt;");
         xml = xml.replace("</sup>", "&lt;/sup&gt;");
         xml = xml.replace("<sub>", "&lt;sub&gt;");
