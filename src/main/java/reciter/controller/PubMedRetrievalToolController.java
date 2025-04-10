@@ -129,6 +129,8 @@ public class PubMedRetrievalToolController {
         Header[] headerRateLimit = response.getHeaders("X-RateLimit-Limit");
         Header[] headerRetryAfter = response.getHeaders("Retry-After");
         
+        if(pubMedQuery!=null && headerRateLimit!=null && headerRateLimit.length > 0 && headerRateLimit[0]!=null 
+        		&& headerRateLimitRemaining!=null && headerRateLimitRemaining.length >0 && headerRateLimitRemaining[0]!=null)
         log.info("Query : " + pubMedQuery.toString()  + " " + headerRateLimit[0].toString() + " " + headerRateLimitRemaining[0].toString());
         
         if(headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0) {
