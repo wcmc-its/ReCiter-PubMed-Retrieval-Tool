@@ -18,6 +18,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -31,17 +36,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.model.PubMedQuery;
@@ -52,7 +47,7 @@ import reciter.pubmed.retriever.PubMedArticleRetrievalService;
 @Slf4j
 @Controller
 @RequestMapping("/pubmed")
-@Api(value = "PubMedController", description = "Operations on querying the PubMed API.")
+@Tag(name = "PubMedController", description = "Operations on querying the PubMed API")
 public class PubMedRetrievalToolController {
 
     @Autowired
@@ -60,21 +55,21 @@ public class PubMedRetrievalToolController {
     
     private static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    @ApiOperation(value = "Query with field selection.", response = List.class)
+    @Operation(summary = "Query with field selection.", description = "Query PubMed with optional field selection")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully retrieved list"),
-            @ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-            @ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-            @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
+            @ApiResponse(responseCode = "200", description  = "Successfully retrieved list"),
+            @ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+            @ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+            @ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     })
-    @RequestMapping(value = "/query/{query}", method = RequestMethod.GET, produces = "application/json")
+    @GetMapping(value = "/query/{query}", produces = "application/json")
     @ResponseBody
     public List<PubMedArticle> query(@PathVariable String query,
-                                     @RequestParam(name = "fields", required = false) String fields) throws IOException {
+                                     @RequestParam(required = false) String fields) throws IOException {
         return retrieve(query, fields);
     }
 
-    @RequestMapping(value = "/query-complex/", method = RequestMethod.POST)
+    @PostMapping("/query-complex/")
     @ResponseBody
     public ResponseEntity<List<PubMedArticle>> queryComplex(@RequestBody PubMedQuery pubMedQuery) throws IOException {
         List<PubMedArticle> pubMedArticles = query(pubMedQuery.toString(), null);
@@ -88,7 +83,7 @@ public class PubMedRetrievalToolController {
         return ResponseEntity.ok(pubMedArticles);
     }*/
 
-    @RequestMapping(value = "/query-number-pubmed-articles/", method = RequestMethod.POST)
+    @PostMapping("/query-number-pubmed-articles/")
     @ResponseBody
     public int getNumberOfPubMedArticles(@RequestBody PubMedQuery pubMedQuery) throws IOException {
     	
