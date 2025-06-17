@@ -162,9 +162,9 @@ public class PubMedRetrievalToolController {
 			  log.info(writer.toString());
 			  String responseString = writer.toString();
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
-			if (responseString.trim().startsWith("{")) 
+			if (responseString!=null && !responseString.equalsIgnoreCase("") && responseString.trim().startsWith("{") && objectMapper.readTree(responseString).has("esearchresult")) 
 			{  
-		            JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
+		            JsonNode json = objectMapper.readTree(responseString).get("esearchresult");
 		            log.info("PubMed Response Json:",json);
 		
 		            // Extract the "querytranslation" field
