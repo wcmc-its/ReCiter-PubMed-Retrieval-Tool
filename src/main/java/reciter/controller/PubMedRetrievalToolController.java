@@ -2,6 +2,7 @@ package reciter.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,19 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.squiggly.Squiggly;
-import com.github.bohnman.squiggly.util.SquigglyUtils;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -36,7 +25,26 @@ import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.bohnman.squiggly.Squiggly;
+import com.github.bohnman.squiggly.util.SquigglyUtils;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.model.PubMedQuery;
@@ -124,6 +132,8 @@ public class PubMedRetrievalToolController {
         Header[] headerRateLimit = response.getHeaders("X-RateLimit-Limit");
         Header[] headerRetryAfter = response.getHeaders("Retry-After");
         
+        if(pubMedQuery!=null && headerRateLimit!=null && headerRateLimit.length > 0 && headerRateLimit[0]!=null 
+        		&& headerRateLimitRemaining!=null && headerRateLimitRemaining.length >0 && headerRateLimitRemaining[0]!=null)
         log.info("Query : " + pubMedQuery.toString()  + " " + headerRateLimit[0].toString() + " " + headerRateLimitRemaining[0].toString());
         
         if(headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0) {
@@ -147,12 +157,15 @@ public class PubMedRetrievalToolController {
         HttpEntity entity = response.getEntity();
         if (entity != null) {
             InputStream esearchStream = entity.getContent();
-			/*
-			 * StringWriter writer = new StringWriter(); IOUtils.copy(esearchStream, writer,
-			 * "UTF-8"); log.info(writer.toString());
-			 */
+			
+			  StringWriter writer = new StringWriter(); 
+			  IOUtils.copy(esearchStream, writer,"UTF-8"); 
+			  log.info(writer.toString());
+			  String responseString = writer.toString();
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
-            JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
+			if (responseString!=null && !responseString.equalsIgnoreCase("") && responseString.trim().startsWith("{") && objectMapper.readTree(responseString).has("esearchresult")) 
+			{  
+		            JsonNode json = objectMapper.readTree(responseString).get("esearchresult");
             log.info("PubMed Response Json:",json);
 
             // Extract the "querytranslation" field
@@ -203,9 +216,18 @@ public class PubMedRetrievalToolController {
 					eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
 				}
 	         }
+		        
+		        log.info("esearchResults Count :"+eSearchResult.getCount());
+		        return eSearchResult.getCount();
+          }
+		  else
+		  {
+			  log.error("Unexpected response (not JSON), possibly an HTML error page.");
+			  return 0;
         }
 
-        return eSearchResult.getCount();
+    }
+        return 0;
     }
 
     private List<PubMedArticle> retrieve(String query, String fields) throws IOException {
