@@ -24,14 +24,13 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -53,7 +52,7 @@ import reciter.pubmed.querybuilder.PubmedXmlQuery;
 import reciter.pubmed.retriever.PubMedArticleRetrievalService;
 
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("/pubmed")
 @Tag(name = "PubMedController", description = "Operations on querying the PubMed API")
 public class PubMedRetrievalToolController {
@@ -71,14 +70,12 @@ public class PubMedRetrievalToolController {
             @ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     })
     @GetMapping(value = "/query/{query}", produces = "application/json")
-    @ResponseBody
     public List<PubMedArticle> query(@PathVariable String query,
                                      @RequestParam(required = false) String fields) throws IOException {
         return retrieve(query, fields);
     }
 
     @PostMapping("/query-complex/")
-    @ResponseBody
     public ResponseEntity<List<PubMedArticle>> queryComplex(@RequestBody PubMedQuery pubMedQuery) throws IOException {
         List<PubMedArticle> pubMedArticles = query(pubMedQuery.toString(), null);
         return ResponseEntity.ok(pubMedArticles);
@@ -92,7 +89,6 @@ public class PubMedRetrievalToolController {
     }*/
 
     @PostMapping("/query-number-pubmed-articles/")
-    @ResponseBody
     public int getNumberOfPubMedArticles(@RequestBody PubMedQuery pubMedQuery) throws IOException {
     	
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(URLEncoder.encode(pubMedQuery.toString(), "UTF-8"));
