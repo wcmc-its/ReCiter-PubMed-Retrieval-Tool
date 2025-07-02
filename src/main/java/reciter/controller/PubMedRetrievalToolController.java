@@ -2,6 +2,7 @@ package reciter.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -154,65 +156,77 @@ public class PubMedRetrievalToolController {
         HttpEntity entity = response.getEntity();
         if (entity != null) {
             InputStream esearchStream = entity.getContent();
-			/*
-			 * StringWriter writer = new StringWriter(); IOUtils.copy(esearchStream, writer,
-			 * "UTF-8"); log.info(writer.toString());
-			 */
+			
+			  StringWriter writer = new StringWriter(); 
+			  IOUtils.copy(esearchStream, writer,"UTF-8"); 
+			  log.info(writer.toString());
+			  String responseString = writer.toString();
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
-            JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
-            log.info("PubMed Response Json:",json);
-
-            // Extract the "querytranslation" field
-	         String queryTranslation = json.path("querytranslation").asText();
-	         log.info("query translation prior to processing:",queryTranslation);
-	         // Check if the string contains [Affiliation], if it does, stop processing
-	         if (isValidAuthorString(queryTranslation)) {
-	        	 log.info("Entered into process firstNameInitial stragey query");
-	        	 
-	             // Split the string by [Author] and process each part
-	             List<String> segments = //Arrays.stream(queryTranslation.split("(?<=\\[Author\\])")) // Split the string by [Author]
-		            		 			 Arrays.stream(queryTranslation.split("\\[Author\\]")) // Split by [Author]
-		                                       .map(String::trim)  // Trim spaces around each part
-	                                           .map(part -> part.replaceAll("\\b(AND|OR)\\b", ""))  // Remove "AND" and "OR"
-	                                           .map(part -> part.replaceAll("\\s", ""))  // Remove all spaces
-	                                           .filter(part -> !part.isEmpty())  // Filter out empty parts
-	                                           .collect(Collectors.toList());
-	         
-	             // Flag to check if we found a valid segment (length > 2)
-	             boolean isValidSegmentFound = false;
-
-	             // Iterate over each segment
-	             for (String part : segments) {
-	                 if (part.length() > 2) {
-	                     isValidSegmentFound = true; // We found a valid segment
-	                     break;  // Once we find a valid part, we stop further checks and proceed
-	                 }
-	             }
-	             
-	             
-	             // After the loop, if no valid segment was found, throw an exception
-	             if (!isValidSegmentFound) {
-	            	 log.error("No First Name initial found with more than 2 letters.Hence ignoring the " + eSearchResult.getCount() + "records returned from the PubMed");
-	            	 eSearchResult.setCount(0);
-	                 
-	             }
-	             else
-	             {
-	            	 if(json != null) {
-		     				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
-		     				log.info("eSearchResult count for the firstNameInitial strategy :",eSearchResult.getCount());
-		     			} 
-	             }
-	         }
-	         else
-	         {	 
-				if(json !=  null) {
-					eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
-				}
-	         }
+			if (responseString!=null && !responseString.equalsIgnoreCase("") && responseString.trim().startsWith("{") && objectMapper.readTree(responseString).has("esearchresult")) 
+			{  
+		            JsonNode json = objectMapper.readTree(responseString).get("esearchresult");
+		            log.info("PubMed Response Json:",json);
+		
+		            // Extract the "querytranslation" field
+			         String queryTranslation = json.path("querytranslation").asText();
+			         log.info("query translation prior to processing:",queryTranslation);
+			         // Check if the string contains [Affiliation], if it does, stop processing
+			         if (isValidAuthorString(queryTranslation)) {
+			        	 log.info("Entered into process firstNameInitial stragey query");
+			        	 
+			             // Split the string by [Author] and process each part
+			             List<String> segments = //Arrays.stream(queryTranslation.split("(?<=\\[Author\\])")) // Split the string by [Author]
+				            		 			 Arrays.stream(queryTranslation.split("\\[Author\\]")) // Split by [Author]
+				                                       .map(String::trim)  // Trim spaces around each part
+			                                           .map(part -> part.replaceAll("\\b(AND|OR)\\b", ""))  // Remove "AND" and "OR"
+			                                           .map(part -> part.replaceAll("\\s", ""))  // Remove all spaces
+			                                           .filter(part -> !part.isEmpty())  // Filter out empty parts
+			                                           .collect(Collectors.toList());
+			         
+			             // Flag to check if we found a valid segment (length > 2)
+			             boolean isValidSegmentFound = false;
+		
+			             // Iterate over each segment
+			             for (String part : segments) {
+			                 if (part.length() > 2) {
+			                     isValidSegmentFound = true; // We found a valid segment
+			                     break;  // Once we find a valid part, we stop further checks and proceed
+			                 }
+			             }
+			             
+			             
+			             // After the loop, if no valid segment was found, throw an exception
+			             if (!isValidSegmentFound) {
+			            	 log.error("No First Name initial found with more than 2 letters.Hence ignoring the " + eSearchResult.getCount() + "records returned from the PubMed");
+			            	 eSearchResult.setCount(0);
+			                 
+			             }
+			             else
+			             {
+			            	 if(json != null) {
+				     				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+				     				log.info("eSearchResult count for the firstNameInitial strategy :",eSearchResult.getCount());
+				     			} 
+			             }
+			         }
+			         else
+			         {	 
+						if(json !=  null) {
+							eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
+						}
+			         }
+		        
+		        log.info("esearchResults Count :"+eSearchResult.getCount());
+		        return eSearchResult.getCount();
+          }
+		  else
+		  {
+			  log.error("Unexpected response (not JSON), possibly an HTML error page.");
+			  return 0;
+		  }
+				
         }
-
-        return eSearchResult.getCount();
+        return 0;
     }
 
     private List<PubMedArticle> retrieve(String query, String fields) throws IOException {
