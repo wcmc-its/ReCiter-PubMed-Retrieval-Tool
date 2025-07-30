@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>edu.wcmc.reciter</groupId>
     <artifactId>reciter-pubmed-retrieval-tool</artifactId>
-    <version>1.1.0</version>
+    <version>3.0.0</version>
     <name>ReCiter-PubMed-Retrieval-Tool</name>
     <description>A tool to retrieve PubMed articles.</description>
 
