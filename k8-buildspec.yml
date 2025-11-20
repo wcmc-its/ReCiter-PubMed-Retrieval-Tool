@@ -3,6 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
+      # amazon corretto java 17 version whcih was created from OpenJDK17
       java: corretto17
     commands:
       - kubectl version --client   
