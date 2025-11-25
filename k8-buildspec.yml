@@ -10,6 +10,7 @@ phases:
       - java -version
   pre_build:
       commands:
+        - echo "************** PRE_BUILD START **************"
         # Fetch Docker credentials from AWS Secrets Manager
         - echo "Fetching Docker credentials from AWS Secrets Manager"
         - SECRET=$(aws secretsmanager get-secret-value --secret-id docker-hub-credentials --query "SecretString" --output text)
@@ -48,6 +49,7 @@ phases:
         - cat ./kubernetes/k8-deployment.yaml
   build:
     commands:
+      - echo "************** BUILD START **************"
       - mvn clean install -Dmaven.test.skip=true
       - |
         if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null || expr "${BRANCH}" : ".*MigrationFromJDk11ToAWSCorretto17" >/dev/null; then
