@@ -15,7 +15,7 @@ public class SwaggerConfig {
     @Bean
 	public GroupedOpenApi productApi() {
 		return GroupedOpenApi.builder().group("reciter-group").packagesToScan("reciter.controller")
-				.pathsToMatch("/pubmed.*").build();
+				.pathsToMatch("/pubmed/**").build();
 	}
 
 	@Bean
