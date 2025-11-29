@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
 
 
 @Configuration
@@ -25,6 +26,7 @@ public class SwaggerConfig {
 				.contact(new Contact().name("Paul J. Albert").url("https://github.com/wcmc-its/ReCiter")
 						.email("paa2013@med.cornell.edu"))
 				.description(
-						"Retrieve publications and publication counts from PubMed. More info here: https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/"));
+						"Retrieve publications and publication counts from PubMed. More info here: https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/"))
+				.addServersItem(new Server().url("/pubmed"));
 	}
 }
