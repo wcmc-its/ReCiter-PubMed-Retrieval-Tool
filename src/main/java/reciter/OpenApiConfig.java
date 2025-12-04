@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
     servers = {
         // This is the fix: Setting the URL to the root context path forces 
         // the browser to resolve the full URL using the current page's scheme (HTTPS).
-        @Server(url = "/pubmed", description = "Relative context path (Forces HTTPS)") 
+        @Server(url = "/", description = "Relative context path (Forces HTTPS)") 
     }
 )
 public class OpenApiConfig {}
