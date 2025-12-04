@@ -11,8 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Configuration
 public class ProxyConfig {
 
-	@Bean
-  
+  @Bean
   @ConditionalOnProperty(name = "server.forward-headers-strategy", havingValue="framework")
   @Order(Ordered.HIGHEST_PRECEDENCE)	
   public ForwardedHeaderFilter forwardedHeaderFilter() { 
