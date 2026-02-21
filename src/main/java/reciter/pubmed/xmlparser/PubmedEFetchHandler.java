@@ -279,7 +279,12 @@ public class PubmedEFetchHandler extends DefaultHandler {
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 
-        chars.setLength(0);
+        // Fix #14: Only clear accumulated text when not inside ArticleTitle or AbstractText.
+        // PubMed XML can contain inline markup (MathML, <i>, <b>, <sup>, <sub>) inside
+        // these elements. Clearing chars on nested elements would discard the preceding text.
+        if (!(bArticleTitle || (bAbstractText && bAbstract))) {
+            chars.setLength(0);
+        }
 
         if (qName.equalsIgnoreCase("PubmedArticleSet")) {
             pubmedArticles = new ArrayList<>(); // create a new list of PubmedArticle.
