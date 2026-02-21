@@ -171,6 +171,39 @@ public class PubMedArticleRetrievalService {
         return pubMedArticles;
     }
 
+    /**
+     * Check if PubMed silently dropped query terms, leaving only a trivial query.
+     * Fix #24: PubMed "helpfully" drops unrecognized name parts (e.g., "Charles-rawlins J[au]"
+     * becomes just "J[au]"), returning hundreds of irrelevant results.
+     *
+     * @param esearchJson the "esearchresult" JSON node from PubMed's eSearch response
+     * @param originalQuery the original query string (for logging)
+     * @return true if the query was dropped and results should be discarded
+     */
+    protected static boolean isPubMedQueryDropped(JsonNode esearchJson, String originalQuery) {
+        JsonNode errorList = esearchJson.path("errorlist").path("phrasenotfound");
+        if (!errorList.isArray() || errorList.size() == 0) {
+            return false; // No phrases were dropped
+        }
+
+        // PubMed dropped some phrases. Check if what remains is trivial.
+        String queryTranslation = esearchJson.path("querytranslation").asText("");
+
+        // Strip field tags, boolean operators, and punctuation to see what's left
+        String stripped = queryTranslation
+            .replaceAll("\\[(?:Author|au|All Fields)\\]", "")
+            .replaceAll("\\b(AND|OR)\\b", "")
+            .replaceAll("[()\"\\s]", "")
+            .trim();
+
+        if (stripped.length() <= 2) {
+            log.warn("PubMed dropped query terms {} from query [{}]. QueryTranslation='{}' is trivial (stripped='{}'). Returning 0 results.",
+                errorList, originalQuery, queryTranslation, stripped);
+            return true;
+        }
+        return false;
+    }
+
     protected PubmedESearchResult getNumberOfPubMedArticles(String query) throws IOException {
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(query);
         //pubmedXmlQuery.setRetMax(1);
@@ -243,6 +276,10 @@ public class PubMedArticleRetrievalService {
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
 			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
 			if(json != null) {
+				// Fix #24: Check if PubMed silently dropped query terms
+				if (isPubMedQueryDropped(json, query)) {
+					return eSearchResult; // count stays 0
+				}
 				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
 			}
         }

@@ -166,7 +166,23 @@ public class PubMedRetrievalToolController {
 			{  
 		            JsonNode json = objectMapper.readTree(responseString).get("esearchresult");
 		            log.info("PubMed Response Json:",json);
-		
+
+		            // Fix #24: Check if PubMed silently dropped query terms
+		            JsonNode errorListNode = json.path("errorlist").path("phrasenotfound");
+		            if (errorListNode.isArray() && errorListNode.size() > 0) {
+		                String qt = json.path("querytranslation").asText("");
+		                String stripped = qt
+		                    .replaceAll("\\[(?:Author|au|All Fields)\\]", "")
+		                    .replaceAll("\\b(AND|OR)\\b", "")
+		                    .replaceAll("[()\"\\s]", "")
+		                    .trim();
+		                if (stripped.length() <= 2) {
+		                    log.warn("PubMed dropped query terms {} from query [{}]. QueryTranslation='{}' is trivial. Returning 0 results.",
+		                        errorListNode, pubMedQuery, qt);
+		                    return 0;
+		                }
+		            }
+
 		            // Extract the "querytranslation" field
 			         String queryTranslation = json.path("querytranslation").asText();
 			         log.info("query translation prior to processing:",queryTranslation);
