@@ -157,15 +157,17 @@ public class PubMedRetrievalToolController {
         if (entity != null) {
             InputStream esearchStream = entity.getContent();
 			
-			  StringWriter writer = new StringWriter(); 
-			  IOUtils.copy(esearchStream, writer,"UTF-8"); 
-			  log.info(writer.toString());
+			  StringWriter writer = new StringWriter();
+			  IOUtils.copy(esearchStream, writer,"UTF-8");
+			  if (log.isDebugEnabled()) {
+			      log.debug("PubMed ESearch raw response: {}", writer.toString());
+			  }
 			  String responseString = writer.toString();
             //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, pubmedESearchHandler);
 			if (responseString!=null && !responseString.equalsIgnoreCase("") && responseString.trim().startsWith("{") && objectMapper.readTree(responseString).has("esearchresult")) 
 			{  
 		            JsonNode json = objectMapper.readTree(responseString).get("esearchresult");
-		            log.info("PubMed Response Json:",json);
+		            log.debug("PubMed Response Json: {}", json);
 
 		            // Fix #24: Check if PubMed silently dropped query terms
 		            JsonNode errorListNode = json.path("errorlist").path("phrasenotfound");
@@ -185,7 +187,7 @@ public class PubMedRetrievalToolController {
 
 		            // Extract the "querytranslation" field
 			         String queryTranslation = json.path("querytranslation").asText();
-			         log.info("query translation prior to processing:",queryTranslation);
+			         log.debug("query translation prior to processing: {}", queryTranslation);
 			         // Check if the string contains [Affiliation], if it does, stop processing
 			         if (isValidAuthorString(queryTranslation)) {
 			        	 log.info("Entered into process firstNameInitial stragey query");
@@ -221,7 +223,7 @@ public class PubMedRetrievalToolController {
 			             {
 			            	 if(json != null) {
 				     				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
-				     				log.info("eSearchResult count for the firstNameInitial strategy :",eSearchResult.getCount());
+				     				log.info("eSearchResult count for the firstNameInitial strategy: {}", eSearchResult.getCount());
 				     			} 
 			             }
 			         }
