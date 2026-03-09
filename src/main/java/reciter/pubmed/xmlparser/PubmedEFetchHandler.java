@@ -287,6 +287,9 @@ public class PubmedEFetchHandler extends DefaultHandler {
         if (qName.equalsIgnoreCase("PubmedArticle")) {
             pubmedArticle = PubMedArticle.builder().build(); // create a new PubmedArticle.
         }
+        if (qName.equalsIgnoreCase("PubmedBookArticle")) {
+            pubmedArticle = null; // Prevent book article fields from corrupting previous article
+        }
         //This check was introduced for articles which are of book type returning  <PubmedBookArticle> tag
         if (pubmedArticle != null) {
             if (qName.equalsIgnoreCase("MedlineCitation")) {
@@ -424,11 +427,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             if(qName.equalsIgnoreCase("Identifier") && bAuthorList && isOrcid(attributes)) {
                 bOrcid = true;
-            }
-            if (qName.equalsIgnoreCase("AuthorList") &&
-                    pubmedArticle != null) {
-                pubmedArticle.getMedlinecitation().getArticle().setAuthorlist(new ArrayList<>()); // set the PubmedArticle's MedlineCitation's MedlineCitationArticle's title.
-                bAuthorList = true;
             }
             if (qName.equalsIgnoreCase("Abstract") &&
                     pubmedArticle != null) {
