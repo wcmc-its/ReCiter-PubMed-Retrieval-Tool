@@ -82,9 +82,17 @@ public class PubMedRetrievalToolController {
     private List<PubMedArticle> retrieve(String query, String fields) throws IOException {
         query = URLEncoder.encode(query, "UTF-8");
         log.info("Retrieving with query=[" + query + "]");
-        if (fields != null && !fields.isEmpty()) {
-            fields = fields.toLowerCase();
+
+        List<PubMedArticle> pubMedArticles = pubMedArticleRetrievalService.retrieve(query);
+        log.info("retrieved " + pubMedArticles.size() + " PubMed articles using query=[" + query + "]");
+
+        // No field selection requested: return the retrieved articles directly and skip the
+        // per-article Squiggly stringify -> readValue round-trip entirely.
+        if (fields == null || fields.isEmpty()) {
+            return new ArrayList<>(pubMedArticles);
         }
+
+        fields = fields.toLowerCase();
         ObjectMapper objectMapper = Squiggly
                 .init(new ObjectMapper(), fields)
                 .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
@@ -92,18 +100,15 @@ public class PubMedRetrievalToolController {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         List<PubMedArticle> result = new ArrayList<>();
-        List<PubMedArticle> pubMedArticles = pubMedArticleRetrievalService.retrieve(query);
         pubMedArticles.forEach(elem -> {
             String partialObject = SquigglyUtils.stringify(objectMapper, elem);
-            PubMedArticle pubMedArticle = null;
             try {
-                pubMedArticle = objectMapper.readValue(partialObject, PubMedArticle.class);
+                // On a per-item serialization failure, skip the element rather than adding null.
+                result.add(objectMapper.readValue(partialObject, PubMedArticle.class));
             } catch (IOException e) {
                 log.error("Unable to read value from pmid=" + elem.getMedlinecitation().getMedlinecitationpmid().getPmid(), e);
             }
-            result.add(pubMedArticle);
         });
-        log.info("retrieved " + pubMedArticles.size() + " PubMed articles using query=[" + query + "]");
         return result;
     }
 }
