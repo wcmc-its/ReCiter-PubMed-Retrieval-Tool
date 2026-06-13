@@ -1,6 +1,5 @@
 package reciter.pubmed.callable;
 
-import com.amazonaws.util.IOUtils;
 import lombok.AllArgsConstructor;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -12,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -40,7 +40,7 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
         } else {
             inputStream = inputSource.getByteStream();
         }
-        String xml = IOUtils.toString(inputStream);
+        String xml = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         xml = xml.replace("<sup>", "&lt;sup&gt;");
         xml = xml.replace("</sup>", "&lt;/sup&gt;");
         xml = xml.replace("<sub>", "&lt;sub&gt;");
