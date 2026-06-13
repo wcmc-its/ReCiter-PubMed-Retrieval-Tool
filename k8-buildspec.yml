@@ -41,7 +41,9 @@ phases:
         - cat ./kubernetes/k8-deployment.yaml
   build:
     commands:
-      - mvn clean install -Dmaven.test.skip=true
+      # Run the curated unit tests while excluding the live load tests
+      # (ReCiterPubmedApiLoadTest / LoadTest), which 403 without a running service.
+      - mvn clean install -Dtest=PubmedEFetchHandlerTest,PubMedUriParserCallableTest,PubMedArticleRetrievalServiceTest -DfailIfNoTests=false
       - |
         if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null; then
           docker build --tag $REPOSITORY_URI:$TAG .
