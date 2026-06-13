@@ -148,7 +148,22 @@ public class PubmedXmlQuery {
         sb.append("xml");               
         sb.append("&WebEnv=");
         sb.append(webEnv);
-        
+
         return sb.toString();
+    }
+
+    /**
+     * Redacts the {@code api_key} value from a query URL so that the NCBI API key is never
+     * written to logs. The key value is replaced with {@code REDACTED} while preserving the
+     * rest of the URL for debugging.
+     *
+     * @param url a query URL that may contain an {@code api_key} parameter
+     * @return the URL with the api_key value redacted, or {@code null} if the input was null
+     */
+    public static String redactApiKey(String url) {
+        if (url == null) {
+            return null;
+        }
+        return url.replaceAll("(?i)(api_key=)[^&]*", "$1REDACTED");
     }
 }
