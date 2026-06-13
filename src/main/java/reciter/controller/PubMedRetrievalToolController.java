@@ -75,16 +75,16 @@ public class PubMedRetrievalToolController {
         // and HTTP/timeout behavior are identical to the article-retrieval path.
         String encodedTerm = URLEncoder.encode(pubMedQuery.toString(), "UTF-8");
         int count = pubMedArticleRetrievalService.getNumberOfPubMedArticles(encodedTerm).getCount();
-        log.info("esearchResults Count :" + count);
+        log.info("esearchResults Count=[{}]", count);
         return count;
     }
 
     private List<PubMedArticle> retrieve(String query, String fields) throws IOException {
         query = URLEncoder.encode(query, "UTF-8");
-        log.info("Retrieving with query=[" + query + "]");
+        log.info("Retrieving with query=[{}]", query);
 
         List<PubMedArticle> pubMedArticles = pubMedArticleRetrievalService.retrieve(query);
-        log.info("retrieved " + pubMedArticles.size() + " PubMed articles using query=[" + query + "]");
+        log.info("Retrieved [{}] PubMed articles using query=[{}]", pubMedArticles.size(), query);
 
         // No field selection requested: return the retrieved articles directly and skip the
         // per-article Squiggly stringify -> readValue round-trip entirely.
@@ -106,7 +106,7 @@ public class PubMedRetrievalToolController {
                 // On a per-item serialization failure, skip the element rather than adding null.
                 result.add(objectMapper.readValue(partialObject, PubMedArticle.class));
             } catch (IOException e) {
-                log.error("Unable to read value from pmid=" + elem.getMedlinecitation().getMedlinecitationpmid().getPmid(), e);
+                log.error("Unable to read value from pmid=[{}]", elem.getMedlinecitation().getMedlinecitationpmid().getPmid(), e);
             }
         });
         return result;
