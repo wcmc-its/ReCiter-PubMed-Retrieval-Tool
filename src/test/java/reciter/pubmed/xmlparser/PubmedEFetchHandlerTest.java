@@ -69,6 +69,36 @@ public class PubmedEFetchHandlerTest {
         assertNull(pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(1).getOrcid());
     }
 
+    /**
+     * Equal-contributor authors (<Author EqualContrib="Y">) must be added exactly once.
+     * Previously a second phantom (empty) author was added per equal-contributor tag, corrupting
+     * the author list size, positions, and names. Verify de-duplication and that equalContrib is
+     * set on the single, correctly-populated author object.
+     */
+    @Test
+    public void testEqualContribDeduplication() throws Exception {
+        inputSource = new InputSource(this.getClass().getResourceAsStream("equalcontrib.xml"));
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
+        List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
+        PubMedArticle pubMedArticle = pubMedArticles.get(0);
+
+        // Exactly three authors -- no phantom/empty author injected for the equal-contributor tags.
+        assertEquals(3, pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().size());
+
+        // First equal-contributor author: name fields populated on the same object that carries equalContrib.
+        assertEquals("Smith", pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(0).getLastname());
+        assertEquals("Alice B", pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(0).getForename());
+        assertEquals("Y", pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(0).getEqualContrib());
+
+        // Second equal-contributor author.
+        assertEquals("Jones", pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(1).getLastname());
+        assertEquals("Y", pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(1).getEqualContrib());
+
+        // Non equal-contributor author: name populated, equalContrib left null.
+        assertEquals("Nguyen", pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(2).getLastname());
+        assertNull(pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(2).getEqualContrib());
+    }
+
     @Test
     public void testReferenceList() throws Exception {
         inputSource = new InputSource(this.getClass().getResourceAsStream("32025781.xml"));
