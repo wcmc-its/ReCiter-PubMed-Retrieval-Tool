@@ -141,9 +141,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bPublicationStatus;
     private boolean bArticleIdList;
     private boolean bArticleId;
-    private boolean bArticleIdPubMed;
-    private boolean bArticleIdPii;
-    private boolean bArticleIdDoi;
     private boolean bArticleIdPmc;
     private boolean bGrantList;
     private boolean bGrant;
@@ -590,12 +587,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             
 
-            // not used.
-            //      if (qName.equalsIgnoreCase("RefSource") && bCommentsCorrections) {
-            //          bCommentsCorrectionsRefSource = true;
-            //      }
             if (qName.equalsIgnoreCase("PMID") && bCommentsCorrections) {
-                //          bCommentsCorrectionsPmidVersion = true;
                 bCommentsCorrectionsPmid = true;
             }
 
@@ -641,25 +633,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bArticleIdList = true;
             }
 
-            if (qName.equalsIgnoreCase("ArticleId") && !bReferenceArticleIdList && !bReferenceArticleId && !bReference) {  
+            if (qName.equalsIgnoreCase("ArticleId") && !bReferenceArticleIdList && !bReferenceArticleId && !bReference) {
                 bArticleId = true;
                 String idType = getArticleIdType(attributes);
-                if ("pubmed".equals(idType)) {
-                    bArticleIdPubMed = true;
-                } else if ("pii".equals(idType)) {
-                    bArticleIdPii = true;
-                } else if ("doi".equals(idType)) {
-                    bArticleIdDoi = true;
-                } else if ("pmc".equals(idType)) {
+                if ("pmc".equals(idType)) {
                     pubmedArticle.getPubmeddata().setArticleIdList(new ArticleIdList());
                     bArticleIdPmc = true;
                 }
             }
-            /*if(qName.equalsIgnoreCase("CoiStatement"))
-            {
-            	 String coiStatment = chars.toString();
-                 pubmedArticle.getMedlinecitation().setCoiStatement(coiStatment);
-            }*/
         }
     }
 
@@ -689,13 +670,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
             
                 // Delete certain non-printable, hexadecimal characters
                 articleTitle = articleTitle.replaceAll("[\u2029\u0099\u2003]", "");
-            
-                // Output the encoding being used
-                // System.out.println("Encoding: " + Charset.defaultCharset().displayName());
-            
-                // Output the value of articleTitle
-                // System.out.println("Article Title: " + articleTitle);
-            
+
                 // Set the title of the article.
                 pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); 
                 bArticleTitle = false;
@@ -1127,21 +1102,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bReference = false;
             }
             if(qName.equalsIgnoreCase("CoiStatement") && bCoiStatement) {
-            	
+
             	  String coiStatement = chars.toString();
-                  pubmedArticle.getMedlinecitation().setCoiStatement(coiStatement); 
+                  pubmedArticle.getMedlinecitation().setCoiStatement(coiStatement);
                   bCoiStatement = false;
             }
-
-            /*if (qName.equalsIgnoreCase("ArticleIdList")) {
-                bArticleIdList = false;
-                bArticleId = false;
-                bArticleIdPubMed = false;
-                bArticleIdPii = false;
-                bArticleIdDoi = false;
-            }*/
-
-            
         }
     }
 
@@ -1302,10 +1267,5 @@ public class PubmedEFetchHandler extends DefaultHandler {
         if(bCoiStatement) {
         	chars.append(ch, start, length);
         }
-        	
-        
-        /*if (bPubmedData) {
-            chars.append(ch, start, length);
-        }*/
     }
 }
