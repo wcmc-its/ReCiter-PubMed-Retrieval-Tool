@@ -111,6 +111,12 @@ public class PubMedArticleRetrievalService {
             throw new IOException("Number of PubMed Articles retrieved " + numberOfPubmedArticles + " exceeded the threshold level " + RETRIEVAL_THRESHOLD);
         }
 
+        // No matches: return empty without an EFetch round-trip (the old pagination loop, gated on
+        // "while (count > 0)", likewise issued no fetch for a zero-result query).
+        if (numberOfPubmedArticles == 0) {
+            return new ArrayList<>();
+        }
+
         // Single EFetch using the WebEnv from the ESearch above. The allowed count always fits in
         // one retMax-sized batch, so no retstart pagination loop is required.
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery();
