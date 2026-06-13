@@ -18,4 +18,4 @@ services:
     working_dir: /app
     expose:
       - "5000"
-    command: mvn clean spring-boot:run
+    command: java -jar /app/app.jar
