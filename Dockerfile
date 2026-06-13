@@ -1,11 +1,20 @@
-FROM adoptopenjdk/openjdk11:alpine-jre
+FROM eclipse-temurin:11-jre-alpine
+
+# wget is used by the HEALTHCHECK below
+RUN apk add --no-cache wget
 
 RUN mkdir -p /app
 WORKDIR /app
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} /app/app.jar
-# Comment this if you do not have NewRelic integration
-RUN wget https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip && \
-    unzip newrelic-java.zip -d /app
+
+# Run as a non-root user (fixed UID/GID so it matches the k8s securityContext)
+RUN addgroup -S -g 10001 app && adduser -S -u 10001 -G app app && chown -R app:app /app
+USER 10001
+
 EXPOSE 5000
-CMD java -Djava.security.egd=file:/dev/./urandom -XX:+PrintFlagsFinal $JAVA_OPTIONS -jar /app/app.jar
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+    CMD wget -q -O /dev/null http://localhost:5000/pubmed/ping || exit 1
+
+CMD java -Djava.security.egd=file:/dev/./urandom $JAVA_OPTIONS -jar /app/app.jar
