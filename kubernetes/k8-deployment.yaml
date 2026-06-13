@@ -28,10 +28,19 @@ spec:
         tier: backend
         owner: szd2013
     spec:
+      securityContext:
+        fsGroup: 10001
       containers:
         - image: CONTAINER_IMAGE
           name: reciter-pubmed
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 10001
+            capabilities:
+              drop:
+                - ALL
           env:
             - name: PUBMED_API_KEY
               valueFrom:
@@ -53,7 +62,7 @@ spec:
               memory: 2.5G
               cpu: 1
             limits:
-              memory: 2.6G
+              memory: 3Gi
               cpu: 1
           livenessProbe:
             httpGet:
@@ -65,7 +74,7 @@ spec:
             timeoutSeconds: 3
           readinessProbe:
             httpGet:
-              path: "pubmed/ping"
+              path: "/pubmed/ping"
               port: 5000
             initialDelaySeconds: 20
             periodSeconds: 10
