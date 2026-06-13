@@ -4,15 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
@@ -263,31 +259,10 @@ public class PubMedArticleRetrievalService {
             return eSearchResult;
         }
 
-        // Extract the "querytranslation" field and apply query-drop detection.
-        String queryTranslation = json.path("querytranslation").asText();
-        if (isValidAuthorString(queryTranslation)) {
-            log.info("Entered into process firstNameInitial strategy query");
-            // Split the string by [Author] and process each part.
-            List<String> segments = Arrays.stream(queryTranslation.split("\\[Author\\]"))
-                    .map(String::trim)
-                    .map(part -> part.replaceAll("\\b(AND|OR)\\b", ""))
-                    .map(part -> part.replaceAll("\\s", ""))
-                    .filter(part -> !part.isEmpty())
-                    .collect(Collectors.toList());
-
-            boolean isValidSegmentFound = false;
-            for (String part : segments) {
-                if (part.length() > 2) {
-                    isValidSegmentFound = true;
-                    break;
-                }
-            }
-
-            if (!isValidSegmentFound) {
-                log.error("No First Name initial found with more than 2 letters. Hence ignoring the records returned from PubMed for query=[{}].", term);
-                eSearchResult.setCount(0);
-                return eSearchResult;
-            }
+        // Query-drop detection (Fix #24): only act when PubMed actually reports dropped
+        // phrases (errorlist.phrasenotfound) leaving a trivial query; then discard the noise.
+        if (isPubMedQueryDropped(json, term)) {
+            return eSearchResult; // count stays 0
         }
 
         eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
@@ -356,22 +331,34 @@ public class PubMedArticleRetrievalService {
         return false;
     }
 
-    private static boolean isValidAuthorString(String input) {
-        // Regular expression to match anything inside square brackets.
-        Pattern pattern = Pattern.compile("\\[(.*?)\\]");
-        Matcher matcher = pattern.matcher(input);
-        boolean containsAuthor = false;
-
-        while (matcher.find()) {
-            String matchedContent = matcher.group(1).trim(); // Get the content inside [].
-            // Check if the content is neither empty nor anything other than "Author".
-            if (!"Author".equals(matchedContent) && !"All Fields".equals(matchedContent)) {
-                return false; // Found something invalid inside [].
-            }
-            containsAuthor = true; // We found [Author].
+    /**
+     * Query-drop detection (Fix #24). PubMed silently drops unrecognized name parts
+     * (e.g. "Charles-rawlins J[au]" becomes "J[au]"), returning many irrelevant results.
+     * Detect this via PubMed's authoritative {@code errorlist.phrasenotfound} signal: only if it
+     * reports dropped phrases AND the remaining {@code querytranslation} is trivially short
+     * (<= 2 chars after stripping field tags, boolean operators and punctuation) are the results
+     * treated as noise. This avoids false positives on legitimately short author queries.
+     *
+     * @param esearchJson   the "esearchresult" JSON node from PubMed's ESearch response
+     * @param originalQuery the original query term (for logging)
+     * @return true if the query was dropped and the results should be discarded
+     */
+    protected static boolean isPubMedQueryDropped(JsonNode esearchJson, String originalQuery) {
+        JsonNode phraseNotFound = esearchJson.path("errorlist").path("phrasenotfound");
+        if (!phraseNotFound.isArray() || phraseNotFound.size() == 0) {
+            return false; // PubMed did not drop any phrases.
         }
-
-        // Return true if at least one [Author] exists, and no other value inside [].
-        return containsAuthor;
+        String queryTranslation = esearchJson.path("querytranslation").asText("");
+        String stripped = queryTranslation
+                .replaceAll("\\[(?:Author|au|All Fields)\\]", "")
+                .replaceAll("\\b(AND|OR)\\b", "")
+                .replaceAll("[()\"\\s]", "")
+                .trim();
+        if (stripped.length() <= 2) {
+            log.warn("PubMed dropped query terms {} from query [{}]. QueryTranslation='{}' is trivial (stripped='{}'). Returning 0 results.",
+                    phraseNotFound, originalQuery, queryTranslation, stripped);
+            return true;
+        }
+        return false;
     }
 }
