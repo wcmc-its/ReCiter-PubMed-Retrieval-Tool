@@ -72,9 +72,13 @@ public class PubMedArticleRetrievalService {
         public SAXParserFactory initialValue() {
             try {
                 SAXParserFactory factory = SAXParserFactory.newInstance();
-                // Harden against XXE: disallow DOCTYPE declarations and disable external
-                // entity/DTD resolution. This is defense-in-depth for an XML-parsing service.
-                factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                // Harden against XXE while still accepting the DOCTYPE that NCBI includes in every
+                // EFetch response (<!DOCTYPE PubmedArticleSet PUBLIC ... pubmed_*.dtd>). The DOCTYPE
+                // declaration itself is permitted, but all external general/parameter entity and
+                // external/remote DTD resolution is disabled (plus secure processing), which closes
+                // the XXE vector without rejecting valid PubMed XML. Do NOT set
+                // disallow-doctype-decl=true here: it rejects every real EFetch response.
+                factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
                 factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
                 factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
                 factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
