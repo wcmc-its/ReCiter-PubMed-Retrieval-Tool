@@ -19,6 +19,22 @@
         <java.version>11</java.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- Pin swagger-models to the version springdoc-openapi 1.8.0's swagger-core (2.2.20)
+                 expects. The reciter-pubmed-model dependency transitively drags in the unused
+                 swagger-codegen maven plugin, which forces the ancient swagger-models 2.0.0; that
+                 old version is missing classes springdoc references and breaks startup (#120).
+                 Pinning here (rather than excluding swagger-codegen) avoids disturbing other
+                 libraries the build picks up transitively through that same chain. -->
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-models</artifactId>
+                <version>2.2.20</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -37,11 +53,15 @@
         <!-- Jackson is managed by the Spring Boot 2.7 BOM (currently 2.13.x), which supersedes the
              explicit 2.12.x CVE pins that were required under Boot 2.5. Do not re-pin Jackson here:
              bump Spring Boot to move Jackson, so the whole stack stays version-aligned. -->
+        <!-- OpenAPI/Swagger UI via springdoc-openapi (replaces the abandoned Springfox 3.0.0, #120).
+             1.8.0 is the last 1.x release and the one compatible with Spring Boot 2.7 / javax;
+             springdoc 2.x requires Spring Boot 3 / jakarta and is the upgrade target for epic #136.
+             Serves Swagger UI at /swagger-ui/index.html and the OpenAPI JSON at /v3/api-docs. -->
         <dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-boot-starter</artifactId>
-			<version>3.0.0</version>
-		</dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.8.0</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
