@@ -11,15 +11,16 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Temurin JDK 11
+      - name: Set up Temurin JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
 
-      # Build and run unit tests, but exclude the live load tests
-      # (ReCiterPubmedApiLoadTest / LoadTest) which require a running
-      # service on localhost:5000 and would otherwise fail the build.
+      # Build and run the full unit suite. The live load tests
+      # (reciter.pubmed.loadtest.*) are excluded via the maven-surefire-plugin
+      # config in pom.xml, so this picks up every unit test automatically with
+      # no hardcoded -Dtest list to keep in sync.
       - name: Build and test
-        run: mvn -B -ntp clean package -Dtest=PubmedEFetchHandlerTest,PubMedUriParserCallableTest,PubMedArticleRetrievalServiceTest -DfailIfNoTests=false
+        run: mvn -B -ntp clean package
