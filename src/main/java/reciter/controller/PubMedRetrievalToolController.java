@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.model.PubMedQuery;
@@ -34,18 +34,18 @@ import reciter.pubmed.retriever.PubMedArticleRetrievalService;
 @Slf4j
 @Controller
 @RequestMapping("/pubmed")
-@Api(value = "PubMedController", description = "Operations on querying the PubMed API.")
+@Tag(name = "PubMed Controller", description = "Operations on querying the PubMed API.")
 public class PubMedRetrievalToolController {
 
     @Autowired
     private PubMedArticleRetrievalService pubMedArticleRetrievalService;
 
-    @ApiOperation(value = "Query with field selection.", response = List.class)
+    @Operation(summary = "Query with field selection.")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully retrieved list"),
-            @ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-            @ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-            @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved list"),
+            @ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+            @ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+            @ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     })
     @RequestMapping(value = "/query/{query}", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody

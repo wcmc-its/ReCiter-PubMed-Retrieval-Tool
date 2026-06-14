@@ -3,36 +3,34 @@ package reciter.swagger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Contact;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 
-import static springfox.documentation.builders.PathSelectors.regex;
-
+/**
+ * OpenAPI/Swagger configuration via springdoc-openapi (#120, replacing the abandoned Springfox).
+ *
+ * <p>springdoc auto-detects the controller request mappings, so no Docket/path selection is needed:
+ * every endpoint in this service is under {@code /pubmed}. This bean only supplies the API metadata.
+ * Swagger UI is served at {@code /swagger-ui/index.html} and the OpenAPI JSON at {@code /v3/api-docs}.
+ */
 @Configuration
-@EnableSwagger2
 public class SwaggerConfig {
-    @Bean
-    public Docket productApi() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("reciter.controller"))
-                .paths(regex("/pubmed.*"))
-                .build()
-                .apiInfo(apiInfo());
-    }
 
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder().title("ReCiter publication management system - PubMed Retrieval Tool")
-                .description("Retrieve publications and publication counts from PubMed. More info here: https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/").termsOfServiceUrl("")
-                .contact(new Contact("Paul J. Albert", "https://github.com/wcmc-its/ReCiter", "paa2013@med.cornell.edu"))
-                .license("Apache License Version 2.0")
-                .licenseUrl("https://www.apache.org/licenses/LICENSE-2.0")
+    @Bean
+    public OpenAPI pubMedRetrievalToolOpenAPI() {
+        return new OpenAPI().info(new Info()
+                .title("ReCiter publication management system - PubMed Retrieval Tool")
+                .description("Retrieve publications and publication counts from PubMed. More info here: "
+                        + "https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/")
                 .version("1.1.0")
-                .build();
+                .contact(new Contact()
+                        .name("Paul J. Albert")
+                        .url("https://github.com/wcmc-its/ReCiter")
+                        .email("paa2013@med.cornell.edu"))
+                .license(new License()
+                        .name("Apache License Version 2.0")
+                        .url("https://www.apache.org/licenses/LICENSE-2.0")));
     }
 }
