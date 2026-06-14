@@ -37,6 +37,7 @@ import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.callable.PubMedUriParserCallable;
 import reciter.pubmed.model.PubmedESearchResult;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
+import reciter.pubmed.ratelimit.NcbiRateLimiter;
 import reciter.pubmed.xmlparser.PubmedEFetchHandler;
 
 @Slf4j
@@ -57,6 +58,10 @@ public class PubMedArticleRetrievalService {
 
     @Autowired
     private CloseableHttpClient pubMedHttpClient;
+
+    /** Per-pod NCBI rate limiter (issue #117); acquired before every ESearch and EFetch call. */
+    @Autowired
+    private NcbiRateLimiter rateLimiter;
 
     /*@Autowired
     private SAXParser saxParser;
@@ -137,7 +142,7 @@ public class PubMedArticleRetrievalService {
 
         try {
             PubMedUriParserCallable callable =
-                    new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(), new InputSource(eFetchUrl));
+                    new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(), new InputSource(eFetchUrl), rateLimiter);
             return new ArrayList<>(callable.call());
         } catch (IOException e) {
             throw e;
@@ -237,8 +242,12 @@ public class PubMedArticleRetrievalService {
      * Response entities are always closed via try-with-resources.
      */
     private String executeReadingBody(HttpPost httppost, String query) throws IOException {
+        rateLimiter.acquire();
         try (CloseableHttpResponse response = pubMedHttpClient.execute(httppost)) {
             if (shouldRetryAfterRateLimit(response, query)) {
+                // shouldRetryAfterRateLimit has paused the shared limiter for the advertised
+                // Retry-After; this acquire() waits it out before replaying the request once.
+                rateLimiter.acquire();
                 try (CloseableHttpResponse retryResponse = pubMedHttpClient.execute(httppost)) {
                     return readBody(retryResponse);
                 }
@@ -260,10 +269,12 @@ public class PubMedArticleRetrievalService {
     }
 
     /**
-     * Inspects the NCBI rate-limit response headers. Returns {@code true} (after sleeping for the
-     * advertised Retry-After interval) when the remaining quota is exhausted and the caller should
-     * replay the request. Header access is fully null/length guarded because NCBI omits these
-     * headers on error pages.
+     * Inspects the NCBI rate-limit response headers. When the remaining quota is exhausted
+     * (X-RateLimit-Remaining == 0) and a Retry-After header is present, it pauses the shared
+     * {@link NcbiRateLimiter} for the advertised interval — so every in-pod request backs off, not
+     * just this thread — and returns {@code true} so the caller replays the request once (its
+     * {@link NcbiRateLimiter#acquire()} waits the pause out). Header access is fully null/length
+     * guarded because NCBI omits these headers on error pages.
      */
     private boolean shouldRetryAfterRateLimit(CloseableHttpResponse response, String query) {
         Header[] headerRateLimitRemaining = response.getHeaders("X-RateLimit-Remaining");
@@ -280,10 +291,10 @@ public class PubMedArticleRetrievalService {
             if (headerRetryAfter != null && headerRetryAfter.length > 0 && headerRetryAfter[0] != null) {
                 log.info("Query=[{}] {}", query, headerRetryAfter[0].toString());
                 try {
-                    Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()) * 1000L);
-                } catch (InterruptedException e) {
-                    log.error("InterruptedException", e);
-                    Thread.currentThread().interrupt();
+                    rateLimiter.pauseFor(Long.parseLong(headerRetryAfter[0].getValue()));
+                } catch (NumberFormatException e) {
+                    log.warn("Unparseable Retry-After header value [{}] for query=[{}]; skipping pause.",
+                            headerRetryAfter[0].getValue(), query);
                 }
                 return true;
             }
