@@ -19,22 +19,6 @@
         <java.version>11</java.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Pin swagger-models to the version springdoc-openapi 1.8.0's swagger-core (2.2.20)
-                 expects. The reciter-pubmed-model dependency transitively drags in the unused
-                 swagger-codegen maven plugin, which forces the ancient swagger-models 2.0.0; that
-                 old version is missing classes springdoc references and breaks startup (#120).
-                 Pinning here (rather than excluding swagger-codegen) avoids disturbing other
-                 libraries the build picks up transitively through that same chain. -->
-            <dependency>
-                <groupId>io.swagger.core.v3</groupId>
-                <artifactId>swagger-models</artifactId>
-                <version>2.2.20</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -99,7 +83,38 @@
         			<groupId>com.amazonaws</groupId>
         			<artifactId>aws-java-sdk-dynamodb</artifactId>
         		</exclusion>
+        		<!-- reciter-pubmed-model declares the swagger-codegen *maven plugin* as a regular
+        		     compile dependency, dragging its entire code-generation closure onto the runtime
+        		     classpath: swagger-codegen/parser release candidates, the legacy swagger 1.5.x
+        		     core/models/annotations, handlebars, rhino, json-schema-validator, and a full
+        		     embedded Maven/Aether/Plexus build runtime (~50 jars). None of it is used at
+        		     runtime, and the ancient swagger-models 2.0.0 it forced collided with springdoc
+        		     (#120, whose dependencyManagement pin this replaces). Exclude the whole closure;
+        		     httpclient and commons-io, which the app uses directly, only reached us through this
+        		     chain and are re-declared explicitly below. (Artifacts the app genuinely needs, such
+        		     as springdoc's swagger-core/models/annotations 2.2.20 and jackson-dataformat-yaml,
+        		     arrive via other compile paths and are unaffected.) -->
+        		<exclusion>
+        			<groupId>io.swagger</groupId>
+        			<artifactId>swagger-codegen-maven-plugin</artifactId>
+        		</exclusion>
         	</exclusions>
+        </dependency>
+        <!-- Promoted from transitive to explicit: the retrieval service uses Apache HttpClient
+             (PubMedArticleRetrievalService / HttpClientConfig) and Commons IO (IOUtils) directly,
+             but both previously arrived only through reciter-pubmed-model's now-excluded
+             swagger-codegen closure. httpclient is left versionless so the Spring Boot 2.7 BOM
+             manages it (4.5.14, pulling httpcore + commons-codec); commons-io is not BOM-managed,
+             so it is declared at a current release (the stale transitive 2.4 carried
+             CVE-2024-47554). -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.16.1</version>
         </dependency>
         <dependency>
             <groupId>org.jsmart</groupId>
