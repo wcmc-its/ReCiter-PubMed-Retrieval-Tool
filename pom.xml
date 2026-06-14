@@ -34,25 +34,9 @@
             <artifactId>squiggly-filter-jackson</artifactId>
             <version>1.3.18</version>
         </dependency>
-        <!-- Jackson pinned to the latest patched 2.12.x to clear known CVEs while staying on the
-             2.12 line (binary-compatible with Spring Boot 2.5's managed Jackson). databind 2.12.7.1
-             is the security hotfix on top of the 2.12.7 core/annotations. -->
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.12.7</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.12.7</version>
-        </dependency>
-        <dependency>
-		    <groupId>com.fasterxml.jackson.core</groupId>
-		    <artifactId>jackson-databind</artifactId>
-		    <version>2.12.7.1</version>
-		</dependency>
+        <!-- Jackson is managed by the Spring Boot 2.7 BOM (currently 2.13.x), which supersedes the
+             explicit 2.12.x CVE pins that were required under Boot 2.5. Do not re-pin Jackson here:
+             bump Spring Boot to move Jackson, so the whole stack stays version-aligned. -->
         <dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-boot-starter</artifactId>
