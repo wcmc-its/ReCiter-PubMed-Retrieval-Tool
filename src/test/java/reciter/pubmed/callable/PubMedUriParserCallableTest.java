@@ -5,6 +5,7 @@ import org.testng.annotations.Test;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import reciter.model.pubmed.PubMedArticle;
+import reciter.pubmed.ratelimit.NcbiRateLimiter;
 import reciter.pubmed.xmlparser.PubmedEFetchHandler;
 
 import javax.xml.parsers.SAXParser;
@@ -37,7 +38,10 @@ public class PubMedUriParserCallableTest {
     public void testInvalidCharacterParse() throws Exception {
         File initialFile = new File("src/test/resources/reciter/pubmed/callable/28356292.xml");
         inputSource = new InputSource(new FileInputStream(initialFile));
-        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource);
+        // This fixture parses a local file (systemId is null), so the rate limiter is never
+        // exercised; pass a disabled one to satisfy the constructor.
+        NcbiRateLimiter rateLimiter = new NcbiRateLimiter(2.0, false);
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
         String articleTitle = pubMedArticle.getMedlinecitation().getArticle().getArticletitle();
