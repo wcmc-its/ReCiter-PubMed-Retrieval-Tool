@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11-jre-alpine
+FROM eclipse-temurin:17-jre-alpine
 
 # wget is used by the HEALTHCHECK below
 RUN apk add --no-cache wget

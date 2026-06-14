@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: corretto11
+      java: corretto17
     commands:
       # Modern CodeBuild images do not bundle kubectl; install a pinned client.
       - curl -sSLo /usr/local/bin/kubectl https://dl.k8s.io/release/v1.29.10/bin/linux/amd64/kubectl
