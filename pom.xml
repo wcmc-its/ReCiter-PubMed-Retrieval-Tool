@@ -124,6 +124,21 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!-- Exclude the live load tests (reciter.pubmed.loadtest.*) from the default test
+                 phase: they make live HTTP calls to a deployed/authenticated service and return
+                 403 without one, which would otherwise fail `mvn clean package` for everyone. They
+                 stay runnable on demand via an explicit -Dtest=ReCiterPubmedApiLoadTest. The real
+                 unit tests (parser, retrieval, rate limiter) now run by default and in CI without a
+                 hardcoded test list. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/loadtest/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
