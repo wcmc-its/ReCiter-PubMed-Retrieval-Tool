@@ -22,4 +22,4 @@ jobs:
       # (ReCiterPubmedApiLoadTest / LoadTest) which require a running
       # service on localhost:5000 and would otherwise fail the build.
       - name: Build and test
-        run: mvn -B -ntp clean package -Dtest=PubmedEFetchHandlerTest,PubMedUriParserCallableTest
+        run: mvn -B -ntp clean package -Dtest=PubmedEFetchHandlerTest,PubMedUriParserCallableTest,PubMedArticleRetrievalServiceTest -DfailIfNoTests=false

@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: openjdk11
+      java: corretto11
     commands:
       - echo Nothing to do in the install phase...
   pre_build:
@@ -12,7 +12,9 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - mvn clean install -Dmaven.test.skip=true
+      # Run the curated unit tests while excluding the live load tests
+      # (ReCiterPubmedApiLoadTest / LoadTest), which 403 without a running service.
+      - mvn clean install -Dtest=PubmedEFetchHandlerTest,PubMedUriParserCallableTest,PubMedArticleRetrievalServiceTest -DfailIfNoTests=false
   post_build:
     commands:
       - echo Build completed on `date`

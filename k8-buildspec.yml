@@ -3,9 +3,12 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: openjdk11
+      java: corretto11
     commands:
-      - kubectl version --short --client   
+      # Modern CodeBuild images do not bundle kubectl; install a pinned client.
+      - curl -sSLo /usr/local/bin/kubectl https://dl.k8s.io/release/v1.29.10/bin/linux/amd64/kubectl
+      - chmod +x /usr/local/bin/kubectl
+      - kubectl version --client
       - java -version
   pre_build:
       commands:
@@ -37,11 +40,14 @@ phases:
           if expr "${BRANCH}" : ".*master" >/dev/null; then
             sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-prod"'@'  -e 's@APPNAME@'"reciter-pubmed-prod"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
           fi
-        - $(aws ecr get-login --no-include-email)
+        # AWS CLI v2 (on modern images) replaces `aws ecr get-login` with get-login-password.
+        - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${REPOSITORY_URI%%/*}
         - cat ./kubernetes/k8-deployment.yaml
   build:
     commands:
-      - mvn clean install -Dmaven.test.skip=true
+      # Run the curated unit tests while excluding the live load tests
+      # (ReCiterPubmedApiLoadTest / LoadTest), which 403 without a running service.
+      - mvn clean install -Dtest=PubmedEFetchHandlerTest,PubMedUriParserCallableTest,PubMedArticleRetrievalServiceTest -DfailIfNoTests=false
       - |
         if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null; then
           docker build --tag $REPOSITORY_URI:$TAG .
