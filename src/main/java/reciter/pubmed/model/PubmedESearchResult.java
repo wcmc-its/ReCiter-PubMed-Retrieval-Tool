@@ -7,7 +7,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-//@JsonRootName(value = "esearchresult")
 public class PubmedESearchResult {
 	
 	@JsonProperty(value = "count", required = true)

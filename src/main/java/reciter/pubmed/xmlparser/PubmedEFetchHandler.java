@@ -18,7 +18,6 @@
  *******************************************************************************/
 package reciter.pubmed.xmlparser;
 
-import java.nio.charset.Charset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
@@ -1313,10 +1312,5 @@ public class PubmedEFetchHandler extends DefaultHandler {
         if(bCoiStatement) {
         	chars.append(ch, start, length);
         }
-        	
-        
-        /*if (bPubmedData) {
-            chars.append(ch, start, length);
-        }*/
     }
 }

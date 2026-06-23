@@ -2,30 +2,27 @@ package reciter.pubmed.xmlparser;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.OptionalLong;
 
 import javax.xml.parsers.ParserConfigurationException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import lombok.extern.slf4j.Slf4j;
 import reciter.pubmed.model.PubmedESearchResult;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 
@@ -34,17 +31,24 @@ import reciter.pubmed.querybuilder.PubmedXmlQuery;
  *
  * @author Jie
  */
-@Slf4j
 public class PubmedESearchHandler extends DefaultHandler {
 
+	private static final Logger log = LoggerFactory.getLogger(PubmedESearchHandler.class);
+	
     private String webEnv;
     private int count;
     private boolean bWebEnv;
     private boolean bCount;
     private int numCountEncounteredSoFar = 0;
     
-    private static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    // ── Thread-safe, expensive to construct — shared static constants ──
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+    // ── Shared HttpClient — reuses connection pool across all calls ──
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(30))
+            .build();
+    
     private StringBuilder chars = new StringBuilder();
 
     /**
@@ -57,93 +61,96 @@ public class PubmedESearchHandler extends DefaultHandler {
      * @throws IOException
      */
     public static PubmedESearchResult executeESearchQuery(String eSearchUrl) {
-        PubmedESearchHandler webEnvHandler = new PubmedESearchHandler();
-        PubmedESearchResult eSearchResult = new PubmedESearchResult();
-        /*InputStream inputStream = null;
-        try {
-            inputStream = new URL(eSearchUrl).openStream();
-        } catch (IOException e) {
-            log.error("Error in executeESearchQuery", e);
-        }
-        try {
-            SAXParserFactory.newInstance().newSAXParser().parse(inputStream, webEnvHandler);
-        } catch (Exception e) {
-            log.error("Error in executeESearchQuery. url=[" + eSearchUrl + "]", e);
-        }*/
-        PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(eSearchUrl);
-        pubmedXmlQuery.setRetMax(1);
-        String fullUrl = pubmedXmlQuery.buildESearchQuery(); // build eSearch query.
-        log.info("ESearch Query=[" + fullUrl + "]");
-        if(pubmedXmlQuery.getApiKey() != null &&
-       		  !pubmedXmlQuery.getApiKey().isEmpty()) {
-        	fullUrl = PubmedXmlQuery.ESEARCH_BASE_URL + "?api_key=" + pubmedXmlQuery.getApiKey();
-	      } else {
-	      	fullUrl = PubmedXmlQuery.ESEARCH_BASE_URL;
-	      }
+       
+		PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(eSearchUrl);
+		pubmedXmlQuery.setRetMax(1);
 
-        try {
-            HttpClient httpClient = HttpClients.createDefault();
-            HttpPost httppost = new HttpPost(fullUrl);
-            //httppost.setHeader(HttpHeaders.ACCEPT, "application/xml");
-            // Request parameters and other properties.
-            List<NameValuePair> params = new ArrayList<NameValuePair>();
-            params.add(new BasicNameValuePair("db", pubmedXmlQuery.getDb()));
-            params.add(new BasicNameValuePair("retmax", String.valueOf(pubmedXmlQuery.getRetMax())));
-            params.add(new BasicNameValuePair("usehistory", pubmedXmlQuery.getUseHistory()));
-            params.add(new BasicNameValuePair("term", java.net.URLDecoder.decode(pubmedXmlQuery.getTerm(), "UTF-8")));
-            params.add(new BasicNameValuePair("retmode", pubmedXmlQuery.getRetMode()));
-            params.add(new BasicNameValuePair("retstart", String.valueOf(pubmedXmlQuery.getRetStart())));
-            httppost.setEntity(new UrlEncodedFormEntity(params));
-            httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-            httppost.getParams().setParameter(ClientPNames.COOKIE_POLICY, "standard");
-            //Execute and get the response.
-            
-            HttpResponse response = httpClient.execute(httppost);
-            Header[] headerRateLimitRemaining = response.getHeaders("X-RateLimit-Remaining");
-            Header[] headerRetryAfter = response.getHeaders("Retry-After");
-            
-            if(headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0) {
-            	if(headerRetryAfter != null && headerRetryAfter.length > 0 && headerRetryAfter[0] != null) {
-            		try {
-            			Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()) * 1000L);
-            		} catch (InterruptedException e) {
-            			log.error("InterruptedException", e);
-            		}
-            		response = httpClient.execute(httppost);
-            	}
-            }
-            
-			/*
-			 * Header[] headers = response.getAllHeaders(); for (Header header : headers) {
-			 * if(header.getName().equalsIgnoreCase("X-RateLimit-Limit") ||
-			 * header.getName().equalsIgnoreCase("X-RateLimit-Remaining") ||
-			 * header.getName().equalsIgnoreCase("Retry-After")) { log.info("Key : " +
-			 * header.getName() + " ,Value : " + header.getValue()); } }
-			 */
+		// Build base URL — api_key in URL, form params in POST body
+		// Note: buildESearchQuery() result intentionally not used — api_key path
+		// overrides it
+		String fullUrl = (pubmedXmlQuery.getApiKey() != null && !pubmedXmlQuery.getApiKey().isEmpty())
+				? PubmedXmlQuery.ESEARCH_BASE_URL + "?api_key=" + pubmedXmlQuery.getApiKey()
+				: PubmedXmlQuery.ESEARCH_BASE_URL;
+		log.info("ESearch Query=[{}]", fullUrl);
 
-            HttpEntity entity = response.getEntity();
+		// Build URL-encoded form body — StandardCharsets.UTF_8 avoids
+		// UnsupportedEncodingException
+		String formData = "db=" + URLEncoder.encode(pubmedXmlQuery.getDb(), StandardCharsets.UTF_8) + "&retmax="
+				+ pubmedXmlQuery.getRetMax() + "&usehistory="
+				+ URLEncoder.encode(pubmedXmlQuery.getUseHistory(), StandardCharsets.UTF_8) + "&term="
+				+ URLEncoder.encode(java.net.URLDecoder.decode(pubmedXmlQuery.getTerm(), StandardCharsets.UTF_8),
+						StandardCharsets.UTF_8)
+				+ "&retmode=" + URLEncoder.encode(pubmedXmlQuery.getRetMode(), StandardCharsets.UTF_8) + "&retstart="
+				+ pubmedXmlQuery.getRetStart();
 
-            if (entity != null) {
-                InputStream esearchStream = entity.getContent();
-				/*
-				 * StringWriter writer = new StringWriter(); IOUtils.copy(esearchStream, writer,
-				 * "UTF-8"); log.info(writer.toString());
-				 */
-                //String sanitizedStream = IOUtils.toString(esearchStream).trim().replaceFirst("^([\\W]+)<","<");
-                //log.info(sanitizedStream);
-                //SAXParserFactory.newInstance().newSAXParser().parse(esearchStream, webEnvHandler);
-    			JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
-    			if(json != null) {
-    				eSearchResult = objectMapper.treeToValue(json, PubmedESearchResult.class);
-    			}
-            }
-        } catch (IOException e) {
-            log.error("Error parsing XML file for query=[" + eSearchUrl + "], full url=[" + fullUrl + "]", e);
-        }
+		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(fullUrl))
+				.header("Content-Type", "application/x-www-form-urlencoded").header("Cache-Control", "no-cache")
+				.POST(HttpRequest.BodyPublishers.ofString(formData)).build();
 
-        return eSearchResult;
+		try {
+			return executeWithRateLimitHandling(request, eSearchUrl, fullUrl);
+		} catch (IOException e) {
+			log.error("Error executing eSearch query=[{}], fullUrl=[{}]", eSearchUrl, fullUrl, e);
+		}
+
+		return new PubmedESearchResult();
     }
 
+    /**
+     * Executes the HTTP request with rate-limit handling.
+     *
+     * Matches original condition exactly:
+     *  - Outer guard: X-RateLimit-Remaining EXISTS and equals 0
+     *    (orElse(-1) → absent header = -1, never triggers block)
+     *  - Inner guard: Retry-After EXISTS and has a value
+     *    (retryAfter.isPresent() matches original null + length + [0] != null checks)
+     *  - Retry happens ONLY when both conditions are true
+     */
+    private static PubmedESearchResult executeWithRateLimitHandling(
+            HttpRequest request, String eSearchUrl, String fullUrl) throws IOException {
+        try {
+            HttpResponse<InputStream> response = HTTP_CLIENT.send(
+                    request, HttpResponse.BodyHandlers.ofInputStream());
+
+            // orElse(-1): absent header → -1 → block never triggers (matches original null/length guard)
+            int rateLimitRemaining = (int) response.headers()
+                    .firstValueAsLong("X-RateLimit-Remaining")
+                    .orElse(-1L);
+
+            if (rateLimitRemaining == 0) {
+                // Inner guard: only sleep+retry if Retry-After header is present
+                // matches: headerRetryAfter != null && length > 0 && headerRetryAfter[0] != null
+                OptionalLong retryAfter = response.headers().firstValueAsLong("Retry-After");
+                if (retryAfter.isPresent()) {
+                    long sleepSeconds = retryAfter.getAsLong();
+                    log.info("Rate limit hit. eSearchUrl=[{}] Retry-After: {} seconds",
+                            eSearchUrl, sleepSeconds);
+                    try {
+                        Thread.sleep(sleepSeconds * 1000L);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        log.error("InterruptedException during rate-limit pause", ie);
+                    }
+                    // Retry only after confirmed sleep — matches original retry placement
+                    response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
+                }
+            }
+
+            // Parse esearchresult JSON from response body
+            try (InputStream esearchStream = response.body()) {
+                JsonNode json = OBJECT_MAPPER.readTree(esearchStream).get("esearchresult");
+                if (json != null) {
+                    return OBJECT_MAPPER.treeToValue(json, PubmedESearchResult.class);
+                }
+            }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("HTTP request interrupted for eSearchUrl=[" + eSearchUrl + "]", e);
+        }
+
+        return new PubmedESearchResult();
+    }
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 
@@ -158,15 +165,12 @@ public class PubmedESearchHandler extends DefaultHandler {
         }
     }
 
-    @Override
-    public void characters(char ch[], int start, int length) throws SAXException {
-        if (bWebEnv) {
-            chars.append(ch, start, length);
-        }
-        if (bCount) {
-            chars.append(ch, start, length);
-        }
-    }
+	@Override
+	public void characters(char ch[], int start, int length) throws SAXException {
+		if (bWebEnv || bCount) {
+			chars.append(ch, start, length);
+		}
+	}
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
