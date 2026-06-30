@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import reciter.pubmed.model.PubmedESearchResult;
+import reciter.model.pubmed.PubmedESearchResult;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 
 /**

@@ -42,8 +42,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import reciter.model.pubmed.PubMedArticle;
+import reciter.model.pubmed.PubmedESearchResult;
 import reciter.pubmed.model.PubMedQuery;
-import reciter.pubmed.model.PubmedESearchResult;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 import reciter.pubmed.retriever.PubMedArticleRetrievalService;
 
