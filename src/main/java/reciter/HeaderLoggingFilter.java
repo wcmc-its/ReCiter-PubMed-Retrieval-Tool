@@ -41,11 +41,4 @@ public class HeaderLoggingFilter implements Filter {
         // Proceed to the next filter in the chain (e.g., your controllers)
         chain.doFilter(request, response);
     }
-
-    // init() and destroy() methods can be left empty for a simple filter
-   // @Override
-    //public void init(FilterConfig filterConfig) {}
-
-    //@Override
-    //public void destroy() {}
 }
