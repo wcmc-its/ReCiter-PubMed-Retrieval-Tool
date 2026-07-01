@@ -5,22 +5,24 @@ import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.List;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.InputSource;
 
-import lombok.extern.slf4j.Slf4j;
 import reciter.model.pubmed.PubMedArticle;
 import reciter.pubmed.callable.PubMedUriParserCallable;
 
-@Slf4j
+
 public class PubmedEFetchHandlerTest {
+	
+	  private static final Logger log = LoggerFactory.getLogger(PubmedEFetchHandlerTest.class);
 	
 	private PubmedEFetchHandler xmlHandler;
     private SAXParser saxParser;

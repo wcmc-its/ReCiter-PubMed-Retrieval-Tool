@@ -1,20 +1,20 @@
 package reciter.pubmed.callable;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import reciter.model.pubmed.PubMedArticle;
-import reciter.pubmed.xmlparser.PubmedEFetchHandler;
+import static org.testng.Assert.assertEquals;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.List;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.List;
 
-import static org.testng.Assert.assertEquals;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+import org.xml.sax.InputSource;
+
+import reciter.model.pubmed.PubMedArticle;
+import reciter.pubmed.xmlparser.PubmedEFetchHandler;
 
 public class PubMedUriParserCallableTest {
 
