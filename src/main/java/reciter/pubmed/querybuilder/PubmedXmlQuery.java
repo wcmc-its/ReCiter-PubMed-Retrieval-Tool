@@ -77,6 +77,19 @@ public class PubmedXmlQuery {
      */
     private String retMode = "json";
 
+    /**
+     * Optional ESearch sort order, as a literal wire value: for {@code db=pubmed} this tool sends
+     * only {@code relevance} or {@code pub_date}. Caller input is mapped to one of those (or to
+     * {@code null}) by {@code PubMedArticleRetrievalService.normalizeSort} before it reaches here.
+     * <p>
+     * {@code null} (the default) means "send no sort parameter", which is what PubMed's default
+     * ordering relies on — so an absent sort leaves the emitted ESearch request byte-identical to
+     * the pre-sort behavior. Because the tool searches with {@code usehistory=y}, the sort applied
+     * here determines the order of the result set posted to the history server, and therefore the
+     * order in which EFetch pulls records back off that {@code WebEnv}.
+     */
+    private String sort;
+
     public PubmedXmlQuery() {
     }
 
@@ -115,7 +128,13 @@ public class PubmedXmlQuery {
         sb.append(useHistory);
         sb.append("&retmode=");
         sb.append(retMode);
-        
+        // Appended only when a sort was explicitly requested, so the default-order URL is
+        // byte-identical to what this builder emitted before sort support existed.
+        if (sort != null && !sort.isEmpty()) {
+            sb.append("&sort=");
+            sb.append(sort);
+        }
+
         return sb.toString();
     }
 
