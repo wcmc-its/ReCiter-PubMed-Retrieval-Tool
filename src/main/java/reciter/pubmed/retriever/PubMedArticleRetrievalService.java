@@ -121,12 +121,28 @@ public class PubMedArticleRetrievalService {
     /**
      * Retrieves all PubMed articles matching {@code pubMedQuery}.
      * <p>
-     * An ESearch determines the matching article count. Because the allowed count is capped at
-     * {@link #RETRIEVAL_THRESHOLD} (2,000), which is well below {@link PubmedXmlQuery#DEFAULT_RETMAX}
-     * (10,000), every allowed query is satisfied by a single EFetch request — there is no need to
-     * paginate over retstart or fan the fetches out across a thread pool. Queries matching more than
-     * the threshold are hard-refused with an {@link IOException}; the message text is matched by
-     * {@code GlobalExceptionHandler} to map the refusal to a 502 response, so it must not change.
+     * An ESearch determines the matching article count. Every retrieval is satisfied by a single
+     * EFetch request — there is no need to paginate over retstart or fan the fetches out across a
+     * thread pool — because the number of records fetched is capped at {@link #RETRIEVAL_THRESHOLD}
+     * (2,000), well below {@link PubmedXmlQuery#DEFAULT_RETMAX} (10,000), by one of two routes:
+     * <ul>
+     *   <li>no {@code retmax}: matched == fetched, so a query matching more than the threshold is
+     *       hard-refused with an {@link IOException}. This is the legacy path the ReCiter engine
+     *       takes, and it is unchanged.</li>
+     *   <li>an explicit {@code retmax} (&le; the threshold): the fetch is bounded by {@code retmax}
+     *       regardless of how many articles matched, so the matched-count refusal does not apply —
+     *       "the 50 most relevant of 24,852" is a narrow fetch over a broad search.</li>
+     * </ul>
+     * The refusal message text is matched by {@code GlobalExceptionHandler}'s
+     * {@code THRESHOLD_EXCEEDED_MARKER}, so it must not change.
+     * <p>
+     * That mapping does NOT currently reach the caller, and the bug predates this change: because
+     * the refusal is an {@link IOException} thrown from inside a {@code @Retryable} method, Spring
+     * Retry exhausts all 7 attempts on it (a permanent condition — the count will not shrink) and
+     * then wraps it, so {@code @ExceptionHandler(IOException.class)} never sees it and the catch-all
+     * returns <strong>500, not 502</strong>. Verified against an unmodified {@code dev} build.
+     * Reported separately; deliberately NOT fixed here, because changing the retry/error semantics
+     * of the engine's own retrieval path does not belong in a change about sort and retmax.
      */
     @Retryable(maxAttempts = 7, value = IOException.class,
         backoff = @Backoff(random = true, delay = 1500, maxDelay = 9000), listeners = {"retryListener"})
@@ -174,11 +190,22 @@ public class PubMedArticleRetrievalService {
                 : getNumberOfPubMedArticles(pubMedQuery, normalizedSort);
         int numberOfPubmedArticles = eSearchResult.getCount();
 
-        // NOTE: the threshold gate applies to the *matched* count, not to retmax. A query matching
-        // more than RETRIEVAL_THRESHOLD articles is still hard-refused even when the caller only
-        // wants the top 50 of them, so a broad relevance search must be narrowed to <= 2000 matches
-        // before it will return anything.
-        if (numberOfPubmedArticles > RETRIEVAL_THRESHOLD) {
+        // The threshold gate exists to bound the EFETCH, which is the expensive half: without a
+        // retmax, an allowed query drags back every matched record in one batch. So the gate keys on
+        // the MATCHED count because, historically, matched == fetched.
+        //
+        // An explicit retmax breaks that identity. The caller is then asking for the top N of the
+        // ordered set, and only N records are ever fetched — the cost the gate protects against no
+        // longer depends on how many articles matched. Applying it anyway would hard-refuse "the 50
+        // most relevant of 24,852", which is not a broad fetch; it is a narrow fetch over a broad
+        // search, and it is exactly what relevance ranking is for.
+        //
+        // So: an explicit retmax bounds the fetch and takes over from the matched-count gate. The
+        // bound itself still holds — retmax may not exceed the threshold — so no caller can use this
+        // to pull back more than RETRIEVAL_THRESHOLD records. Callers that send no retmax (the
+        // ReCiter engine, every legacy path) keep the original matched-count refusal untouched.
+        boolean fetchIsBounded = retmax != null && retmax > 0 && retmax <= RETRIEVAL_THRESHOLD;
+        if (!fetchIsBounded && numberOfPubmedArticles > RETRIEVAL_THRESHOLD) {
             throw new IOException("Number of PubMed Articles retrieved " + numberOfPubmedArticles + " exceeded the threshold level " + RETRIEVAL_THRESHOLD);
         }
 
