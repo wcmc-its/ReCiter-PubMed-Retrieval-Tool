@@ -57,6 +57,29 @@ public class PubMedQuery {
     @JsonProperty("doi")
     private String doi;
 
+    /**
+     * Optional ESearch sort order. Accepts {@code relevance} and {@code date} (an alias for NCBI's
+     * {@code pub_date}, which is what actually goes on the wire); any other value is ignored and the
+     * query runs in PubMed's default order. When absent, the emitted ESearch request is unchanged
+     * from the pre-sort behavior.
+     * <p>
+     * Deliberately excluded from {@link #toString()}: it is an ESearch request parameter, not part
+     * of the Entrez query term.
+     */
+    @JsonProperty("sort")
+    private String sort;
+
+    /**
+     * Optional cap on how many records EFetch pulls back, letting a caller ask for the top N of a
+     * sorted result set instead of every match. When absent, EFetch uses
+     * {@link reciter.pubmed.querybuilder.PubmedXmlQuery#DEFAULT_RETMAX} exactly as before. Values
+     * above the default are ignored (this is a cap, never an increase).
+     * <p>
+     * Deliberately excluded from {@link #toString()}: see {@link #sort}.
+     */
+    @JsonProperty("retmax")
+    private Integer retmax;
+
     @Override
     public String toString() {
         List<String> parts = new ArrayList<>();

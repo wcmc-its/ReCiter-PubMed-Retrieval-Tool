@@ -54,10 +54,17 @@ public class PubMedRetrievalToolController {
         return retrieve(query, fields);
     }
 
+    /**
+     * Optionally accepts {@code sort} ({@code relevance} or {@code date}) and {@code retmax} in the
+     * request body, so a caller can ask for a ranked slice — "the top 50 by relevance" — instead of
+     * the first N matches in PubMed's default order. Both are optional: a body that omits them
+     * produces exactly the request this endpoint made before sort support existed.
+     */
     @RequestMapping(value = "/query-complex/", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<List<PubMedArticle>> queryComplex(@RequestBody PubMedQuery pubMedQuery) throws IOException {
-        List<PubMedArticle> pubMedArticles = query(pubMedQuery.toString(), null);
+        List<PubMedArticle> pubMedArticles =
+                retrieve(pubMedQuery.toString(), null, pubMedQuery.getSort(), pubMedQuery.getRetmax());
         return ResponseEntity.ok(pubMedArticles);
     }
 
@@ -80,10 +87,19 @@ public class PubMedRetrievalToolController {
     }
 
     private List<PubMedArticle> retrieve(String query, String fields) throws IOException {
-        query = URLEncoder.encode(query, "UTF-8");
-        log.info("Retrieving with query=[{}]", query);
+        return retrieve(query, fields, null, null);
+    }
 
-        List<PubMedArticle> pubMedArticles = pubMedArticleRetrievalService.retrieve(query);
+    private List<PubMedArticle> retrieve(String query, String fields, String sort, Integer retmax) throws IOException {
+        query = URLEncoder.encode(query, "UTF-8");
+        log.info("Retrieving with query=[{}], sort=[{}], retmax=[{}]", query, sort, retmax);
+
+        // When no sort/retmax is requested, dispatch through the original single-argument service
+        // method so the unsorted path — the one the ReCiter engine uses — is provably unchanged.
+        List<PubMedArticle> pubMedArticles =
+                (sort == null || sort.isEmpty()) && retmax == null
+                        ? pubMedArticleRetrievalService.retrieve(query)
+                        : pubMedArticleRetrievalService.retrieve(query, sort, retmax);
         log.info("Retrieved [{}] PubMed articles using query=[{}]", pubMedArticles.size(), query);
 
         // No field selection requested: return the retrieved articles directly and skip the

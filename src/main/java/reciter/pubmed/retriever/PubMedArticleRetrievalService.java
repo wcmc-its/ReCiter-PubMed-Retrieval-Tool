@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
@@ -54,6 +55,24 @@ public class PubMedArticleRetrievalService {
      */
     private static final int RETRIEVAL_THRESHOLD = 2000;
 
+    /**
+     * ESearch {@code sort} values honored for {@code db=pubmed}. Anything else (an unknown value, a
+     * blank string) is normalized to {@code null}, which means "send no sort parameter at all" —
+     * i.e. it falls back to the exact pre-sort request.
+     * <p>
+     * Note the caller-facing {@code date} is NOT what goes on the wire. NCBI's ESearch sort key for
+     * publication date is {@code pub_date}; a literal {@code sort=date} is silently ignored by
+     * ESearch, which then returns its default order — verified against NCBI, where {@code sort=date}
+     * returns an idlist byte-identical to sending no sort at all (and identical to sending a
+     * garbage sort value), while {@code sort=pub_date} genuinely reorders. Accepting {@code date}
+     * and forwarding it verbatim would therefore reproduce the exact failure this parameter exists
+     * to fix: a caller asks for a ranked result and silently gets default order. So {@code date} is
+     * accepted from callers and mapped to {@code pub_date} here.
+     */
+    private static final String SORT_RELEVANCE = "relevance";
+    private static final String SORT_DATE = "date";
+    private static final String SORT_PUB_DATE = "pub_date";
+
     private static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Autowired
@@ -102,21 +121,91 @@ public class PubMedArticleRetrievalService {
     /**
      * Retrieves all PubMed articles matching {@code pubMedQuery}.
      * <p>
-     * An ESearch determines the matching article count. Because the allowed count is capped at
-     * {@link #RETRIEVAL_THRESHOLD} (2,000), which is well below {@link PubmedXmlQuery#DEFAULT_RETMAX}
-     * (10,000), every allowed query is satisfied by a single EFetch request — there is no need to
-     * paginate over retstart or fan the fetches out across a thread pool. Queries matching more than
-     * the threshold are hard-refused with an {@link IOException}; the message text is matched by
-     * {@code GlobalExceptionHandler} to map the refusal to a 502 response, so it must not change.
+     * An ESearch determines the matching article count. Every retrieval is satisfied by a single
+     * EFetch request — there is no need to paginate over retstart or fan the fetches out across a
+     * thread pool — because the number of records fetched is capped at {@link #RETRIEVAL_THRESHOLD}
+     * (2,000), well below {@link PubmedXmlQuery#DEFAULT_RETMAX} (10,000), by one of two routes:
+     * <ul>
+     *   <li>no {@code retmax}: matched == fetched, so a query matching more than the threshold is
+     *       hard-refused with an {@link IOException}. This is the legacy path the ReCiter engine
+     *       takes, and it is unchanged.</li>
+     *   <li>an explicit {@code retmax} (&le; the threshold): the fetch is bounded by {@code retmax}
+     *       regardless of how many articles matched, so the matched-count refusal does not apply —
+     *       "the 50 most relevant of 24,852" is a narrow fetch over a broad search.</li>
+     * </ul>
+     * The refusal message text is matched by {@code GlobalExceptionHandler}'s
+     * {@code THRESHOLD_EXCEEDED_MARKER}, so it must not change.
+     * <p>
+     * That mapping does NOT currently reach the caller, and the bug predates this change: because
+     * the refusal is an {@link IOException} thrown from inside a {@code @Retryable} method, Spring
+     * Retry exhausts all 7 attempts on it (a permanent condition — the count will not shrink) and
+     * then wraps it, so {@code @ExceptionHandler(IOException.class)} never sees it and the catch-all
+     * returns <strong>500, not 502</strong>. Verified against an unmodified {@code dev} build.
+     * Reported separately; deliberately NOT fixed here, because changing the retry/error semantics
+     * of the engine's own retrieval path does not belong in a change about sort and retmax.
      */
     @Retryable(maxAttempts = 7, value = IOException.class,
         backoff = @Backoff(random = true, delay = 1500, maxDelay = 9000), listeners = {"retryListener"})
     public List<PubMedArticle> retrieve(String pubMedQuery) throws IOException {
+        return doRetrieve(pubMedQuery, null, null);
+    }
 
-        PubmedESearchResult eSearchResult = getNumberOfPubMedArticles(pubMedQuery);
+    /**
+     * Sort-aware variant of {@link #retrieve(String)}, used by the {@code query-complex} endpoint
+     * when a caller asks for a ranked slice ("the top N by relevance") rather than every match.
+     *
+     * @param pubMedQuery URL-encoded Entrez query term
+     * @param sort        ESearch sort order; only {@code relevance} and {@code date} are honored.
+     *                    {@code null}, blank, or an unrecognized value means no sort parameter is
+     *                    sent and the request is identical to {@link #retrieve(String)}.
+     * @param retmax      caps how many records EFetch pulls back off the sorted result set;
+     *                    {@code null} (or a value outside 1..{@link PubmedXmlQuery#DEFAULT_RETMAX})
+     *                    leaves the default retmax in place. This is a cap, never an increase.
+     */
+    @Retryable(maxAttempts = 7, value = IOException.class,
+        backoff = @Backoff(random = true, delay = 1500, maxDelay = 9000), listeners = {"retryListener"})
+    public List<PubMedArticle> retrieve(String pubMedQuery, String sort, Integer retmax) throws IOException {
+        return doRetrieve(pubMedQuery, sort, retmax);
+    }
+
+    /**
+     * Shared retrieval body behind both {@code retrieve} overloads.
+     * <p>
+     * Sort is applied to the <em>ESearch</em>, not the EFetch: because the search runs with
+     * {@code usehistory=y}, the ESearch is what posts the (now ordered) result set to the history
+     * server, and the EFetch then walks that {@code WebEnv} from {@code retstart=0}. So sorting at
+     * search time plus a {@code retmax} cap at fetch time is what actually yields "the top N by
+     * relevance" instead of "the first N in PubMed's default order".
+     * <p>
+     * When {@code sort} normalizes to {@code null} this method calls exactly the same one-argument
+     * {@link #getNumberOfPubMedArticles(String)} and leaves retmax at its default, so the emitted
+     * ESearch request is byte-identical to the pre-sort behavior the ReCiter engine depends on.
+     */
+    private List<PubMedArticle> doRetrieve(String pubMedQuery, String sort, Integer retmax) throws IOException {
+
+        String normalizedSort = normalizeSort(sort);
+
+        PubmedESearchResult eSearchResult = (normalizedSort == null)
+                ? getNumberOfPubMedArticles(pubMedQuery)
+                : getNumberOfPubMedArticles(pubMedQuery, normalizedSort);
         int numberOfPubmedArticles = eSearchResult.getCount();
 
-        if (numberOfPubmedArticles > RETRIEVAL_THRESHOLD) {
+        // The threshold gate exists to bound the EFETCH, which is the expensive half: without a
+        // retmax, an allowed query drags back every matched record in one batch. So the gate keys on
+        // the MATCHED count because, historically, matched == fetched.
+        //
+        // An explicit retmax breaks that identity. The caller is then asking for the top N of the
+        // ordered set, and only N records are ever fetched — the cost the gate protects against no
+        // longer depends on how many articles matched. Applying it anyway would hard-refuse "the 50
+        // most relevant of 24,852", which is not a broad fetch; it is a narrow fetch over a broad
+        // search, and it is exactly what relevance ranking is for.
+        //
+        // So: an explicit retmax bounds the fetch and takes over from the matched-count gate. The
+        // bound itself still holds — retmax may not exceed the threshold — so no caller can use this
+        // to pull back more than RETRIEVAL_THRESHOLD records. Callers that send no retmax (the
+        // ReCiter engine, every legacy path) keep the original matched-count refusal untouched.
+        boolean fetchIsBounded = retmax != null && retmax > 0 && retmax <= RETRIEVAL_THRESHOLD;
+        if (!fetchIsBounded && numberOfPubmedArticles > RETRIEVAL_THRESHOLD) {
             throw new IOException("Number of PubMed Articles retrieved " + numberOfPubmedArticles + " exceeded the threshold level " + RETRIEVAL_THRESHOLD);
         }
 
@@ -134,10 +223,14 @@ public class PubMedArticleRetrievalService {
         if (eSearchResult.getWebenv() != null) {
             pubmedXmlQuery.setWebEnv(eSearchResult.getWebenv());
         }
+        // Only ever lowers retMax: absent/invalid retmax keeps DEFAULT_RETMAX, i.e. today's EFetch.
+        if (retmax != null && retmax > 0 && retmax < pubmedXmlQuery.getRetMax()) {
+            pubmedXmlQuery.setRetMax(retmax);
+        }
 
         String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
-        log.info("retMax=[{}], pubMedQuery=[{}], numberOfPubmedArticles=[{}], eFetchUrl=[{}].",
-                pubmedXmlQuery.getRetMax(), pubMedQuery, numberOfPubmedArticles,
+        log.info("retMax=[{}], sort=[{}], pubMedQuery=[{}], numberOfPubmedArticles=[{}], eFetchUrl=[{}].",
+                pubmedXmlQuery.getRetMax(), normalizedSort, pubMedQuery, numberOfPubmedArticles,
                 PubmedXmlQuery.redactApiKey(eFetchUrl));
 
         try {
@@ -156,6 +249,33 @@ public class PubMedArticleRetrievalService {
     }
 
     /**
+     * Maps a caller-supplied sort value to the literal value to put on the ESearch wire. Only two
+     * orderings are supported — relevance and publication date — and everything else is ignored
+     * rather than forwarded, because ESearch does not reject an unknown sort key: it silently drops
+     * it and falls back to default order.
+     *
+     * @param sort raw caller input (may be null); {@code relevance}, or {@code date} / {@code pub_date}
+     * @return {@code relevance}, {@code pub_date}, or {@code null} meaning "send no sort parameter"
+     */
+    protected static String normalizeSort(String sort) {
+        if (sort == null || sort.trim().isEmpty()) {
+            return null;
+        }
+        String normalized = sort.trim().toLowerCase(Locale.ROOT);
+        if (SORT_RELEVANCE.equals(normalized)) {
+            return SORT_RELEVANCE;
+        }
+        // Caller-facing "date" is translated to NCBI's actual key, "pub_date" (see SORT_PUB_DATE):
+        // forwarding a literal "date" would be silently ignored by ESearch and yield default order.
+        if (SORT_DATE.equals(normalized) || SORT_PUB_DATE.equals(normalized)) {
+            return SORT_PUB_DATE;
+        }
+        log.warn("Ignoring unsupported ESearch sort value [{}]; expected '{}' or '{}'. "
+                + "Falling back to PubMed's default order.", sort, SORT_RELEVANCE, SORT_DATE);
+        return null;
+    }
+
+    /**
      * Recovery handler invoked when {@link #retrieve(String)} exhausts all retry attempts.
      * Re-throws the final exception rather than silently swallowing it so callers still see
      * the failure, but provides a single, well-defined termination point for the retry loop.
@@ -166,8 +286,28 @@ public class PubMedArticleRetrievalService {
         throw e;
     }
 
+    /**
+     * Recovery handler for {@link #retrieve(String, String, Integer)}. Spring Retry selects the
+     * {@code @Recover} method whose argument arity matches the failing {@code @Retryable} method,
+     * so this overload must exist alongside {@link #recoverRetrieve(IOException, String)}.
+     */
+    @Recover
+    public List<PubMedArticle> recoverRetrieve(IOException e, String pubMedQuery, String sort, Integer retmax) throws IOException {
+        log.error("Exhausted retries retrieving PubMed articles for query=[{}], sort=[{}], retmax=[{}].",
+                pubMedQuery, sort, retmax, e);
+        throw e;
+    }
+
     public PubmedESearchResult getNumberOfPubMedArticles(String query) throws IOException {
         return executeESearch(query);
+    }
+
+    /**
+     * Sort-aware ESearch. Kept separate from {@link #getNumberOfPubMedArticles(String)} so the
+     * unsorted path continues to run through the exact same call chain as before.
+     */
+    public PubmedESearchResult getNumberOfPubMedArticles(String query, String sort) throws IOException {
+        return executeESearch(query, sort);
     }
 
     /**
@@ -182,8 +322,23 @@ public class PubMedArticleRetrievalService {
      *         non-JSON (e.g. HTML error page) responses.
      */
     protected PubmedESearchResult executeESearch(String term) throws IOException {
+        return executeESearch(term, null);
+    }
+
+    /**
+     * Sort-aware {@link #executeESearch(String)}.
+     * <p>
+     * The {@code sort} parameter is appended <em>last</em> and only when non-null, so when no sort
+     * is requested the form-encoded request body is byte-identical to the one this method emitted
+     * before sort support existed. The ReCiter engine is this tool's primary caller and must not
+     * see any change in behavior.
+     *
+     * @param sort already-normalized sort value ({@code relevance}, {@code date}, or {@code null})
+     */
+    protected PubmedESearchResult executeESearch(String term, String sort) throws IOException {
         PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(term);
         pubmedXmlQuery.setRetStart(0);
+        pubmedXmlQuery.setSort(sort);
 
         // The request is an HTTP POST to ESEARCH_BASE_URL with form-encoded params; log the
         // endpoint actually called (with api_key redacted) and the term, not a discarded GET URL.
@@ -193,7 +348,7 @@ public class PubMedArticleRetrievalService {
         } else {
             postUrl = PubmedXmlQuery.ESEARCH_BASE_URL;
         }
-        log.info("ESearch POST url=[{}], term=[{}]", PubmedXmlQuery.redactApiKey(postUrl), term);
+        log.info("ESearch POST url=[{}], term=[{}], sort=[{}]", PubmedXmlQuery.redactApiKey(postUrl), term, sort);
 
         PubmedESearchResult eSearchResult = new PubmedESearchResult();
 
@@ -206,6 +361,10 @@ public class PubMedArticleRetrievalService {
         params.add(new BasicNameValuePair("term", java.net.URLDecoder.decode(pubmedXmlQuery.getTerm(), "UTF-8")));
         params.add(new BasicNameValuePair("retmode", pubmedXmlQuery.getRetMode()));
         params.add(new BasicNameValuePair("retstart", String.valueOf(pubmedXmlQuery.getRetStart())));
+        // Appended last and only when present: an absent sort leaves the body byte-identical.
+        if (pubmedXmlQuery.getSort() != null && !pubmedXmlQuery.getSort().isEmpty()) {
+            params.add(new BasicNameValuePair("sort", pubmedXmlQuery.getSort()));
+        }
         httppost.setEntity(new UrlEncodedFormEntity(params));
         httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
         httppost.setHeader("cache-control", "no-cache");
