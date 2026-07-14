@@ -127,8 +127,8 @@ public class PubMedArticleRetrievalService {
      * (2,000), well below {@link PubmedXmlQuery#DEFAULT_RETMAX} (10,000), by one of two routes:
      * <ul>
      *   <li>no {@code retmax}: matched == fetched, so a query matching more than the threshold is
-     *       hard-refused with an {@link IOException}. This is the legacy path the ReCiter engine
-     *       takes, and it is unchanged.</li>
+     *       hard-refused with a {@link RetrievalThresholdExceededException}. This is the legacy path
+     *       the ReCiter engine takes, and it is unchanged.</li>
      *   <li>an explicit {@code retmax} (&le; the threshold): the fetch is bounded by {@code retmax}
      *       regardless of how many articles matched, so the matched-count refusal does not apply —
      *       "the 50 most relevant of 24,852" is a narrow fetch over a broad search.</li>
@@ -136,15 +136,14 @@ public class PubMedArticleRetrievalService {
      * The refusal message text is matched by {@code GlobalExceptionHandler}'s
      * {@code THRESHOLD_EXCEEDED_MARKER}, so it must not change.
      * <p>
-     * That mapping does NOT currently reach the caller, and the bug predates this change: because
-     * the refusal is an {@link IOException} thrown from inside a {@code @Retryable} method, Spring
-     * Retry exhausts all 7 attempts on it (a permanent condition — the count will not shrink) and
-     * then wraps it, so {@code @ExceptionHandler(IOException.class)} never sees it and the catch-all
-     * returns <strong>500, not 502</strong>. Verified against an unmodified {@code dev} build.
-     * Reported separately; deliberately NOT fixed here, because changing the retry/error semantics
-     * of the engine's own retrieval path does not belong in a change about sort and retmax.
+     * THE REFUSAL IS EXCLUDED FROM RETRY, and that is not a tuning preference. It is PERMANENT: the
+     * matched count is a property of the query, not of the network, so retrying cannot make it
+     * smaller. As a plain {@code IOException} it was exactly what this retry policy retries — so one
+     * too-broad query fired SEVEN ESearch requests at NCBI, with backoff, before failing with an
+     * answer it already had on the first attempt. NCBI's unkeyed limit is 3 requests/second.
      */
     @Retryable(maxAttempts = 7, value = IOException.class,
+        exclude = RetrievalThresholdExceededException.class,
         backoff = @Backoff(random = true, delay = 1500, maxDelay = 9000), listeners = {"retryListener"})
     public List<PubMedArticle> retrieve(String pubMedQuery) throws IOException {
         return doRetrieve(pubMedQuery, null, null);
@@ -163,6 +162,7 @@ public class PubMedArticleRetrievalService {
      *                    leaves the default retmax in place. This is a cap, never an increase.
      */
     @Retryable(maxAttempts = 7, value = IOException.class,
+        exclude = RetrievalThresholdExceededException.class,
         backoff = @Backoff(random = true, delay = 1500, maxDelay = 9000), listeners = {"retryListener"})
     public List<PubMedArticle> retrieve(String pubMedQuery, String sort, Integer retmax) throws IOException {
         return doRetrieve(pubMedQuery, sort, retmax);
@@ -206,7 +206,9 @@ public class PubMedArticleRetrievalService {
         // ReCiter engine, every legacy path) keep the original matched-count refusal untouched.
         boolean fetchIsBounded = retmax != null && retmax > 0 && retmax <= RETRIEVAL_THRESHOLD;
         if (!fetchIsBounded && numberOfPubmedArticles > RETRIEVAL_THRESHOLD) {
-            throw new IOException("Number of PubMed Articles retrieved " + numberOfPubmedArticles + " exceeded the threshold level " + RETRIEVAL_THRESHOLD);
+            // PERMANENT, and typed as such: the matched count is a property of the query, so no
+            // amount of retrying will shrink it. See RetrievalThresholdExceededException.
+            throw new RetrievalThresholdExceededException("Number of PubMed Articles retrieved " + numberOfPubmedArticles + " exceeded the threshold level " + RETRIEVAL_THRESHOLD);
         }
 
         // No matches: return empty without an EFetch round-trip (the old pagination loop, gated on
@@ -279,11 +281,20 @@ public class PubMedArticleRetrievalService {
      * Recovery handler invoked when {@link #retrieve(String)} exhausts all retry attempts.
      * Re-throws the final exception rather than silently swallowing it so callers still see
      * the failure, but provides a single, well-defined termination point for the retry loop.
+     * <p>
+     * IT RETHROWS AN <strong>UNCHECKED</strong> EXCEPTION, DELIBERATELY. Spring Retry invokes this
+     * method REFLECTIVELY, and {@code ReflectionUtils} wraps any CHECKED exception thrown by a
+     * reflectively-invoked method in an {@code UndeclaredThrowableException} — a RuntimeException.
+     * Rethrowing the {@code IOException} directly therefore hid it inside a wrapper that
+     * {@code @ExceptionHandler(IOException.class)} could not see, the catch-all handler caught it
+     * instead, and every threshold refusal was served as <strong>500 "An unexpected error
+     * occurred"</strong> rather than the 502 it was carefully mapped to. See
+     * {@link PubMedRetrievalException}. Do not turn this back into {@code throw e}.
      */
     @Recover
-    public List<PubMedArticle> recoverRetrieve(IOException e, String pubMedQuery) throws IOException {
+    public List<PubMedArticle> recoverRetrieve(IOException e, String pubMedQuery) {
         log.error("Exhausted retries retrieving PubMed articles for query=[{}].", pubMedQuery, e);
-        throw e;
+        throw new PubMedRetrievalException(e);
     }
 
     /**
@@ -292,10 +303,13 @@ public class PubMedArticleRetrievalService {
      * so this overload must exist alongside {@link #recoverRetrieve(IOException, String)}.
      */
     @Recover
-    public List<PubMedArticle> recoverRetrieve(IOException e, String pubMedQuery, String sort, Integer retmax) throws IOException {
+    public List<PubMedArticle> recoverRetrieve(IOException e, String pubMedQuery, String sort, Integer retmax) {
         log.error("Exhausted retries retrieving PubMed articles for query=[{}], sort=[{}], retmax=[{}].",
                 pubMedQuery, sort, retmax, e);
-        throw e;
+        // UNCHECKED, for the same reason as the two-argument overload above — a checked rethrow from
+        // a reflectively-invoked @Recover is wrapped in an UndeclaredThrowableException and lands in
+        // the catch-all as a 500. See PubMedRetrievalException.
+        throw new PubMedRetrievalException(e);
     }
 
     public PubmedESearchResult getNumberOfPubMedArticles(String query) throws IOException {
