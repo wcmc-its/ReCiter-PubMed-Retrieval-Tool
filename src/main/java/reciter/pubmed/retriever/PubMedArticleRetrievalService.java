@@ -67,6 +67,22 @@ public class PubMedArticleRetrievalService {
 	   return factoryThreadLocal.get().newSAXParser();
    }
 
+   /** Bound on concurrent efetch worker threads per call. Configurable via NCBI_FETCH_POOL_SIZE (default 3). */
+   private static int fetchPoolSize() {
+	   String v = System.getenv("NCBI_FETCH_POOL_SIZE");
+	   if (v != null && !v.isBlank()) {
+		   try {
+			   int n = Integer.parseInt(v.trim());
+			   if (n > 0) {
+				   return n;
+			   }
+		   } catch (NumberFormatException ignored) {
+			   // fall through to default
+		   }
+	   }
+	   return 3;
+   }
+
     /**
      * Initializes and starts threads that handles the retrieval process. Partition the number of articles
      * into manageable pieces and ask each thread to handle one partition.
@@ -84,7 +100,10 @@ public class PubMedArticleRetrievalService {
 					+ RETRIEVAL_THRESHOLD + "]");
 		}
 
-		ExecutorService executor = Executors.newWorkStealingPool();
+		// Bounded pool (was an unbounded newWorkStealingPool that was also never shut down).
+		// The actual NCBI request rate is capped by NcbiRateLimiter; this just bounds the
+		// worker threads that feed it. Configurable via NCBI_FETCH_POOL_SIZE (default 3).
+		ExecutorService executor = Executors.newFixedThreadPool(fetchPoolSize());
 
 		PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery();
 		pubmedXmlQuery.setTerm(pubMedQuery);
@@ -130,6 +149,8 @@ public class PubMedArticleRetrievalService {
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			log.error("Interrupted while invoking callables", e);
+		} finally {
+			executor.shutdown();
 		}
 
 		return pubMedArticles;
@@ -189,6 +210,7 @@ public class PubMedArticleRetrievalService {
      */
     private PubmedESearchResult executeRequestWithRetry(HttpRequest request, String query) throws IOException {
         try {
+            NcbiRateLimiter.INSTANCE.acquire();
             HttpResponse<InputStream> response = httpClient.send(request,
                     HttpResponse.BodyHandlers.ofInputStream());
 

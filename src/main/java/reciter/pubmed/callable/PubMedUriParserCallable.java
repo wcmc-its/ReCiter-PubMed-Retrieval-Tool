@@ -54,7 +54,11 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
     }
 
     private InputSource preprocessSpecialCharacters(InputSource inputSource) throws IOException {
-        // Resolve InputStream from either a URL (systemId) or a byte stream
+        // Resolve InputStream from either a URL (systemId) or a byte stream. Pace the efetch
+        // fetch through the shared limiter so parallel pages don't trip NCBI's per-key 429.
+        if (inputSource.getSystemId() != null) {
+            reciter.pubmed.retriever.NcbiRateLimiter.INSTANCE.acquire();
+        }
         InputStream inputStream = (inputSource.getSystemId() != null)
                 ? URI.create(inputSource.getSystemId()).toURL().openStream()
                 : inputSource.getByteStream();
