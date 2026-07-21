@@ -13,8 +13,10 @@ public class PubmedXmlQuery {
     /**
      * Required Parameters.
      */
-    public static final String ESEARCH_BASE_URL = "https://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi";
-    protected static final String EFETCH_BASE_URL = "https://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi";
+    // NCBI's current E-utilities host. The old www.ncbi.nlm.nih.gov/entrez/eutils host is
+    // deprecated and flaky (intermittent HTML error pages / empty results). See wcmc-its/ReCiter-PubMed-Retrieval-Tool#166.
+    public static final String ESEARCH_BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi";
+    protected static final String EFETCH_BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi";
 
     /**
      * Optional Parameters.
