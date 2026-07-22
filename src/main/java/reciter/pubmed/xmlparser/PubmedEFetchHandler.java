@@ -17,7 +17,7 @@
  * under the License.
  *******************************************************************************/
 package reciter.pubmed.xmlparser;
-
+import java.time.DateTimeException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
@@ -31,6 +31,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import lombok.extern.slf4j.Slf4j;
 import reciter.model.pubmed.ArticleIdList;
 import reciter.model.pubmed.History;
 import reciter.model.pubmed.MedlineCitation;
@@ -63,6 +64,7 @@ import reciter.model.pubmed.PubMedPubDate;
  *
  * @author jil3004
  */
+@Slf4j
 public class PubmedEFetchHandler extends DefaultHandler {
 
     private boolean bPubmedArticleSet;
@@ -109,7 +111,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bAuthorInitials;
     private boolean bAffiliationInfo;
     private boolean bAffiliation;
-    private boolean bAuthorEqualContrib;    
     private boolean bOrcid;
     private boolean bPublicationTypeList;
     private boolean bPublicationType;
@@ -137,9 +138,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bPublicationStatus;
     private boolean bArticleIdList;
     private boolean bArticleId;
-    private boolean bArticleIdPubMed;
-    private boolean bArticleIdPii;
-    private boolean bArticleIdDoi;
     private boolean bArticleIdPmc;
     private boolean bGrantList;
     private boolean bGrant;
@@ -157,7 +155,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
     private boolean bReference;
     private boolean bReferenceArticleIdList;
     private boolean bReferenceArticleId;
-    private boolean bEqualContrib;
     private boolean bCoiStatement;
 
     private List<PubMedArticle> pubmedArticles;
@@ -208,7 +205,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
     }
 
     private boolean isOrcid(Attributes attributes) {
-        return attributes.getValue("Source").equalsIgnoreCase("ORCID");
+        return "ORCID".equalsIgnoreCase(attributes.getValue("Source"));
     }
     private String getEqualContrib(Attributes attributes)
     {
@@ -244,15 +241,21 @@ public class PubmedEFetchHandler extends DefaultHandler {
             
             if(matcher.find()) {
                 month = matcher.group();
-                DateTimeFormatter parser = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.ENGLISH);
-                TemporalAccessor accessor = parser.parse(month);
-                int monthNumber = accessor.get(ChronoField.MONTH_OF_YEAR);
-                if(monthNumber != 0 && monthNumber < 10) {
-                    month = "0" + String.valueOf(monthNumber);
-                } else {
-                    month = String.valueOf(monthNumber);
+                try {
+                    DateTimeFormatter parser = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.ENGLISH);
+                    TemporalAccessor accessor = parser.parse(month);
+                    int monthNumber = accessor.get(ChronoField.MONTH_OF_YEAR);
+                    if(monthNumber != 0 && monthNumber < 10) {
+                        month = "0" + String.valueOf(monthNumber);
+                    } else {
+                        month = String.valueOf(monthNumber);
+                    }
+                } catch (DateTimeException e) {
+                    // Not a valid English month abbreviation (e.g. a season token). Fall back to "01"
+                    // rather than letting the unchecked exception abort the entire EFetch batch.
+                    log.warn("Unable to parse month token '{}' in MedlineDate '{}'; defaulting to 01", month, medlineDate);
+                    month = "01";
                 }
-                
             }
             if(month == null) {
                 month = "01";
@@ -278,13 +281,21 @@ public class PubmedEFetchHandler extends DefaultHandler {
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 
-        chars.setLength(0);
+        // Fix #14: Only clear accumulated text when not inside ArticleTitle or AbstractText.
+        // PubMed XML can contain inline markup (MathML, <i>, <b>, <sup>, <sub>) inside
+        // these elements. Clearing chars on nested elements would discard the preceding text.
+        if (!(bArticleTitle || (bAbstractText && bAbstract))) {
+            chars.setLength(0);
+        }
 
         if (qName.equalsIgnoreCase("PubmedArticleSet")) {
             pubmedArticles = new ArrayList<>(); // create a new list of PubmedArticle.
         }
         if (qName.equalsIgnoreCase("PubmedArticle")) {
             pubmedArticle = PubMedArticle.builder().build(); // create a new PubmedArticle.
+        }
+        if (qName.equalsIgnoreCase("PubmedBookArticle")) {
+            pubmedArticle = null; // Prevent book article fields from corrupting previous article
         }
         //This check was introduced for articles which are of book type returning  <PubmedBookArticle> tag
         if (pubmedArticle != null) {
@@ -306,7 +317,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bArticleTitle = true;
             }
 
-            if (qName.equalsIgnoreCase("ELocationID") && attributes.getValue("EIdType").equalsIgnoreCase("doi")) {
+            if (qName.equalsIgnoreCase("ELocationID") && "doi".equalsIgnoreCase(attributes.getValue("EIdType"))) {
                 pubmedArticle.getMedlinecitation().getArticle().setElocationid(MedlineCitationArticleELocationID.builder().build());
                 bELocationID = true;
             }
@@ -397,6 +408,10 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             if (qName.equalsIgnoreCase("Author")) {
                 MedlineCitationArticleAuthor author = MedlineCitationArticleAuthor.builder().build();
+                // Set equalContrib on this single author object when the attribute is present.
+                if (getEqualContrib(attributes) != null) {
+                    author.setEqualContrib(getEqualContrib(attributes));
+                }
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().add(author); // add author to author list.
                 bAuthor = true;
             }
@@ -412,22 +427,8 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (qName.equalsIgnoreCase("Affiliation")) {
                 bAffiliation = true;
             }
-            // Check if author has EqualContrib attribute
-
-						if (qName.equalsIgnoreCase("Author") && bAuthorList && getEqualContrib(attributes)!=null)
-            			{
-							  MedlineCitationArticleAuthor author = MedlineCitationArticleAuthor.builder().build();
-							  author.setEqualContrib(getEqualContrib(attributes));
-            		pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().add(author); // add author to author list.
-			          bEqualContrib = true;
-            }
             if(qName.equalsIgnoreCase("Identifier") && bAuthorList && isOrcid(attributes)) {
                 bOrcid = true;
-            }
-            if (qName.equalsIgnoreCase("AuthorList") &&
-                    pubmedArticle != null) {
-                pubmedArticle.getMedlinecitation().getArticle().setAuthorlist(new ArrayList<>()); // set the PubmedArticle's MedlineCitation's MedlineCitationArticle's title.
-                bAuthorList = true;
             }
             if (qName.equalsIgnoreCase("Abstract") &&
                     pubmedArticle != null) {
@@ -556,7 +557,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
         // Get DOI from <ArticleId IdType="doi">DOI here</ArticleId> in cases where ELocationID is missing. This is typically for older publications
         // But only extract DOI if we are NOT inside a Reference tag
 
-            if (qName.equalsIgnoreCase("ArticleId") && !bReference && !bReferenceList && attributes.getValue("IdType").equalsIgnoreCase("doi") && bELocationID != true) {
+            if (qName.equalsIgnoreCase("ArticleId") && !bReference && !bReferenceList && "doi".equalsIgnoreCase(attributes.getValue("IdType")) && bELocationID != true) {
                 pubmedArticle.getMedlinecitation().getArticle().setElocationid(MedlineCitationArticleELocationID.builder().build());
                 bELocationID = true;
             }
@@ -583,12 +584,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
             }
             
 
-            // not used.
-            //      if (qName.equalsIgnoreCase("RefSource") && bCommentsCorrections) {
-            //          bCommentsCorrectionsRefSource = true;
-            //      }
             if (qName.equalsIgnoreCase("PMID") && bCommentsCorrections) {
-                //          bCommentsCorrectionsPmidVersion = true;
                 bCommentsCorrectionsPmid = true;
             }
 
@@ -634,25 +630,14 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bArticleIdList = true;
             }
 
-            if (qName.equalsIgnoreCase("ArticleId") && !bReferenceArticleIdList && !bReferenceArticleId && !bReference) {  
+            if (qName.equalsIgnoreCase("ArticleId") && !bReferenceArticleIdList && !bReferenceArticleId && !bReference) {
                 bArticleId = true;
                 String idType = getArticleIdType(attributes);
-                if ("pubmed".equals(idType)) {
-                    bArticleIdPubMed = true;
-                } else if ("pii".equals(idType)) {
-                    bArticleIdPii = true;
-                } else if ("doi".equals(idType)) {
-                    bArticleIdDoi = true;
-                } else if ("pmc".equals(idType)) {
+                if ("pmc".equals(idType)) {
                     pubmedArticle.getPubmeddata().setArticleIdList(new ArticleIdList());
                     bArticleIdPmc = true;
                 }
             }
-            /*if(qName.equalsIgnoreCase("CoiStatement"))
-            {
-            	 String coiStatment = chars.toString();
-                 pubmedArticle.getMedlinecitation().setCoiStatement(coiStatment);
-            }*/
         }
     }
 
@@ -682,13 +667,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
             
                 // Delete certain non-printable, hexadecimal characters
                 articleTitle = articleTitle.replaceAll("[\u2029\u0099\u2003]", "");
-            
-                // Output the encoding being used
-                // System.out.println("Encoding: " + Charset.defaultCharset().displayName());
-            
-                // Output the value of articleTitle
-                // System.out.println("Article Title: " + articleTitle);
-            
+
                 // Set the title of the article.
                 pubmedArticle.getMedlinecitation().getArticle().setArticletitle(articleTitle); 
                 bArticleTitle = false;
@@ -729,13 +708,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bAuthorInitials = false;
             }
 
-            // Author equal contribution
-            if (bAuthorEqualContrib) {
-              int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
-              pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setEqualContrib("Y");
-              bAuthorEqualContrib = false; 
-            }
-
             // Author affiliations.
             if (bAffiliation) {
 
@@ -761,15 +733,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 }
                 pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setAffiliation(affiliations);
                 bAffiliation = false;
-            }
-            //Author EqualContrib flag
-            if(qName.equalsIgnoreCase("Author") && bAuthorList && bEqualContrib)
-            {
-            	
-            	int lastInsertedIndex = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().size() - 1;
-            	String equalContrib = pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).getEqualContrib();
-            	pubmedArticle.getMedlinecitation().getArticle().getAuthorlist().get(lastInsertedIndex).setEqualContrib(equalContrib);
-                bEqualContrib = false;
             }
             
             // Author ORCID identifier
@@ -834,13 +797,19 @@ public class PubmedEFetchHandler extends DefaultHandler {
             if (bPubDate && bPubDateMonth) {
                 String pubDateMonth = chars.toString();
                 if(pubDateMonth.trim().length() == 3) {
-                    DateTimeFormatter parser = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.ENGLISH);
-                    TemporalAccessor accessor = parser.parse(pubDateMonth);
-                    int monthNumber = accessor.get(ChronoField.MONTH_OF_YEAR);
-                    if(monthNumber != 0 && monthNumber < 10 ) {
-                        pubDateMonth = "0" + String.valueOf(monthNumber);
-                    } else {
-                        pubDateMonth = String.valueOf(monthNumber);
+                    try {
+                        DateTimeFormatter parser = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.ENGLISH);
+                        TemporalAccessor accessor = parser.parse(pubDateMonth);
+                        int monthNumber = accessor.get(ChronoField.MONTH_OF_YEAR);
+                        if(monthNumber != 0 && monthNumber < 10 ) {
+                            pubDateMonth = "0" + String.valueOf(monthNumber);
+                        } else {
+                            pubDateMonth = String.valueOf(monthNumber);
+                        }
+                    } catch (DateTimeException e) {
+                        // 3-char value that isn't a valid English month abbreviation (e.g. a season token).
+                        // Keep the raw value instead of letting the unchecked exception abort the entire EFetch batch.
+                        log.warn("Unable to parse PubDate month token '{}'; keeping raw value", pubDateMonth);
                     }
                 }
                 pubmedArticle.getMedlinecitation().getArticle().getJournal().getJournalissue().getPubdate().setMonth(pubDateMonth);
@@ -1130,21 +1099,11 @@ public class PubmedEFetchHandler extends DefaultHandler {
                 bReference = false;
             }
             if(qName.equalsIgnoreCase("CoiStatement") && bCoiStatement) {
-            	
+
             	  String coiStatement = chars.toString();
-                  pubmedArticle.getMedlinecitation().setCoiStatement(coiStatement); 
+                  pubmedArticle.getMedlinecitation().setCoiStatement(coiStatement);
                   bCoiStatement = false;
             }
-
-            /*if (qName.equalsIgnoreCase("ArticleIdList")) {
-                bArticleIdList = false;
-                bArticleId = false;
-                bArticleIdPubMed = false;
-                bArticleIdPii = false;
-                bArticleIdDoi = false;
-            }*/
-
-            
         }
     }
 
@@ -1158,11 +1117,6 @@ public class PubmedEFetchHandler extends DefaultHandler {
         if (bArticle && bArticleTitle) {
             chars.append(ch, start, length);
         }
-
-        // Added handling for EqualContrib
-        if (bAuthorEqualContrib) {
-          chars.append(ch, start, length);
-        }              
 
         if (bELocationID) {
             chars.append(ch, start, length);
@@ -1257,9 +1211,7 @@ public class PubmedEFetchHandler extends DefaultHandler {
         }
 
         if (bGrant && bGrantCountry) {
-            if (chars.length() == 0) {
-                chars.append(ch, start, length);
-            }
+            chars.append(ch, start, length);
         }
         
         if(bPublicationTypeList && bPublicationType) {

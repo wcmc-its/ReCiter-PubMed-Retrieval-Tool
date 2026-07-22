@@ -6,7 +6,7 @@ phases:
       # amazon corretto java 17 version whcih was created from OpenJDK17
       java: corretto17
     commands:
-      - kubectl version --client   
+      - kubectl version --client
       - java -version
   pre_build:
       commands:
@@ -40,6 +40,7 @@ phases:
           if expr "${BRANCH}" : ".*master" >/dev/null; then
             sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-prod"'@'  -e 's@APPNAME@'"reciter-pubmed-prod"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
           fi
+
         - |
           if expr "${BRANCH}" : ".*MigrationFromJDk11ToAWSCorretto17" >/dev/null; then
             sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-prod"'@' -e 's@APPNAME@'"reciter-pubmed-prod"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
@@ -49,8 +50,14 @@ phases:
         - cat ./kubernetes/k8-deployment.yaml
   build:
     commands:
+
       - echo "************** BUILD START **************"
-      - mvn clean install -Dmaven.test.skip=true
+      - mvn clean install -Dmaven.test.skip=false
+
+      # Run the curated unit tests while excluding the live load tests
+      # (ReCiterPubmedApiLoadTest / LoadTest), which 403 without a running service.
+      #- mvn clean install -Dtest=PubmedEFetchHandlerTest,PubMedUriParserCallableTest,PubMedArticleRetrievalServiceTest -DfailIfNoTests=false
+
       - |
         if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null || expr "${BRANCH}" : ".*MigrationFromJDk11ToAWSCorretto17" >/dev/null; then
           docker build --tag $REPOSITORY_URI:$TAG .
