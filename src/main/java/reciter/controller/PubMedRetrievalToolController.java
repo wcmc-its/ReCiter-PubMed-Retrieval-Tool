@@ -119,6 +119,7 @@ public class PubMedRetrievalToolController {
                 .build();
 
         try {
+            reciter.pubmed.retriever.NcbiRateLimiter.INSTANCE.acquire();
             HttpResponse<InputStream> response = HTTP_CLIENT.send(
                     request, HttpResponse.BodyHandlers.ofInputStream());
 
@@ -147,6 +148,7 @@ public class PubMedRetrievalToolController {
                         log.error("InterruptedException during rate-limit pause", ie);
                     }
                     // Retry only after confirmed sleep — matches original retry placement
+                    reciter.pubmed.retriever.NcbiRateLimiter.INSTANCE.acquire();
                     response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
                 }
             }
@@ -167,8 +169,12 @@ public class PubMedRetrievalToolController {
                 return resolveESearchCount(json, pubMedQuery.toString());
             }
 
+            // A non-JSON body is an NCBI error/HTML throttle page, not a real "0 results".
+            // Surface it (500 to the caller) instead of returning 0, so ReCiter's getNumberOfResults
+            // sees the failure and rolls its retrievalDate watermark back rather than silently
+            // skipping the window. See wcmc-its/ReCiter#689.
             log.error("Unexpected response (not JSON) — possibly an HTML error page.");
-            return 0;
+            throw new IOException("PubMed eSearch returned a non-JSON/error response for query=[" + pubMedQuery + "]");
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

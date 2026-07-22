@@ -124,7 +124,10 @@ spec:
     kind: Deployment
     name: APPNAME
   minReplicas: 1
-  maxReplicas: 4
+  # Cap at 3: the NCBI rate limiter is per-pod (default 3 req/s) and all pods share one
+  # PUBMED_API_KEY, so fleet rate = pods x 3/s vs NCBI's ~10/s per-key limit. 3 pods = 9/s.
+  # The tool is NCBI-throughput-bound, so extra pods add no throughput, only 429 risk. See #166/#689.
+  maxReplicas: 3
   metrics:
     - type: Resource
       resource:
