@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2019//EN" "https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_190101.dtd">
+<PubmedArticleSet>
+    <PubmedArticle>
+        <MedlineCitation Status="MEDLINE" Owner="NLM">
+            <PMID Version="1">99999999</PMID>
+            <Article PubModel="Print">
+                <ArticleTitle>Equal contributor de-duplication test article.</ArticleTitle>
+                <AuthorList CompleteYN="Y">
+                    <Author ValidYN="Y" EqualContrib="Y">
+                        <LastName>Smith</LastName>
+                        <ForeName>Alice B</ForeName>
+                        <Initials>AB</Initials>
+                    </Author>
+                    <Author ValidYN="Y" EqualContrib="Y">
+                        <LastName>Jones</LastName>
+                        <ForeName>Carlos D</ForeName>
+                        <Initials>CD</Initials>
+                    </Author>
+                    <Author ValidYN="Y">
+                        <LastName>Nguyen</LastName>
+                        <ForeName>Emma F</ForeName>
+                        <Initials>EF</Initials>
+                    </Author>
+                </AuthorList>
+            </Article>
+        </MedlineCitation>
+    </PubmedArticle>
+</PubmedArticleSet>

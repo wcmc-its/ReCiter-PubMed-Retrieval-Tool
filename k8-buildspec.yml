@@ -40,7 +40,6 @@ phases:
           if expr "${BRANCH}" : ".*master" >/dev/null; then
             sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-prod"'@'  -e 's@APPNAME@'"reciter-pubmed-prod"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
           fi
-
         - |
           if expr "${BRANCH}" : ".*MigrationFromJDk11ToAWSCorretto17" >/dev/null; then
             sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-prod"'@' -e 's@APPNAME@'"reciter-pubmed-prod"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
@@ -50,7 +49,6 @@ phases:
         - cat ./kubernetes/k8-deployment.yaml
   build:
     commands:
-
       - echo "************** BUILD START **************"
       - mvn clean install -Dmaven.test.skip=false
 
