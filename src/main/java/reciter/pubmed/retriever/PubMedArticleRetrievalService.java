@@ -3,8 +3,6 @@ package reciter.pubmed.retriever;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.http.HttpClient;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +40,6 @@ import reciter.pubmed.callable.PubMedUriParserCallable;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 import reciter.pubmed.xmlparser.PubmedEFetchHandler;
 
-
 @Service
 public class PubMedArticleRetrievalService {
 	
@@ -57,13 +54,8 @@ public class PubMedArticleRetrievalService {
      * query fits in a single EFetch batch, so no pagination is required.
      */
     private static final int RETRIEVAL_THRESHOLD = 2000;
-    
-	private static final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    
-    private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(30))
-            .build();
 
+    private static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Autowired
     private CloseableHttpClient pubMedHttpClient;
@@ -220,13 +212,8 @@ public class PubMedArticleRetrievalService {
         if (responseString == null || responseString.trim().isEmpty()
                 || !responseString.trim().startsWith("{")
                 || !objectMapper.readTree(responseString).has("esearchresult")) {
-            
-            log.error("Unexpected response (not JSON), possibly an HTML error page. Query=[{}]", term);
-            // Throw instead of silently returning count=0, so this propagates up through
-            // getNumberOfPubMedArticles() -> retrieve(), and is caught by @Retryable on retrieve()
-            // (maxAttempts=7, backoff 1500-9000ms) instead of being swallowed as a false "0 results".
-            throw new IOException("ESearch returned non-JSON response (possible rate-limit/HTML error page) for query=[" + term + "]");
-           // return eSearchResult;
+            log.error("Unexpected response (not JSON), possibly an HTML error page.");
+            return eSearchResult;
         }
 
         JsonNode json = objectMapper.readTree(responseString).get("esearchresult");
@@ -252,9 +239,7 @@ public class PubMedArticleRetrievalService {
      * Response entities are always closed via try-with-resources.
      */
     private String executeReadingBody(HttpPost httppost, String query) throws IOException {
-        try 
-        {
-        	CloseableHttpResponse response = pubMedHttpClient.execute(httppost);
+        try (CloseableHttpResponse response = pubMedHttpClient.execute(httppost)) {
             if (shouldRetryAfterRateLimit(response, query)) {
                 try (CloseableHttpResponse retryResponse = pubMedHttpClient.execute(httppost)) {
                     return readBody(retryResponse);
@@ -262,10 +247,6 @@ public class PubMedArticleRetrievalService {
             }
             return readBody(response);
         }
-        catch (IOException e) {
-			log.error("IOException during ESearch for query=[{}]", query, e);
-			throw e;
-		}
     }
 
     private static String readBody(CloseableHttpResponse response) throws IOException {
@@ -291,37 +272,23 @@ public class PubMedArticleRetrievalService {
         Header[] headerRateLimit = response.getHeaders("X-RateLimit-Limit");
         Header[] headerRetryAfter = response.getHeaders("Retry-After");
 
-        int statusCode = response.getStatusLine().getStatusCode();
-        
         if (headerRateLimit != null && headerRateLimit.length > 0 && headerRateLimit[0] != null
                 && headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null) {
             log.info("Query=[{}] {} {}", query, headerRateLimit[0].toString(), headerRateLimitRemaining[0].toString());
         }
 
-        boolean quotaExhausted = headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0
-                && headerRateLimitRemaining[0] != null
-                && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0;
-        
-       // if (headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null
-         //       && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0) {
-     // Trigger the inline retry-and-sleep on either signal: NCBI's declared quota exhaustion
-        // (X-RateLimit-Remaining == 0), or a bare HTTP 429 that may arrive with no rate-limit
-        // headers at all (e.g. an HTML error page).
-        if (statusCode == 429 || quotaExhausted) {
-        	long sleepSeconds = 1L; // default backoff when Retry-After is absent
+        if (headerRateLimitRemaining != null && headerRateLimitRemaining.length > 0 && headerRateLimitRemaining[0] != null
+                && Integer.parseInt(headerRateLimitRemaining[0].getValue()) == 0) {
             if (headerRetryAfter != null && headerRetryAfter.length > 0 && headerRetryAfter[0] != null) {
                 log.info("Query=[{}] {}", query, headerRetryAfter[0].toString());
-                sleepSeconds = Long.parseLong(headerRetryAfter[0].getValue());
-                }else {
-                	log.info("Query=[{}] Retry-After header not present, using default sleep of {} seconds.", query, sleepSeconds);
-				}
                 try {
-                    Thread.sleep(sleepSeconds * 1000L);
+                    Thread.sleep(Long.parseLong(headerRetryAfter[0].getValue()) * 1000L);
                 } catch (InterruptedException e) {
                     log.error("InterruptedException", e);
                     Thread.currentThread().interrupt();
                 }
                 return true;
+            }
         }
         return false;
     }
