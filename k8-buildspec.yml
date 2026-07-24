@@ -1,70 +1,143 @@
+apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: APPNAME
+  namespace: NAMESPACE
+  labels:
+    app: APPNAME
+    environment: ENVIRONMENT_LABEL
+    tier: backend
+    owner: szd2013
+spec:
+  selector:
+    matchLabels:
+      app: APPNAME
+      environment: ENVIRONMENT_LABEL
+      tier: backend
+      owner: szd2013
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: APPNAME
+        environment: ENVIRONMENT_LABEL
+        tier: backend
+        owner: szd2013
+    spec:
+      containers:
+        - image: CONTAINER_IMAGE
+          name: reciter-pubmed
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PUBMED_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pubmed-secret
+                  key: PUBMED_API_KEY
+            - name: SERVER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: ENVCONFIG
+                  key: SERVER_PORT
+            - name: JAVA_OPTIONS
+              value: "-Xmx2000m"
+          ports:
+            - containerPort: 5000
+              name: reciter-pubmed
+          resources:
+            requests:
+              memory: 2.5G
+              cpu: 1
+            limits:
+              memory: 2.6G
+              cpu: 1
+          livenessProbe:
+            httpGet:
+              path: "/pubmed/ping"
+              port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: "pubmed/ping"
+              port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+        - image: nginx:alpine
+          name: nginx
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: 200m
+              memory: 300Mi
+            requests:
+              cpu: 200m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: "/nginx-health"
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: "/nginx-health"
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 1
+            failureThreshold: 1
+            timeoutSeconds: 1
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+      nodeSelector:
+        lifecycle: Ec2Spot
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: pubmed-nginx-configmap
+
 ---
-version: 0.2
-phases:
-  install:
-    runtime-versions:
-      # amazon corretto java 17 version whcih was created from OpenJDK17
-      java: corretto17
-    commands:
-      - kubectl version --client   
-      - java -version
-  pre_build:
-      commands:
-        - echo "************** PRE_BUILD START **************"
-        # Fetch Docker credentials from AWS Secrets Manager
-        - echo "Fetching Docker credentials from AWS Secrets Manager"
-        - SECRET=$(aws secretsmanager get-secret-value --secret-id docker-hub-credentials --query "SecretString" --output text)
-      
-        # Extract username and password from the JSON response
-        - DOCKER_USERNAME=$(echo $SECRET | sed -n 's/.*"username":"\([^"]*\)".*/\1/p')
-        - DOCKER_PASSWORD=$(echo $SECRET | sed -n 's/.*"password":"\([^"]*\)".*/\1/p')
-      
-        # Print the Docker username to the CodeBuild log
-        - echo "Docker Username $DOCKER_USERNAME"
-        
-        # Log in to Docker registry
-        - echo "Logging in to Docker registry"
-        - echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USERNAME --password-stdin
-        
-        - TAG="${BRANCH}-$CODEBUILD_BUILD_NUMBER.$(date +%Y-%m-%d.%H.%M.%S).$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
-        - echo $TAG
-        - sed -i.bak -e 's@CONTAINER_IMAGE@'"$REPOSITORY_URI:$TAG"'@' kubernetes/k8-deployment.yaml
-        - echo "${CODEBUILD_WEBHOOK_HEAD_REF}"
-        - echo "${BRANCH}"
-        - echo "${AWS_REGION}"
-        - |
-          if expr "${BRANCH}" : ".*dev" >/dev/null; then
-            sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-dev"'@' -e 's@APPNAME@'"reciter-pubmed-dev"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-dev"'@' -e 's@ENVIRONMENT_LABEL@'"dev"'@' kubernetes/k8-deployment.yaml;
-          fi
-        - |
-          if expr "${BRANCH}" : ".*master" >/dev/null; then
-            sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-prod"'@'  -e 's@APPNAME@'"reciter-pubmed-prod"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
-          fi
-        - |
-          if expr "${BRANCH}" : ".*MigrationFromJDk11ToAWSCorretto17" >/dev/null; then
-            sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-prod"'@' -e 's@APPNAME@'"reciter-pubmed-prod"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
-          fi
-        #- $(aws ecr get-login --no-include-email)
-        - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
-        - cat ./kubernetes/k8-deployment.yaml
-  build:
-    commands:
-      - echo "************** BUILD START **************"
-      - mvn clean install -Dmaven.test.skip=true
-      - |
-        if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null || expr "${BRANCH}" : ".*MigrationFromJDk11ToAWSCorretto17" >/dev/null; then
-          docker build --tag $REPOSITORY_URI:$TAG .
-          docker push $REPOSITORY_URI:$TAG
-          # Log out from the Docker registry to clear credentials
-          docker logout $REPOSITORY_URI
-          aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region us-east-1 --role-arn $EKS_KUBECTL_ROLE_ARN
-        fi
-        if expr "${BRANCH}" : ".*master" >/dev/null; then
-          kubectl set image deployment/reciter-pubmed-prod reciter-pubmed=$REPOSITORY_URI:$TAG -n $EKS_CLUSTER_NAME
-        fi
-        if expr "${BRANCH}" : ".*dev" >/dev/null; then
-          kubectl set image deployment/reciter-pubmed-dev reciter-pubmed=$REPOSITORY_URI:$TAG -n $EKS_CLUSTER_NAME
-        fi
-        if expr "${BRANCH}" : ".*MigrationFromJDk11ToAWSCorretto17" >/dev/null; then
-          kubectl set image deployment/reciter-pubmed-prod reciter-pubmed=$REPOSITORY_URI:$TAG -n $EKS_CLUSTER_NAME
-        fi
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: HPANAME
+  namespace: NAMESPACE
+  labels:
+    app: APPNAME
+    environment: ENVIRONMENT_LABEL
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: APPNAME
+  minReplicas: 1
+  # Cap at 3: the NCBI rate limiter is per-pod (default 3 req/s) and all pods share one
+  # PUBMED_API_KEY, so fleet rate = pods x 3/s vs NCBI's ~10/s per-key limit. 3 pods = 9/s.
+  # The tool is NCBI-throughput-bound, so extra pods add no throughput, only 429 risk. See #166/#689.
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 85

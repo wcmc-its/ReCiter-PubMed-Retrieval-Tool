@@ -93,25 +93,19 @@ public class PubmedXmlQuery {
 
     /**
      * Constructs a ESearch query String.
-     *
-     * @return a String in the format http://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&usehistory=y&term=Kukafka%20R[au]
      */
     public String buildESearchQuery() {
-        // Java 17: String.formatted() — cleaner than chained StringBuilder appends
         return ESEARCH_BASE_URL
                 + buildApiKeyPrefix()
-                + "db="        + db
-                + "&term="     + term
-                + "&retmax="   + retMax
+                + "db="          + db
+                + "&term="       + term
+                + "&retmax="     + retMax
                 + "&usehistory=" + useHistory
-                + "&retmode="  + retMode;
+                + "&retmode="    + retMode;
     }
     
     /**
      * Construct a EFetch query String.
-     *
-     * @return a String in the format
-     * http://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?retmode=xml&db=pubmed&retstart=retstart&retmax=retmax&query_key=1&WebEnv=webenv
      */
     public String buildEFetchQuery() {
         return EFETCH_BASE_URL
@@ -123,21 +117,26 @@ public class PubmedXmlQuery {
                 + "&retmode=xml"
                 + "&WebEnv="     + webEnv;
     }
-    
+
     /**
      * Builds the URL prefix segment for the API key.
-     *
-     * Java 17: replaces duplicated nested null+empty check in both buildESearchQuery()
-     * and buildEFetchQuery() with a single extracted method.
-     *
-     * Returns:
-     *   "?api_key=KEY&"  when apiKey is set and non-empty
-     *   "?"              otherwise (next segment starts with "db=")
+     * Returns "?api_key=KEY&" when apiKey is set and non-empty, "?" otherwise.
      */
     private String buildApiKeyPrefix() {
         if (apiKey != null && !apiKey.isBlank()) {
             return "?api_key=" + apiKey + "&";
         }
         return "?";
+    }
+
+    /**
+     * Redacts the {@code api_key} value from a query URL so that the NCBI API key is never
+     * written to logs.
+     */
+    public static String redactApiKey(String url) {
+        if (url == null) {
+            return null;
+        }
+        return url.replaceAll("(?i)(api_key=)[^&]*", "$1REDACTED");
     }
 }
