@@ -1,5 +1,12 @@
 package reciter.pubmed.callable;
 
+import lombok.AllArgsConstructor;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import reciter.model.pubmed.PubMedArticle;
+import reciter.pubmed.xmlparser.PubmedEFetchHandler;
+
+import javax.xml.parsers.SAXParser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -7,17 +14,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
-
-import javax.xml.parsers.SAXParser;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
-import lombok.AllArgsConstructor;
-import reciter.model.pubmed.PubMedArticle;
-import reciter.pubmed.xmlparser.PubmedEFetchHandler;
 
 @AllArgsConstructor
 public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
@@ -29,31 +26,14 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
     private static final int READ_TIMEOUT_MILLIS = 60_000;
 
     /** Only the NCBI E-utilities host may be fetched (SSRF guard on the SAX system-id). */
-    private static final String EXPECTED_HOST = "www.ncbi.nlm.nih.gov";
+    private static final String EXPECTED_HOST = "eutils.ncbi.nlm.nih.gov";
 
     private final PubmedEFetchHandler xmlHandler;
     private final SAXParser saxParser;
     private final InputSource inputSource;
-    
-    private static final Map<String, String> TAG_REPLACEMENTS = Map.of(
-            "<sup>",  "&lt;sup&gt;",
-            "</sup>", "&lt;/sup&gt;",
-            "<sub>",  "&lt;sub&gt;",
-            "</sub>", "&lt;/sub&gt;",
-            "<i>",    "&lt;i&gt;",
-            "</i>",   "&lt;/i&gt;",
-            "<b>",    "&lt;b&gt;",
-            "</b>",   "&lt;/b&gt;"
-    );
-    
-    private static final String TAG_PATTERN = String.join("|",
-            TAG_REPLACEMENTS.keySet().stream()
-                    .map(java.util.regex.Pattern::quote)
-                    .toList()
-    );
-
 
     public List<PubMedArticle> parse(InputSource inputSource) throws SAXException, IOException {
+        //inputSource = preprocessSpecialCharacters(inputSource);
         saxParser.parse(inputSource, xmlHandler);
         return xmlHandler.getPubmedArticles();
     }
@@ -65,7 +45,10 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
 
     private InputSource preprocessSpecialCharacters(InputSource inputSource) throws IOException {
         String xml;
+        // Resolve InputStream from either a URL (systemId) or a byte stream. Pace the efetch
+        // fetch through the shared limiter so parallel pages don't trip NCBI's per-key 429.
         if (inputSource.getSystemId() != null) {
+            reciter.pubmed.retriever.NcbiRateLimiter.INSTANCE.acquire();
             URL url = new URL(inputSource.getSystemId());
             if (!EXPECTED_HOST.equalsIgnoreCase(url.getHost())) {
                 throw new IOException("Refusing to fetch EFetch XML from unexpected host: " + url.getHost());
@@ -89,5 +72,4 @@ public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
         xml = xml.replace("</b>", "&lt;/b&gt;");
         return new InputSource(new StringReader(xml));
     }
- 
 }

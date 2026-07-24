@@ -13,8 +13,10 @@ public class PubmedXmlQuery {
     /**
      * Required Parameters.
      */
-    public static final String ESEARCH_BASE_URL = "https://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi";
-    protected static final String EFETCH_BASE_URL = "https://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi";
+    // NCBI's current E-utilities host. The old www.ncbi.nlm.nih.gov/entrez/eutils host is
+    // deprecated and flaky (intermittent HTML error pages / empty results). See wcmc-its/ReCiter-PubMed-Retrieval-Tool#166.
+    public static final String ESEARCH_BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi";
+    protected static final String EFETCH_BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi";
 
     /**
      * Optional Parameters.
@@ -91,74 +93,45 @@ public class PubmedXmlQuery {
 
     /**
      * Constructs a ESearch query String.
-     *
-     * @return a String in the format http://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&usehistory=y&term=Kukafka%20R[au]
      */
     public String buildESearchQuery() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(ESEARCH_BASE_URL);
-        if(apiKey != null) {
-    		if(!apiKey.isEmpty()) {
-	        sb.append("?api_key=");
-	        sb.append(apiKey);
-	        sb.append("&db=");
-    		}
-        } else {
-        	sb.append("?db=");
-        }
-        sb.append(db);
-        sb.append("&term=");
-        sb.append(term);
-        sb.append("&retmax=");
-        sb.append(retMax);
-        sb.append("&usehistory=");
-        sb.append(useHistory);
-        sb.append("&retmode=");
-        sb.append(retMode);
-        
-        return sb.toString();
+        return ESEARCH_BASE_URL
+                + buildApiKeyPrefix()
+                + "db="          + db
+                + "&term="       + term
+                + "&retmax="     + retMax
+                + "&usehistory=" + useHistory
+                + "&retmode="    + retMode;
+    }
+    
+    /**
+     * Construct a EFetch query String.
+     */
+    public String buildEFetchQuery() {
+        return EFETCH_BASE_URL
+                + buildApiKeyPrefix()
+                + "db="          + db
+                + "&query_key="  + queryKey
+                + "&retstart="   + retStart
+                + "&retmax="     + retMax
+                + "&retmode=xml"
+                + "&WebEnv="     + webEnv;
     }
 
     /**
-     * Construct a EFetch query String.
-     *
-     * @return a String in the format
-     * http://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?retmode=xml&db=pubmed&retstart=retstart&retmax=retmax&query_key=1&WebEnv=webenv
+     * Builds the URL prefix segment for the API key.
+     * Returns "?api_key=KEY&" when apiKey is set and non-empty, "?" otherwise.
      */
-    public String buildEFetchQuery() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(EFETCH_BASE_URL);
-        if(apiKey != null) {
-    		if(!apiKey.isEmpty()) {
-	        sb.append("?api_key=");
-	        sb.append(apiKey);
-	        sb.append("&db=");
-    		}
-        } else {
-        	sb.append("?db=");
+    private String buildApiKeyPrefix() {
+        if (apiKey != null && !apiKey.isBlank()) {
+            return "?api_key=" + apiKey + "&";
         }
-        sb.append(db);
-        sb.append("&query_key=");
-        sb.append(queryKey);
-        sb.append("&retstart=");
-        sb.append(retStart);
-        sb.append("&retmax=");
-        sb.append(retMax);
-        sb.append("&retmode=");
-        sb.append("xml");               
-        sb.append("&WebEnv=");
-        sb.append(webEnv);
-
-        return sb.toString();
+        return "?";
     }
 
     /**
      * Redacts the {@code api_key} value from a query URL so that the NCBI API key is never
-     * written to logs. The key value is replaced with {@code REDACTED} while preserving the
-     * rest of the URL for debugging.
-     *
-     * @param url a query URL that may contain an {@code api_key} parameter
-     * @return the URL with the api_key value redacted, or {@code null} if the input was null
+     * written to logs.
      */
     public static String redactApiKey(String url) {
         if (url == null) {
