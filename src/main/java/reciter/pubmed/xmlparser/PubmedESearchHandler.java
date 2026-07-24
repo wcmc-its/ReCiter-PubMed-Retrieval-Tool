@@ -2,8 +2,6 @@ package reciter.pubmed.xmlparser;
 
 import org.xml.sax.helpers.DefaultHandler;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * A SAX handler for parsing the ESearch query from PubMed.
  *
@@ -12,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @author Jie
  */
-@Slf4j
 public class PubmedESearchHandler extends DefaultHandler {
 
     private String webEnv;

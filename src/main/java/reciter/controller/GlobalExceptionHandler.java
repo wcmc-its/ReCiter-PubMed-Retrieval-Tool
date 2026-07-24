@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Global exception handler producing clean JSON error responses without leaking stack traces
@@ -21,10 +21,12 @@ import lombok.extern.slf4j.Slf4j;
  * body so callers can distinguish it from a generic failure. All other uncaught exceptions are
  * mapped to a generic {@code 500 Internal Server Error} body with no internal detail.
  */
-@Slf4j
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+	
     /** Marker substring identifying the threshold-exceeded IOException message. */
     private static final String THRESHOLD_EXCEEDED_MARKER = "exceeded the threshold level";
 

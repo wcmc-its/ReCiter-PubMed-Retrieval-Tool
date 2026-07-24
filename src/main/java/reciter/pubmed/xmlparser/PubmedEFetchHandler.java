@@ -28,11 +28,12 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import lombok.extern.slf4j.Slf4j;
 import reciter.model.pubmed.ArticleIdList;
 import reciter.model.pubmed.History;
 import reciter.model.pubmed.MedlineCitation;
@@ -65,8 +66,9 @@ import reciter.model.pubmed.PubMedPubDate;
  *
  * @author jil3004
  */
-@Slf4j
 public class PubmedEFetchHandler extends DefaultHandler {
+	
+	private static final Logger log = LoggerFactory.getLogger(PubmedEFetchHandler.class);
 
     private boolean bPubmedArticleSet;
     private boolean bPubmedArticle;
