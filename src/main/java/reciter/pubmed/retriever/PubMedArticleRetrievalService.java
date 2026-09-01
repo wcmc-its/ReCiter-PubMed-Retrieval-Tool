@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reciter.model.pubmed.PubMedArticle;
 import reciter.model.pubmed.PubmedESearchResult;
+import reciter.pubmed.NcbiHttp;
 import reciter.pubmed.callable.PubMedUriParserCallable;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 import reciter.pubmed.xmlparser.PubmedEFetchHandler;
@@ -87,7 +88,7 @@ public class PubMedArticleRetrievalService {
      * Initializes and starts threads that handles the retrieval process. Partition the number of articles
      * into manageable pieces and ask each thread to handle one partition.
      */
-    @Retryable(maxAttempts = 7, retryFor = RuntimeException.class, 
+    @Retryable(maxAttempts = 7, retryFor = { RuntimeException.class, IOException.class },
         backoff = @Backoff(random = true, delay = 1500, maxDelay = 9000), listeners = {"retryListener"})
 	public List<PubMedArticle> retrieve(String pubMedQuery) throws IOException {
 
@@ -209,46 +210,41 @@ public class PubMedArticleRetrievalService {
      *  - Retry happens ONLY when both conditions are true — same as original
      */
     private PubmedESearchResult executeRequestWithRetry(HttpRequest request, String query) throws IOException {
-        try {
-            NcbiRateLimiter.INSTANCE.acquire();
-            HttpResponse<InputStream> response = httpClient.send(request,
-                    HttpResponse.BodyHandlers.ofInputStream());
+        // NcbiHttp.sendWithRetry calls NcbiRateLimiter.INSTANCE.acquire() before every attempt
+        // (including retries) and retries a transient IOException (e.g. a pooled connection NCBI
+        // reset underneath us) instead of failing on the first attempt.
+        HttpResponse<InputStream> response = NcbiHttp.sendWithRetry(httpClient, request, 4);
 
-            // orElse(-1): absent header → -1 → block never triggers (matches original null/length guard)
-            int rateLimitRemaining = (int) response.headers()
-                    .firstValueAsLong("X-RateLimit-Remaining")
-                    .orElse(-1L);
+        // orElse(-1): absent header → -1 → block never triggers (matches original null/length guard)
+        int rateLimitRemaining = (int) response.headers()
+                .firstValueAsLong("X-RateLimit-Remaining")
+                .orElse(-1L);
 
-            log.info("Query: {} RateLimit-Remaining: {}", query, rateLimitRemaining);
+        log.info("Query: {} RateLimit-Remaining: {}", query, rateLimitRemaining);
 
-            if (rateLimitRemaining == 0) {
-                // Inner guard: only sleep+retry if Retry-After header is present
-                // matches: headerRetryAfter != null && length > 0 && headerRetryAfter[0] != null
-                OptionalLong retryAfter = response.headers().firstValueAsLong("Retry-After");
-                if (retryAfter.isPresent()) {
-                    long sleepSeconds = retryAfter.getAsLong();
-                    log.info("Rate limit hit. Query: {} Retry-After: {} seconds", query, sleepSeconds);
-                    try {
-                        Thread.sleep(sleepSeconds * 1000L);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        log.error("InterruptedException during rate-limit pause", e);
-                    }
-                    // Retry only after confirmed sleep — matches original retry placement
-                    response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        if (rateLimitRemaining == 0) {
+            // Inner guard: only sleep+retry if Retry-After header is present
+            // matches: headerRetryAfter != null && length > 0 && headerRetryAfter[0] != null
+            OptionalLong retryAfter = response.headers().firstValueAsLong("Retry-After");
+            if (retryAfter.isPresent()) {
+                long sleepSeconds = retryAfter.getAsLong();
+                log.info("Rate limit hit. Query: {} Retry-After: {} seconds", query, sleepSeconds);
+                try {
+                    Thread.sleep(sleepSeconds * 1000L);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.error("InterruptedException during rate-limit pause", e);
                 }
+                // Retry only after confirmed sleep — matches original retry placement
+                response = NcbiHttp.sendWithRetry(httpClient, request, 4);
             }
+        }
 
-            try (InputStream esearchStream = response.body()) {
-                JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
-                if (json != null) {
-                    return objectMapper.treeToValue(json, PubmedESearchResult.class);
-                }
+        try (InputStream esearchStream = response.body()) {
+            JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
+            if (json != null) {
+                return objectMapper.treeToValue(json, PubmedESearchResult.class);
             }
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("HTTP request interrupted for query=[" + query + "]", e);
         }
 
         return new PubmedESearchResult();
