@@ -123,13 +123,13 @@ public class PubMedArticleRetrievalService {
 			}
 
 			String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
-			log.info("eFetchUrl=[{}].", eFetchUrl);
+			log.info("eFetchUrl=[{}].", PubmedXmlQuery.redactApiKey(eFetchUrl));
 
 			try {
 				callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(),
 						new InputSource(eFetchUrl)));
 			} catch (ParserConfigurationException | SAXException e) {
-				log.error("Failed to create PubMedUriParserCallable for url=[{}]", eFetchUrl, e);
+				log.error("Failed to create PubMedUriParserCallable for url=[{}]", PubmedXmlQuery.redactApiKey(eFetchUrl), e);
 			}
 
 			currentRetStart += pubmedXmlQuery.getRetMax();
@@ -177,7 +177,7 @@ public class PubMedArticleRetrievalService {
                 ? PubmedXmlQuery.ESEARCH_BASE_URL + "?api_key=" + pubmedXmlQuery.getApiKey()
                 : PubmedXmlQuery.ESEARCH_BASE_URL;
 
-        log.info("ESearch Query=[{}]", fullUrl);
+        log.info("ESearch Query=[{}]", PubmedXmlQuery.redactApiKey(fullUrl));
 
         // Build URL-encoded form body — StandardCharsets.UTF_8 avoids checked exception
         String formData = "db=" + URLEncoder.encode(pubmedXmlQuery.getDb(), StandardCharsets.UTF_8)
