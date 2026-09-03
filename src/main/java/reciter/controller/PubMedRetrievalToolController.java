@@ -43,6 +43,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import reciter.model.pubmed.PubMedArticle;
 import reciter.model.pubmed.PubmedESearchResult;
+import reciter.pubmed.NcbiHttp;
 import reciter.pubmed.model.PubMedQuery;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 import reciter.pubmed.retriever.PubMedArticleRetrievalService;
@@ -118,68 +119,62 @@ public class PubMedRetrievalToolController {
                 .POST(HttpRequest.BodyPublishers.ofString(formData))
                 .build();
 
-        try {
-            reciter.pubmed.retriever.NcbiRateLimiter.INSTANCE.acquire();
-            HttpResponse<InputStream> response = HTTP_CLIENT.send(
-                    request, HttpResponse.BodyHandlers.ofInputStream());
+        // NcbiHttp.sendWithRetry calls NcbiRateLimiter.INSTANCE.acquire() before every attempt
+        // (including retries) and retries a transient IOException (e.g. a pooled connection NCBI
+        // reset underneath us) instead of failing on the first attempt.
+        HttpResponse<InputStream> response = NcbiHttp.sendWithRetry(HTTP_CLIENT, request, 4);
 
-            // ── Rate-limit handling — matches original condition exactly ──
-            // orElse(-1): absent header → -1 → block never triggers (matches original null/length guard)
-            int rateLimitRemaining = (int) response.headers()
-                    .firstValueAsLong("X-RateLimit-Remaining")
-                    .orElse(-1L);
+        // ── Rate-limit handling — matches original condition exactly ──
+        // orElse(-1): absent header → -1 → block never triggers (matches original null/length guard)
+        int rateLimitRemaining = (int) response.headers()
+                .firstValueAsLong("X-RateLimit-Remaining")
+                .orElse(-1L);
 
-            // Log rate-limit headers when both are present (matches original guard)
-            response.headers().firstValue("X-RateLimit-Limit").ifPresent(limit ->
-                    log.info("Query: {} X-RateLimit-Limit: {} X-RateLimit-Remaining: {}",
-                            pubMedQuery, limit, rateLimitRemaining));
+        // Log rate-limit headers when both are present (matches original guard)
+        response.headers().firstValue("X-RateLimit-Limit").ifPresent(limit ->
+                log.info("Query: {} X-RateLimit-Limit: {} X-RateLimit-Remaining: {}",
+                        pubMedQuery, limit, rateLimitRemaining));
 
-            if (rateLimitRemaining == 0) {
-                // Inner guard: only sleep+retry if Retry-After header is present
-                // matches: headerRetryAfter != null && length > 0 && headerRetryAfter[0] != null
-                OptionalLong retryAfter = response.headers().firstValueAsLong("Retry-After");
-                if (retryAfter.isPresent()) {
-                    long sleepSeconds = retryAfter.getAsLong();
-                    log.info("Rate limit hit. Query: {} Retry-After: {} seconds", pubMedQuery, sleepSeconds);
-                    try {
-                        Thread.sleep(sleepSeconds * 1000L);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        log.error("InterruptedException during rate-limit pause", ie);
-                    }
-                    // Retry only after confirmed sleep — matches original retry placement
-                    reciter.pubmed.retriever.NcbiRateLimiter.INSTANCE.acquire();
-                    response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        if (rateLimitRemaining == 0) {
+            // Inner guard: only sleep+retry if Retry-After header is present
+            // matches: headerRetryAfter != null && length > 0 && headerRetryAfter[0] != null
+            OptionalLong retryAfter = response.headers().firstValueAsLong("Retry-After");
+            if (retryAfter.isPresent()) {
+                long sleepSeconds = retryAfter.getAsLong();
+                log.info("Rate limit hit. Query: {} Retry-After: {} seconds", pubMedQuery, sleepSeconds);
+                try {
+                    Thread.sleep(sleepSeconds * 1000L);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    log.error("InterruptedException during rate-limit pause", ie);
                 }
+                // Retry only after confirmed sleep — matches original retry placement
+                response = NcbiHttp.sendWithRetry(HTTP_CLIENT, request, 4);
             }
-
-            // ── Parse response body ──
-            // readAllBytes() replaces IOUtils.copy() + StringWriter — no Apache Commons IO
-            String responseString = new String(response.body().readAllBytes(), StandardCharsets.UTF_8);
-            log.info("PubMed eSearch raw response: {}", responseString);
-
-            if (responseString != null
-                    && !responseString.isBlank()
-                    && responseString.trim().startsWith("{")
-                    && OBJECT_MAPPER.readTree(responseString).has("esearchresult")) {
-
-                JsonNode json = OBJECT_MAPPER.readTree(responseString).get("esearchresult");
-                log.info("PubMed Response Json: {}", json);
-
-                return resolveESearchCount(json, pubMedQuery.toString());
-            }
-
-            // A non-JSON body is an NCBI error/HTML throttle page, not a real "0 results".
-            // Surface it (500 to the caller) instead of returning 0, so ReCiter's getNumberOfResults
-            // sees the failure and rolls its retrievalDate watermark back rather than silently
-            // skipping the window. See wcmc-its/ReCiter#689.
-            log.error("Unexpected response (not JSON) — possibly an HTML error page.");
-            throw new IOException("PubMed eSearch returned a non-JSON/error response for query=[" + pubMedQuery + "]");
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("HTTP request interrupted for query=[" + pubMedQuery + "]", e);
         }
+
+        // ── Parse response body ──
+        // readAllBytes() replaces IOUtils.copy() + StringWriter — no Apache Commons IO
+        String responseString = new String(response.body().readAllBytes(), StandardCharsets.UTF_8);
+        log.info("PubMed eSearch raw response: {}", responseString);
+
+        if (responseString != null
+                && !responseString.isBlank()
+                && responseString.trim().startsWith("{")
+                && OBJECT_MAPPER.readTree(responseString).has("esearchresult")) {
+
+            JsonNode json = OBJECT_MAPPER.readTree(responseString).get("esearchresult");
+            log.info("PubMed Response Json: {}", json);
+
+            return resolveESearchCount(json, pubMedQuery.toString());
+        }
+
+        // A non-JSON body is an NCBI error/HTML throttle page, not a real "0 results".
+        // Surface it (500 to the caller) instead of returning 0, so ReCiter's getNumberOfResults
+        // sees the failure and rolls its retrievalDate watermark back rather than silently
+        // skipping the window. See wcmc-its/ReCiter#689.
+        log.error("Unexpected response (not JSON) — possibly an HTML error page.");
+        throw new IOException("PubMed eSearch returned a non-JSON/error response for query=[" + pubMedQuery + "]");
     }
 
     private int resolveESearchCount(JsonNode json, String queryForLog) throws IOException {

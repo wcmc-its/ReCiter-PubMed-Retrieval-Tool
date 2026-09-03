@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reciter.model.pubmed.PubmedESearchResult;
+import reciter.pubmed.NcbiHttp;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 
 /**
@@ -108,45 +109,41 @@ public class PubmedESearchHandler extends DefaultHandler {
      */
     private static PubmedESearchResult executeWithRateLimitHandling(
             HttpRequest request, String eSearchUrl, String fullUrl) throws IOException {
-        try {
-            HttpResponse<InputStream> response = HTTP_CLIENT.send(
-                    request, HttpResponse.BodyHandlers.ofInputStream());
+        // NcbiHttp.sendWithRetry calls NcbiRateLimiter.INSTANCE.acquire() before every attempt
+        // (including retries) and retries a transient IOException (e.g. a pooled connection NCBI
+        // reset underneath us) instead of failing on the first attempt.
+        HttpResponse<InputStream> response = NcbiHttp.sendWithRetry(HTTP_CLIENT, request, 4);
 
-            // orElse(-1): absent header → -1 → block never triggers (matches original null/length guard)
-            int rateLimitRemaining = (int) response.headers()
-                    .firstValueAsLong("X-RateLimit-Remaining")
-                    .orElse(-1L);
+        // orElse(-1): absent header → -1 → block never triggers (matches original null/length guard)
+        int rateLimitRemaining = (int) response.headers()
+                .firstValueAsLong("X-RateLimit-Remaining")
+                .orElse(-1L);
 
-            if (rateLimitRemaining == 0) {
-                // Inner guard: only sleep+retry if Retry-After header is present
-                // matches: headerRetryAfter != null && length > 0 && headerRetryAfter[0] != null
-                OptionalLong retryAfter = response.headers().firstValueAsLong("Retry-After");
-                if (retryAfter.isPresent()) {
-                    long sleepSeconds = retryAfter.getAsLong();
-                    log.info("Rate limit hit. eSearchUrl=[{}] Retry-After: {} seconds",
-                            PubmedXmlQuery.redactApiKey(eSearchUrl), sleepSeconds);
-                    try {
-                        Thread.sleep(sleepSeconds * 1000L);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        log.error("InterruptedException during rate-limit pause", ie);
-                    }
-                    // Retry only after confirmed sleep — matches original retry placement
-                    response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        if (rateLimitRemaining == 0) {
+            // Inner guard: only sleep+retry if Retry-After header is present
+            // matches: headerRetryAfter != null && length > 0 && headerRetryAfter[0] != null
+            OptionalLong retryAfter = response.headers().firstValueAsLong("Retry-After");
+            if (retryAfter.isPresent()) {
+                long sleepSeconds = retryAfter.getAsLong();
+                log.info("Rate limit hit. eSearchUrl=[{}] Retry-After: {} seconds",
+                        PubmedXmlQuery.redactApiKey(eSearchUrl), sleepSeconds);
+                try {
+                    Thread.sleep(sleepSeconds * 1000L);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    log.error("InterruptedException during rate-limit pause", ie);
                 }
+                // Retry only after confirmed sleep — matches original retry placement
+                response = NcbiHttp.sendWithRetry(HTTP_CLIENT, request, 4);
             }
+        }
 
-            // Parse esearchresult JSON from response body
-            try (InputStream esearchStream = response.body()) {
-                JsonNode json = OBJECT_MAPPER.readTree(esearchStream).get("esearchresult");
-                if (json != null) {
-                    return OBJECT_MAPPER.treeToValue(json, PubmedESearchResult.class);
-                }
+        // Parse esearchresult JSON from response body
+        try (InputStream esearchStream = response.body()) {
+            JsonNode json = OBJECT_MAPPER.readTree(esearchStream).get("esearchresult");
+            if (json != null) {
+                return OBJECT_MAPPER.treeToValue(json, PubmedESearchResult.class);
             }
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("HTTP request interrupted for eSearchUrl=[" + eSearchUrl + "]", e);
         }
 
         return new PubmedESearchResult();
