@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: corretto17
+      java: corretto21
     commands:
       - echo Nothing to do in the install phase...
   pre_build:
@@ -16,9 +16,9 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
-      - cp target/reciter-pubmed-retrieval-tool-1.1.0.jar .
+      - cp target/reciter-pubmed-retrieval-tool-4.0.0.jar .
 artifacts:
   files:
-    - reciter-pubmed-retrieval-tool-1.1.0.jar
+    - reciter-pubmed-retrieval-tool-4.0.0.jar
     - .ebextensions/**/* 
     - Procfile

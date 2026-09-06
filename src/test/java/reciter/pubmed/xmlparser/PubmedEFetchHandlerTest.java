@@ -1,8 +1,7 @@
 package reciter.pubmed.xmlparser;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.testng.Assert.assertEquals;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
@@ -10,10 +9,10 @@ import java.util.List;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.xml.sax.InputSource;
 
 import reciter.model.pubmed.PubMedArticle;
@@ -29,7 +28,7 @@ public class PubmedEFetchHandlerTest {
     private InputSource inputSource;
     private PubMedUriParserCallable pubMedUriParserCallable;
 
-    @BeforeClass
+    @BeforeEach
     public void setup() throws Exception {
         xmlHandler = new PubmedEFetchHandler();
         saxParser = SAXParserFactory.newInstance().newSAXParser();
