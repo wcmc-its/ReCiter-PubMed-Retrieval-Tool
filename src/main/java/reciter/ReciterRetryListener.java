@@ -16,7 +16,8 @@ public class ReciterRetryListener implements RetryListener {
 			Throwable throwable) {
 
 		if (throwable != null) {
-			log.error("Retry exhausted. Final exception:", throwable);
+			log.error("Retry exhausted after {} attempt(s). Final exception: {}: {}", context.getRetryCount(),
+					throwable.getClass().getName(), throwable.getMessage(), throwable);
 		}
 	}
 

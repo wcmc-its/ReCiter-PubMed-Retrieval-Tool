@@ -30,6 +30,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import reciter.model.pubmed.PubMedArticle;
+import reciter.model.pubmed.PubmedESearchResult;
+import reciter.pubmed.NcbiHttp;
 import reciter.pubmed.model.PubMedQuery;
 import reciter.pubmed.retriever.PubMedArticleRetrievalService;
 
@@ -67,12 +69,92 @@ public class PubMedRetrievalToolController {
     @PostMapping("/query-number-pubmed-articles/")
     @ResponseBody
     public int getNumberOfPubMedArticles(@RequestBody PubMedQuery pubMedQuery) throws IOException {
-        // Delegate to the shared ESearch helper so query-drop detection, rate-limit handling,
-        // and HTTP/timeout behavior are identical to the article-retrieval path.
-        String encodedTerm = URLEncoder.encode(pubMedQuery.toString(), "UTF-8");
-        int count = pubMedArticleRetrievalService.getNumberOfPubMedArticles(encodedTerm).getCount();
-        log.info("esearchResults Count=[{}]", count);
-        return count;
+    	
+
+        PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(
+                URLEncoder.encode(pubMedQuery.toString(), StandardCharsets.UTF_8));
+        pubmedXmlQuery.setRetStart(0);
+
+        // Build base URL — api_key in URL, form params in POST body
+        String fullUrl = (pubmedXmlQuery.getApiKey() != null && !pubmedXmlQuery.getApiKey().isEmpty())
+                ? PubmedXmlQuery.ESEARCH_BASE_URL + "?api_key=" + pubmedXmlQuery.getApiKey()
+                : PubmedXmlQuery.ESEARCH_BASE_URL;
+
+        log.info("ESearch Query=[{}]", fullUrl);
+
+        // Build URL-encoded form body
+        String formData = "db="         + URLEncoder.encode(pubmedXmlQuery.getDb(), StandardCharsets.UTF_8)
+                + "&retmax="     + pubmedXmlQuery.getRetMax()
+                + "&usehistory=" + URLEncoder.encode(pubmedXmlQuery.getUseHistory(), StandardCharsets.UTF_8)
+                + "&term="       + URLEncoder.encode(
+                        java.net.URLDecoder.decode(pubmedXmlQuery.getTerm(), StandardCharsets.UTF_8),
+                        StandardCharsets.UTF_8)
+                + "&retmode="    + URLEncoder.encode(pubmedXmlQuery.getRetMode(), StandardCharsets.UTF_8)
+                + "&retstart="   + pubmedXmlQuery.getRetStart();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(fullUrl))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Cache-Control", "no-cache")
+                .POST(HttpRequest.BodyPublishers.ofString(formData))
+                .build();
+
+        // NcbiHttp.sendWithRetry calls NcbiRateLimiter.INSTANCE.acquire() before every attempt
+        // (including retries) and retries a transient IOException (e.g. a pooled connection NCBI
+        // reset underneath us) instead of failing on the first attempt.
+        HttpResponse<InputStream> response = NcbiHttp.sendWithRetry(HTTP_CLIENT, request, 4);
+
+        // ── Rate-limit handling — matches original condition exactly ──
+        // orElse(-1): absent header → -1 → block never triggers (matches original null/length guard)
+        int rateLimitRemaining = (int) response.headers()
+                .firstValueAsLong("X-RateLimit-Remaining")
+                .orElse(-1L);
+
+        // Log rate-limit headers when both are present (matches original guard)
+        response.headers().firstValue("X-RateLimit-Limit").ifPresent(limit ->
+                log.info("Query: {} X-RateLimit-Limit: {} X-RateLimit-Remaining: {}",
+                        pubMedQuery, limit, rateLimitRemaining));
+
+        if (rateLimitRemaining == 0) {
+            // Inner guard: only sleep+retry if Retry-After header is present
+            // matches: headerRetryAfter != null && length > 0 && headerRetryAfter[0] != null
+            OptionalLong retryAfter = response.headers().firstValueAsLong("Retry-After");
+            if (retryAfter.isPresent()) {
+                long sleepSeconds = retryAfter.getAsLong();
+                log.info("Rate limit hit. Query: {} Retry-After: {} seconds", pubMedQuery, sleepSeconds);
+                try {
+                    Thread.sleep(sleepSeconds * 1000L);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    log.error("InterruptedException during rate-limit pause", ie);
+                }
+                // Retry only after confirmed sleep — matches original retry placement
+                response = NcbiHttp.sendWithRetry(HTTP_CLIENT, request, 4);
+            }
+        }
+
+        // ── Parse response body ──
+        // readAllBytes() replaces IOUtils.copy() + StringWriter — no Apache Commons IO
+        String responseString = new String(response.body().readAllBytes(), StandardCharsets.UTF_8);
+        log.info("PubMed eSearch raw response: {}", responseString);
+
+        if (responseString != null
+                && !responseString.isBlank()
+                && responseString.trim().startsWith("{")
+                && OBJECT_MAPPER.readTree(responseString).has("esearchresult")) {
+
+            JsonNode json = OBJECT_MAPPER.readTree(responseString).get("esearchresult");
+            log.info("PubMed Response Json: {}", json);
+
+            return resolveESearchCount(json, pubMedQuery.toString());
+        }
+
+        // A non-JSON body is an NCBI error/HTML throttle page, not a real "0 results".
+        // Surface it (500 to the caller) instead of returning 0, so ReCiter's getNumberOfResults
+        // sees the failure and rolls its retrievalDate watermark back rather than silently
+        // skipping the window. See wcmc-its/ReCiter#689.
+        log.error("Unexpected response (not JSON) — possibly an HTML error page.");
+        throw new IOException("PubMed eSearch returned a non-JSON/error response for query=[" + pubMedQuery + "]");
     }
 
     private List<PubMedArticle> retrieve(String query, String fields) throws IOException {

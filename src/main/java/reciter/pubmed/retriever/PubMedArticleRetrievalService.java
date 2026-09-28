@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reciter.model.pubmed.PubMedArticle;
 import reciter.model.pubmed.PubmedESearchResult;
+import reciter.pubmed.NcbiHttp;
 import reciter.pubmed.callable.PubMedUriParserCallable;
 import reciter.pubmed.querybuilder.PubmedXmlQuery;
 import reciter.pubmed.xmlparser.PubmedEFetchHandler;
@@ -73,141 +74,187 @@ public class PubMedArticleRetrievalService {
         }
     };
 
-    public SAXParser getSaxParser() throws ParserConfigurationException, SAXException {
-        return factoryThreadLocal.get().newSAXParser();
-    }
+   public SAXParser getSaxParser() throws ParserConfigurationException, SAXException {
+	   return factoryThreadLocal.get().newSAXParser();
+   }
 
-    /** Bound on concurrent efetch worker threads per call. Configurable via NCBI_FETCH_POOL_SIZE (default 3). */
-    private static int fetchPoolSize() {
-        String v = System.getenv("NCBI_FETCH_POOL_SIZE");
-        if (v != null && !v.isBlank()) {
-            try {
-                int n = Integer.parseInt(v.trim());
-                if (n > 0) {
-                    return n;
-                }
-            } catch (NumberFormatException ignored) {
-                // fall through to default
-            }
-        }
-        return 3;
-    }
+   /** Bound on concurrent efetch worker threads per call. Configurable via NCBI_FETCH_POOL_SIZE (default 3). */
+   private static int fetchPoolSize() {
+	   String v = System.getenv("NCBI_FETCH_POOL_SIZE");
+	   if (v != null && !v.isBlank()) {
+		   try {
+			   int n = Integer.parseInt(v.trim());
+			   if (n > 0) {
+				   return n;
+			   }
+		   } catch (NumberFormatException ignored) {
+			   // fall through to default
+		   }
+	   }
+	   return 3;
+   }
 
-    @Retryable(maxAttempts = 7, value = IOException.class,
+    /**
+     * Initializes and starts threads that handles the retrieval process. Partition the number of articles
+     * into manageable pieces and ask each thread to handle one partition.
+     */
+    @Retryable(maxAttempts = 7, retryFor = { RuntimeException.class, IOException.class },
         backoff = @Backoff(random = true, delay = 1500, maxDelay = 9000), listeners = {"retryListener"})
-    public List<PubMedArticle> retrieve(String pubMedQuery) throws IOException {
+	public List<PubMedArticle> retrieve(String pubMedQuery) throws IOException {
 
-        PubmedESearchResult eSearchResult = getNumberOfPubMedArticles(pubMedQuery);
-        int numberOfPubmedArticles = eSearchResult.getCount();
-        List<PubMedArticle> pubMedArticles = new ArrayList<>();
+		PubmedESearchResult eSearchResult = getNumberOfPubMedArticles(pubMedQuery);
+		int numberOfPubmedArticles = eSearchResult.getCount();
+		List<PubMedArticle> pubMedArticles = new ArrayList<>();
 
-        if (numberOfPubmedArticles > RETRIEVAL_THRESHOLD) {
-            throw new IOException("Number of PubMed Articles retrieved " + numberOfPubmedArticles + " exceeded the threshold level " + RETRIEVAL_THRESHOLD);
-        }
+		if (numberOfPubmedArticles > RETRIEVAL_THRESHOLD) {
+			throw new IOException("Number of PubMed articles [" + numberOfPubmedArticles + "] exceeded threshold ["
+					+ RETRIEVAL_THRESHOLD + "]");
+		}
 
-        if (numberOfPubmedArticles == 0) {
-            return pubMedArticles;
-        }
+		// Bounded pool (was an unbounded newWorkStealingPool that was also never shut down).
+		// The actual NCBI request rate is capped by NcbiRateLimiter; this just bounds the
+		// worker threads that feed it. Configurable via NCBI_FETCH_POOL_SIZE (default 3).
+		ExecutorService executor = Executors.newFixedThreadPool(fetchPoolSize());
 
-        // Bounded pool (was an unbounded newWorkStealingPool that was also never shut down).
-        // The actual NCBI request rate is capped by NcbiRateLimiter; this just bounds the
-        // worker threads that feed it. Configurable via NCBI_FETCH_POOL_SIZE (default 3).
-        ExecutorService executor = Executors.newFixedThreadPool(fetchPoolSize());
+		PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery();
+		pubmedXmlQuery.setTerm(pubMedQuery);
 
-        PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery();
-        pubmedXmlQuery.setTerm(pubMedQuery);
+		log.info("retMax=[{}], pubMedQuery=[{}], numberOfPubmedArticles=[{}].", pubmedXmlQuery.getRetMax(), pubMedQuery,
+				numberOfPubmedArticles);
 
-        log.info("retMax=[{}], pubMedQuery=[{}], numberOfPubmedArticles=[{}].",
-                pubmedXmlQuery.getRetMax(), pubMedQuery, numberOfPubmedArticles);
+		List<Callable<List<PubMedArticle>>> callables = new ArrayList<>();
+		int currentRetStart = 0;
 
-        List<Callable<List<PubMedArticle>>> callables = new ArrayList<>();
-        int currentRetStart = 0;
+		// Partition articles into retMax-sized chunks
+		while (numberOfPubmedArticles > 0) {
+			pubmedXmlQuery.setRetStart(currentRetStart);
 
-        while (numberOfPubmedArticles > 0) {
-            pubmedXmlQuery.setRetStart(currentRetStart);
-            if (eSearchResult.getWebenv() != null) {
-                pubmedXmlQuery.setWebEnv(eSearchResult.getWebenv());
-            }
+			if (eSearchResult.getWebenv() != null) {
+				pubmedXmlQuery.setWebEnv(eSearchResult.getWebenv());
+			}
 
-            String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
-            log.info("eFetchUrl=[{}].", PubmedXmlQuery.redactApiKey(eFetchUrl));
+			String eFetchUrl = pubmedXmlQuery.buildEFetchQuery();
+			log.info("eFetchUrl=[{}].", eFetchUrl);
 
-            try {
-                callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(),
-                        new InputSource(eFetchUrl)));
-            } catch (ParserConfigurationException | SAXException e) {
-                log.error("Failed to create PubMedUriParserCallable for url=[{}]", eFetchUrl, e);
-            }
+			try {
+				callables.add(new PubMedUriParserCallable(new PubmedEFetchHandler(), getSaxParser(),
+						new InputSource(eFetchUrl)));
+			} catch (ParserConfigurationException | SAXException e) {
+				log.error("Failed to create PubMedUriParserCallable for url=[{}]", eFetchUrl, e);
+			}
 
-            currentRetStart += pubmedXmlQuery.getRetMax();
-            pubmedXmlQuery.setRetStart(currentRetStart);
-            numberOfPubmedArticles -= pubmedXmlQuery.getRetMax();
-        }
+			currentRetStart += pubmedXmlQuery.getRetMax();
+			pubmedXmlQuery.setRetStart(currentRetStart);
+			numberOfPubmedArticles -= pubmedXmlQuery.getRetMax();
+		}
 
-        try {
-            executor.invokeAll(callables).stream().map(future -> {
+		try {
+			executor.invokeAll(callables).stream().map(future -> {
+				try {
+					return future.get();
+				} catch (Exception e) {
+					log.error("Failed to retrieve PubMed articles from future", e);
+					throw new IllegalStateException(e);
+				}
+			}).forEach(pubMedArticles::addAll);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			log.error("Interrupted while invoking callables", e);
+		} finally {
+			executor.shutdown();
+		}
+
+		return pubMedArticles;
+	}
+
+    
+    /**
+     * Calls PubMed eSearch API to get the total article count for a query.
+     *
+     * Migration from Apache HttpClient to java.net.http.HttpClient (Java 11+):
+     *  - No external Apache dependency
+     *  - Shared HttpClient instance reuses connection pool
+     *  - Safe header reading via Optional API — no ArrayIndexOutOfBoundsException
+     *  - StandardCharsets.UTF_8 replaces "UTF-8" string literal (no checked exception)
+     *  - Rate-limit handling matches original: only retry when BOTH
+     *    X-RateLimit-Remaining == 0 AND Retry-After header is present
+     */
+    protected PubmedESearchResult getNumberOfPubMedArticles(String query) throws IOException {
+
+        PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(query);
+
+        // Build base URL — api_key goes in URL, form params go in body
+        String fullUrl = (pubmedXmlQuery.getApiKey() != null && !pubmedXmlQuery.getApiKey().isEmpty())
+                ? PubmedXmlQuery.ESEARCH_BASE_URL + "?api_key=" + pubmedXmlQuery.getApiKey()
+                : PubmedXmlQuery.ESEARCH_BASE_URL;
+
+        log.info("ESearch Query=[{}]", fullUrl);
+
+        // Build URL-encoded form body — StandardCharsets.UTF_8 avoids checked exception
+        String formData = "db=" + URLEncoder.encode(pubmedXmlQuery.getDb(), StandardCharsets.UTF_8)
+                + "&retmax=" + pubmedXmlQuery.getRetMax()
+                + "&usehistory=" + URLEncoder.encode(pubmedXmlQuery.getUseHistory(), StandardCharsets.UTF_8)
+                + "&term=" + URLEncoder.encode(
+                java.net.URLDecoder.decode(pubmedXmlQuery.getTerm(), StandardCharsets.UTF_8),
+                StandardCharsets.UTF_8)
+                + "&retmode=" + URLEncoder.encode(pubmedXmlQuery.getRetMode(), StandardCharsets.UTF_8)
+                + "&retstart=" + pubmedXmlQuery.getRetStart();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(fullUrl))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Cache-Control", "no-cache")
+                .POST(HttpRequest.BodyPublishers.ofString(formData))
+                .build();
+
+        return executeRequestWithRetry(request, query);
+    }
+    /**
+     * Executes the HTTP request and handles PubMed rate limiting.
+     *
+     * Rate-limit logic matches original exactly:
+     *  - Outer guard: X-RateLimit-Remaining header EXISTS and equals 0
+     *    (orElse(-1) → absent header = -1, never triggers the block)
+     *  - Inner guard: Retry-After header EXISTS and has a value
+     *    (retryAfter.isPresent() matches original null + length + [0] != null checks)
+     *  - Retry happens ONLY when both conditions are true — same as original
+     */
+    private PubmedESearchResult executeRequestWithRetry(HttpRequest request, String query) throws IOException {
+        // NcbiHttp.sendWithRetry calls NcbiRateLimiter.INSTANCE.acquire() before every attempt
+        // (including retries) and retries a transient IOException (e.g. a pooled connection NCBI
+        // reset underneath us) instead of failing on the first attempt.
+        HttpResponse<InputStream> response = NcbiHttp.sendWithRetry(httpClient, request, 4);
+
+        // orElse(-1): absent header → -1 → block never triggers (matches original null/length guard)
+        int rateLimitRemaining = (int) response.headers()
+                .firstValueAsLong("X-RateLimit-Remaining")
+                .orElse(-1L);
+
+        log.info("Query: {} RateLimit-Remaining: {}", query, rateLimitRemaining);
+
+        if (rateLimitRemaining == 0) {
+            // Inner guard: only sleep+retry if Retry-After header is present
+            // matches: headerRetryAfter != null && length > 0 && headerRetryAfter[0] != null
+            OptionalLong retryAfter = response.headers().firstValueAsLong("Retry-After");
+            if (retryAfter.isPresent()) {
+                long sleepSeconds = retryAfter.getAsLong();
+                log.info("Rate limit hit. Query: {} Retry-After: {} seconds", query, sleepSeconds);
                 try {
-                    return future.get();
-                } catch (Exception e) {
-                    log.error("Failed to retrieve PubMed articles from future", e);
-                    throw new IllegalStateException(e);
+                    Thread.sleep(sleepSeconds * 1000L);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.error("InterruptedException during rate-limit pause", e);
                 }
-            }).forEach(pubMedArticles::addAll);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Interrupted while invoking callables", e);
-        } finally {
-            executor.shutdown();
+                // Retry only after confirmed sleep — matches original retry placement
+                response = NcbiHttp.sendWithRetry(httpClient, request, 4);
+            }
         }
 
-        return pubMedArticles;
-    }
-
-    @Recover
-    public List<PubMedArticle> recoverRetrieve(IOException e, String pubMedQuery) throws IOException {
-        log.error("Exhausted retries retrieving PubMed articles for query=[{}].", pubMedQuery, e);
-        throw e;
-    }
-
-    public PubmedESearchResult getNumberOfPubMedArticles(String query) throws IOException {
-        return executeESearch(query);
-    }
-
-    protected PubmedESearchResult executeESearch(String term) throws IOException {
-        PubmedXmlQuery pubmedXmlQuery = new PubmedXmlQuery(term);
-        pubmedXmlQuery.setRetStart(0);
-
-        String postUrl;
-        if (pubmedXmlQuery.getApiKey() != null && !pubmedXmlQuery.getApiKey().isEmpty()) {
-            postUrl = PubmedXmlQuery.ESEARCH_BASE_URL + "?api_key=" + pubmedXmlQuery.getApiKey();
-        } else {
-            postUrl = PubmedXmlQuery.ESEARCH_BASE_URL;
-        }
-        log.info("ESearch POST url=[{}], term=[{}]", PubmedXmlQuery.redactApiKey(postUrl), term);
-
-        PubmedESearchResult eSearchResult = new PubmedESearchResult();
-
-        HttpPost httppost = new HttpPost(postUrl);
-        List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("db", pubmedXmlQuery.getDb()));
-        params.add(new BasicNameValuePair("retmax", String.valueOf(pubmedXmlQuery.getRetMax())));
-        params.add(new BasicNameValuePair("usehistory", pubmedXmlQuery.getUseHistory()));
-        params.add(new BasicNameValuePair("term", java.net.URLDecoder.decode(pubmedXmlQuery.getTerm(), "UTF-8")));
-        params.add(new BasicNameValuePair("retmode", pubmedXmlQuery.getRetMode()));
-        params.add(new BasicNameValuePair("retstart", String.valueOf(pubmedXmlQuery.getRetStart())));
-        httppost.setEntity(new UrlEncodedFormEntity(params));
-        httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-        httppost.setHeader("cache-control", "no-cache");
-
-        // Pace every outbound esearch through the shared rate limiter before sending.
-        NcbiRateLimiter.INSTANCE.acquire();
-        String responseString = executeReadingBody(httppost, term);
-
-        if (responseString == null || responseString.trim().isEmpty()
-                || !responseString.trim().startsWith("{")
-                || !objectMapper.readTree(responseString).has("esearchresult")) {
-            log.error("Unexpected response (not JSON), possibly an HTML error page.");
-            throw new IOException("PubMed eSearch returned a non-JSON/error response for query=[" + term + "]");
+        try (InputStream esearchStream = response.body()) {
+            JsonNode json = objectMapper.readTree(esearchStream).get("esearchresult");
+            if (json != null) {
+                return objectMapper.treeToValue(json, PubmedESearchResult.class);
+            }
         }
 
         JsonNode json = objectMapper.readTree(responseString).get("esearchresult");
