@@ -72,7 +72,7 @@ public class PubmedESearchHandler extends DefaultHandler {
 		String fullUrl = (pubmedXmlQuery.getApiKey() != null && !pubmedXmlQuery.getApiKey().isEmpty())
 				? PubmedXmlQuery.ESEARCH_BASE_URL + "?api_key=" + pubmedXmlQuery.getApiKey()
 				: PubmedXmlQuery.ESEARCH_BASE_URL;
-		log.info("ESearch Query=[{}]", fullUrl);
+		log.info("ESearch Query=[{}]", PubmedXmlQuery.redactApiKey(fullUrl));
 
 		// Build URL-encoded form body — StandardCharsets.UTF_8 avoids
 		// UnsupportedEncodingException
@@ -91,7 +91,7 @@ public class PubmedESearchHandler extends DefaultHandler {
 		try {
 			return executeWithRateLimitHandling(request, eSearchUrl, fullUrl);
 		} catch (IOException e) {
-			log.error("Error executing eSearch query=[{}], fullUrl=[{}]", eSearchUrl, fullUrl, e);
+			log.error("Error executing eSearch query=[{}], fullUrl=[{}]", eSearchUrl, PubmedXmlQuery.redactApiKey(fullUrl), e);
 		}
 
 		return new PubmedESearchResult();
@@ -126,7 +126,7 @@ public class PubmedESearchHandler extends DefaultHandler {
             if (retryAfter.isPresent()) {
                 long sleepSeconds = retryAfter.getAsLong();
                 log.info("Rate limit hit. eSearchUrl=[{}] Retry-After: {} seconds",
-                        eSearchUrl, sleepSeconds);
+                        PubmedXmlQuery.redactApiKey(eSearchUrl), sleepSeconds);
                 try {
                     Thread.sleep(sleepSeconds * 1000L);
                 } catch (InterruptedException ie) {

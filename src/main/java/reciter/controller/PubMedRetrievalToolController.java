@@ -100,7 +100,7 @@ public class PubMedRetrievalToolController {
                 ? PubmedXmlQuery.ESEARCH_BASE_URL + "?api_key=" + pubmedXmlQuery.getApiKey()
                 : PubmedXmlQuery.ESEARCH_BASE_URL;
 
-        log.info("ESearch Query=[{}]", fullUrl);
+        log.info("ESearch Query=[{}]", PubmedXmlQuery.redactApiKey(fullUrl));
 
         // Build URL-encoded form body
         String formData = "db="         + URLEncoder.encode(pubmedXmlQuery.getDb(), StandardCharsets.UTF_8)
