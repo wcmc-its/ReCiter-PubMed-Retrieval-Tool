@@ -243,7 +243,7 @@ public class PubMedArticleRetrievalService {
         } catch (IOException e) {
             throw e;
         } catch (ParserConfigurationException | SAXException e) {
-            log.error("Unable to configure SAX parser / parse EFetch result.", e);
+            log.error("Unable to configure SAX parser / parse EFetch result for url=[{}]", PubmedXmlQuery.redactApiKey(eFetchUrl), e);
             throw new IOException("Failed to parse EFetch result", e);
         } catch (Exception e) {
             log.error("Unable to fetch/parse EFetch result.", e);

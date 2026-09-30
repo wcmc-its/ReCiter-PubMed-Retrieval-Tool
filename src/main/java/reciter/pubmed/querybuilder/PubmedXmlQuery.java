@@ -1,5 +1,7 @@
 package reciter.pubmed.querybuilder;
 
+import java.util.regex.Pattern;
+
 import lombok.Data;
 
 /**
@@ -158,6 +160,9 @@ public class PubmedXmlQuery {
         return "?";
     }
 
+    // ── Matches "api_key=<value>" where value is anything up to the next '&', whitespace, or ']' ──
+    private static final Pattern API_KEY_PATTERN = Pattern.compile("api_key=[^&\\s\\]]+");
+    
     /**
      * Redacts the {@code api_key} value from a query URL so the NCBI API key is never written to
      * logs (master previously logged the ESearch URL with the key in clear text). The value is
@@ -171,6 +176,6 @@ public class PubmedXmlQuery {
         if (url == null) {
             return null;
         }
-        return url.replaceAll("(?i)(api_key=)[^&]*", "$1REDACTED");
+        return API_KEY_PATTERN.matcher(url).replaceAll("api_key=REDACTED");
     }
 }
