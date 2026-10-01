@@ -1,53 +1,36 @@
 package reciter.config;
 
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import java.net.http.HttpClient;
+import java.time.Duration;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Provides a single shared, pooled, timeout-bounded {@link CloseableHttpClient} for all
- * outbound calls to the NCBI E-utilities API.
+ * Provides the single shared {@link HttpClient} used for all outbound NCBI E-utilities calls.
  *
- * <p>Using one pooled client (instead of {@code HttpClients.createDefault()} per request)
- * allows TCP/TLS connection reuse and prevents connection/file-descriptor leaks under load.
- * The {@link RequestConfig} timeouts ensure a slow or stalled NCBI response can never wedge
- * a servlet worker thread indefinitely.
+ * <p>One shared client means TCP/TLS connections are pooled and reused across requests instead of
+ * each class holding its own client (master previously had three separate static clients) or
+ * opening a fresh {@code URLConnection} per EFetch.
+ *
+ * <p><b>Merge note:</b> dev introduced this configuration class around Apache HttpClient 4
+ * ({@code CloseableHttpClient}). Spring Boot 3 no longer manages HttpClient 4 and master's pom.xml
+ * is intentionally unchanged, so the same idea is implemented with the JDK's built-in
+ * {@code java.net.http.HttpClient} that master already uses. The per-request read bound lives in
+ * {@link reciter.pubmed.NcbiHttp#REQUEST_TIMEOUT}.
  */
 @Configuration
 public class HttpClientConfig {
 
     /** Time to establish a TCP connection to NCBI. */
-    private static final int CONNECT_TIMEOUT_MILLIS = 5_000;
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(30);
 
-    /** Time to wait between data packets once connected (read timeout). */
-    private static final int SOCKET_TIMEOUT_MILLIS = 60_000;
-
-    /** Time to wait for a connection from the pool. */
-    private static final int CONNECTION_REQUEST_TIMEOUT_MILLIS = 5_000;
-
-    private static final int MAX_TOTAL_CONNECTIONS = 50;
-    private static final int MAX_CONNECTIONS_PER_ROUTE = 50;
-
-    @Bean(destroyMethod = "close")
-    public CloseableHttpClient pubMedHttpClient() {
-        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-        connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
-        connectionManager.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
-
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(CONNECT_TIMEOUT_MILLIS)
-                .setSocketTimeout(SOCKET_TIMEOUT_MILLIS)
-                .setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT_MILLIS)
-                .setCookieSpec(CookieSpecs.STANDARD)
-                .build();
-
-        return HttpClients.custom()
-                .setConnectionManager(connectionManager)
-                .setDefaultRequestConfig(requestConfig)
+    @Bean
+    public HttpClient pubMedHttpClient() {
+        return HttpClient.newBuilder()
+                .connectTimeout(CONNECT_TIMEOUT)
+                // EFetch/ESearch answer directly; follow a same-scheme redirect if NCBI ever issues one.
+                .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
     }
 }

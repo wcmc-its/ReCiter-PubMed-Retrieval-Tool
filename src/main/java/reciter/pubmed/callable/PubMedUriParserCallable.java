@@ -1,114 +1,112 @@
 package reciter.pubmed.callable;
 
-import lombok.AllArgsConstructor;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import reciter.model.pubmed.PubMedArticle;
-import reciter.pubmed.ratelimit.NcbiRateLimiter;
-import reciter.pubmed.xmlparser.PubmedEFetchHandler;
-
-import javax.xml.parsers.SAXParser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
 
+import javax.xml.parsers.SAXParser;
+
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import lombok.AllArgsConstructor;
+import reciter.model.pubmed.PubMedArticle;
+import reciter.pubmed.NcbiHttp;
+import reciter.pubmed.querybuilder.PubmedXmlQuery;
+import reciter.pubmed.ratelimit.NcbiRateLimiter;
+import reciter.pubmed.xmlparser.PubmedEFetchHandler;
+
+/**
+ * Fetches one EFetch XML document (or reads a local byte stream in tests) and parses it into
+ * {@link PubMedArticle}s.
+ *
+ * <p><b>Merge note:</b> master fetched with a bare {@code URL.openStream()} (no timeouts, no throttle
+ * handling, no retry on a reset connection). dev added timeouts, an SSRF host guard and 429/503
+ * handling via {@code HttpURLConnection}. This version routes the fetch through
+ * {@link NcbiHttp#sendWithRetry} on the shared {@link HttpClient}, which gives EFetch the same rate
+ * limiting, Retry-After back-off and connection-reset retry as ESearch, and keeps dev's host guard —
+ * pointed at master's current {@code eutils} host (dev's guard still allowed only the retired
+ * {@code www.ncbi.nlm.nih.gov}, which would have refused every EFetch after the #166 host switch).
+ */
 @AllArgsConstructor
 public class PubMedUriParserCallable implements Callable<List<PubMedArticle>> {
 
-    /** Time to establish a TCP connection to NCBI for the EFetch fetch. */
-    private static final int CONNECT_TIMEOUT_MILLIS = 5_000;
+    /** Escaped so the SAX parser keeps inline markup as literal title/abstract text. */
+    private static final Map<String, String> TAG_REPLACEMENTS = Map.of(
+            "<sup>",  "&lt;sup&gt;",
+            "</sup>", "&lt;/sup&gt;",
+            "<sub>",  "&lt;sub&gt;",
+            "</sub>", "&lt;/sub&gt;",
+            "<i>",    "&lt;i&gt;",
+            "</i>",   "&lt;/i&gt;",
+            "<b>",    "&lt;b&gt;",
+            "</b>",   "&lt;/b&gt;"
+    );
 
-    /** Read timeout once connected, so a stalled EFetch response can never wedge a worker thread. */
-    private static final int READ_TIMEOUT_MILLIS = 60_000;
-
-    /** Only the NCBI E-utilities host may be fetched (SSRF guard on the SAX system-id). */
-    private static final String EXPECTED_HOST = "www.ncbi.nlm.nih.gov";
-
-    /** HTTP 429 (Too Many Requests) — no constant for it on {@link HttpURLConnection} in Java 11. */
-    private static final int HTTP_TOO_MANY_REQUESTS = 429;
+    /** Compiled once: a single pass over the XML instead of eight {@code String.replace} calls. */
+    private static final Pattern TAG_PATTERN = Pattern.compile(String.join("|",
+            TAG_REPLACEMENTS.keySet().stream().map(Pattern::quote).toList()));
 
     private final PubmedEFetchHandler xmlHandler;
     private final SAXParser saxParser;
     private final InputSource inputSource;
     /** Per-pod NCBI rate limiter (issue #117). May be {@code null} in pure unit tests. */
     private final NcbiRateLimiter rateLimiter;
+    /** Shared NCBI client. May be {@code null} when {@link #inputSource} is a local byte stream. */
+    private final HttpClient httpClient;
 
     public List<PubMedArticle> parse(InputSource inputSource) throws SAXException, IOException {
-        //inputSource = preprocessSpecialCharacters(inputSource);
         saxParser.parse(inputSource, xmlHandler);
         return xmlHandler.getPubmedArticles();
     }
 
+    @Override
     public List<PubMedArticle> call() throws Exception {
-        InputSource inputSource = preprocessSpecialCharacters(this.inputSource);
-        return parse(inputSource);
+        return parse(preprocessSpecialCharacters(this.inputSource));
     }
 
     private InputSource preprocessSpecialCharacters(InputSource inputSource) throws IOException {
-        String xml;
-        if (inputSource.getSystemId() != null) {
-            URL url = new URL(inputSource.getSystemId());
-            if (!EXPECTED_HOST.equalsIgnoreCase(url.getHost())) {
-                throw new IOException("Refusing to fetch EFetch XML from unexpected host: " + url.getHost());
-            }
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
-            connection.setReadTimeout(READ_TIMEOUT_MILLIS);
-            // Honor the per-pod NCBI budget before issuing the EFetch request (issue #117).
-            if (rateLimiter != null) {
-                rateLimiter.acquire();
-            }
-            int status = connection.getResponseCode();
-            if (status == HTTP_TOO_MANY_REQUESTS || status == HttpURLConnection.HTTP_UNAVAILABLE) {
-                // EFetch was throttled. Read the server's Retry-After, pause the shared limiter so
-                // every other in-pod request backs off too, and surface an IOException so the
-                // outer @Retryable re-enters retrieve() (whose next acquire() waits out the pause).
-                long retryAfterSeconds = parseRetryAfterSeconds(connection.getHeaderField("Retry-After"));
-                if (rateLimiter != null) {
-                    rateLimiter.pauseFor(retryAfterSeconds);
-                }
-                connection.disconnect();
-                throw new IOException("EFetch throttled by NCBI (HTTP " + status
-                        + "), Retry-After=" + retryAfterSeconds + "s");
-            }
-            try (InputStream inputStream = connection.getInputStream()) {
-                xml = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            }
-        } else {
-            xml = new String(inputSource.getByteStream().readAllBytes(), StandardCharsets.UTF_8);
-        }
-        xml = xml.replace("<sup>", "&lt;sup&gt;");
-        xml = xml.replace("</sup>", "&lt;/sup&gt;");
-        xml = xml.replace("<sub>", "&lt;sub&gt;");
-        xml = xml.replace("</sub>", "&lt;/sub&gt;");
-        xml = xml.replace("<i>", "&lt;i&gt;");
-        xml = xml.replace("</i>", "&lt;/i&gt;");
-        xml = xml.replace("<b>", "&lt;b&gt;");
-        xml = xml.replace("</b>", "&lt;/b&gt;");
+        String xml = (inputSource.getSystemId() != null)
+                ? fetchEFetchXml(inputSource.getSystemId())
+                : new String(inputSource.getByteStream().readAllBytes(), StandardCharsets.UTF_8);
+
+        xml = TAG_PATTERN.matcher(xml).replaceAll(match -> TAG_REPLACEMENTS.get(match.group()));
         return new InputSource(new StringReader(xml));
     }
 
-    /**
-     * Parses an NCBI {@code Retry-After} header (delta-seconds form). Returns a 1-second floor when
-     * the header is absent or not an integer (NCBI uses delta-seconds, not the HTTP-date form), so a
-     * throttled response always produces some back-off rather than a tight retry loop.
-     */
-    private static long parseRetryAfterSeconds(String headerValue) {
-        if (headerValue != null) {
-            try {
-                long seconds = Long.parseLong(headerValue.trim());
-                if (seconds > 0) {
-                    return seconds;
-                }
-            } catch (NumberFormatException ignored) {
-                // Fall through to the default floor below.
-            }
+    private String fetchEFetchXml(String eFetchUrl) throws IOException {
+        URI uri = URI.create(eFetchUrl);
+        // SSRF guard: the SAX system-id must only ever point at NCBI E-utilities.
+        if (!PubmedXmlQuery.EUTILS_HOST.equalsIgnoreCase(uri.getHost())) {
+            throw new IOException("Refusing to fetch EFetch XML from unexpected host: " + uri.getHost());
         }
-        return 1L;
+        if (httpClient == null) {
+            throw new IOException("No HttpClient configured for EFetch");
+        }
+
+        HttpRequest request = HttpRequest.newBuilder(uri)
+                .timeout(NcbiHttp.REQUEST_TIMEOUT)
+                .GET()
+                .build();
+        HttpResponse<InputStream> response =
+                NcbiHttp.sendWithRetry(httpClient, request, NcbiHttp.DEFAULT_MAX_ATTEMPTS, rateLimiter);
+
+        try (InputStream body = response.body()) {
+            if (response.statusCode() != 200) {
+                // Surface as IOException so the outer @Retryable / GlobalExceptionHandler see it,
+                // instead of feeding an HTML error page to the SAX parser.
+                throw new IOException("EFetch returned HTTP " + response.statusCode());
+            }
+            return new String(body.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 }

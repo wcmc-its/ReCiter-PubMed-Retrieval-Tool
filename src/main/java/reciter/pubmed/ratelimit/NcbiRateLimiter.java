@@ -3,37 +3,40 @@ package reciter.pubmed.ratelimit;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Per-pod, in-process rate limiter for outbound NCBI E-utilities calls (issue #117, Phase 1).
+ * Per-pod, in-process rate limiter for every outbound NCBI E-utilities call (ESearch and EFetch).
  *
- * <p>NCBI enforces its request quota <em>per API key</em> — 10 req/s with a key, 3 req/s without —
- * shared across every process that uses that key. With this service horizontally scaled (the HPA
- * allows up to 4 pods) and a 50-connection HTTP pool per pod, nothing previously capped how fast
- * the service issued NCBI requests, so concurrent servlet requests could collectively exceed the
- * quota and earn HTTP 429s. This limiter smooths each pod to a configurable fraction of the key
- * quota ({@code pubmed.ratelimit.permits-per-second}, default 2.0 ≈ 10/s ÷ 4 pods ÷ headroom) so
- * the aggregate across the expected pod count stays under the per-key limit.
+ * <p>NCBI enforces its request quota <em>per API key</em> — ~10 req/s with a key, 3 req/s without —
+ * shared across every pod that uses that key. Previously nothing capped how fast the fleet hit NCBI,
+ * so it earned HTTP 429s / HTML error pages that were swallowed downstream and silently dropped
+ * articles (wcmc-its/ReCiter-PubMed-Retrieval-Tool#117, #166).
  *
- * <p>It is a single shared bean: {@link #acquire()} is called before <em>both</em> the ESearch POST
- * and the EFetch GET, so all in-pod NCBI traffic draws from one budget. When NCBI signals throttling
- * (HTTP 429 / {@code X-RateLimit-Remaining: 0} with a {@code Retry-After}), {@link #pauseFor(long)}
- * suspends <em>all</em> permit grants in this pod until the advertised interval passes — so a
- * throttle observed by one request immediately backs off every other request in the pod, instead of
- * each thread sleeping independently.
+ * <p><b>Merge note (dev → master, Java 17 / Spring Boot 3).</b> Both branches grew their own limiter:
+ * <ul>
+ *   <li>master: a static {@code INSTANCE} singleton sized by the {@code NCBI_RATE_LIMIT_PER_SEC} env
+ *       var (default 3/s, sized for the HPA cap of 3 pods).</li>
+ *   <li>dev: this Spring bean, which additionally supports {@link #pauseFor(long)} so that a
+ *       {@code Retry-After} observed by ONE request backs off EVERY request in the pod, can be
+ *       disabled for local dev, and has clock/sleeper seams for deterministic tests.</li>
+ * </ul>
+ * The dev design is kept because it is strictly more capable; master's env var and 3/s default are
+ * preserved through {@code application.properties}
+ * ({@code pubmed.ratelimit.permits-per-second=${NCBI_RATE_LIMIT_PER_SEC:3.0}}), so existing
+ * deployments behave exactly as before.
  *
- * <p>This is the per-pod (Option 1) phase of {@code docs/rate-limiter-design-117.md}. Cross-pod
- * coordination (Options 2/3) is deliberately out of scope: correctness here depends on the static
- * sizing {@code permits-per-second ≈ key-quota ÷ maxReplicas ÷ safety-factor}.
+ * <p>Sizing rule (no cross-pod coordination): {@code permits-per-second × maxReplicas} must stay under
+ * the per-key quota. With 3 pods × 3/s = 9/s &lt; 10/s.
  */
-@Slf4j
 @Component
 public class NcbiRateLimiter {
+
+    private static final Logger log = LoggerFactory.getLogger(NcbiRateLimiter.class);
 
     private final boolean enabled;
     private final long intervalNanos;     // minimum spacing between successive permits
@@ -51,7 +54,7 @@ public class NcbiRateLimiter {
 
     @Autowired
     public NcbiRateLimiter(
-            @Value("${pubmed.ratelimit.permits-per-second:2.0}") double permitsPerSecond,
+            @Value("${pubmed.ratelimit.permits-per-second:3.0}") double permitsPerSecond,
             @Value("${pubmed.ratelimit.enabled:true}") boolean enabled) {
         this(permitsPerSecond, enabled, System::nanoTime, defaultSleeper());
     }
@@ -84,9 +87,9 @@ public class NcbiRateLimiter {
 
     /**
      * Blocks until a permit is available — respecting both the steady-state rate and any active
-     * {@link #pauseFor(long) Retry-After pause} — then returns. A no-op when disabled. The wait is
-     * computed under the lock but performed outside it, so a sleeping caller never blocks others
-     * from reserving their own (later) slots.
+     * {@link #pauseFor(long) Retry-After pause} — then returns. A no-op when disabled. The slot is
+     * reserved under the lock but the wait happens outside it, so a sleeping caller never blocks
+     * others from reserving their own (later) slots.
      */
     public void acquire() {
         if (!enabled) {
@@ -107,6 +110,11 @@ public class NcbiRateLimiter {
                 log.warn("Interrupted while waiting for an NCBI rate-limit permit.", e);
             }
         }
+    }
+
+    /** @return {@code false} when {@code pubmed.ratelimit.enabled=false}; {@link #pauseFor(long)} is then a no-op. */
+    public boolean isEnabled() {
+        return enabled;
     }
 
     /**

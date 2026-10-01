@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import lombok.extern.slf4j.Slf4j;
 import reciter.pubmed.retriever.PubMedRetrievalException;
 import reciter.pubmed.retriever.RetrievalThresholdExceededException;
 
@@ -29,10 +30,15 @@ import reciter.pubmed.retriever.RetrievalThresholdExceededException;
  * from a reflectively-invoked {@code @Recover} gets wrapped in an {@code UndeclaredThrowableException}
  * and never reaches the {@code IOException} handler at all; that is the bug this fixes). They share
  * {@link #classify} so the two routes cannot drift apart and quietly answer differently.
+ *
+ * <p><b>Merge note:</b> ported from dev (Spring Boot 2.7) unchanged apart from using an explicit SLF4J
+ * {@link Logger} instead of Lombok's {@code @Slf4j}, matching master's logging convention. Master had
+ * no handler, so every NCBI failure was served as Spring's default 500 page with a stack trace.
  */
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /** Marker substring identifying the threshold-exceeded message. */
     private static final String THRESHOLD_EXCEEDED_MARKER = "exceeded the threshold level";

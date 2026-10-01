@@ -18,7 +18,6 @@
  *******************************************************************************/
 package reciter.pubmed.xmlparser;
 
-import java.nio.charset.Charset;
 import java.time.DateTimeException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
@@ -60,15 +59,29 @@ import reciter.model.pubmed.PubMedArticle;
 import reciter.model.pubmed.PubMedData;
 import reciter.model.pubmed.PubMedPubDate;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A SAX handler that parses PubMed XML content.
+ * <p>
+ * Merge note: this is dev's parser (master had none of these fixes), with an explicit SLF4J logger
+ * instead of Lombok {@code @Slf4j}. Fixes carried over from dev:
+ * <ul>
+ *   <li>#14: text is preserved across inline markup (MathML, i/b/sup/sub) in titles and abstracts;</li>
+ *   <li>a {@code PubmedBookArticle} following a {@code PubmedArticle} no longer overwrites the
+ *       previous article's fields (SAX state leakage);</li>
+ *   <li>equal-contributor authors are added once, not twice (phantom empty authors);</li>
+ *   <li>unparseable month tokens (e.g. seasons) no longer abort the whole EFetch batch;</li>
+ *   <li>missing {@code Source}/{@code EIdType}/{@code IdType} attributes no longer throw NPEs;</li>
+ *   <li>grant {@code Country} text split across SAX callbacks is no longer truncated.</li>
+ * </ul>
  *
  * @author jil3004
  */
-@Slf4j
 public class PubmedEFetchHandler extends DefaultHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(PubmedEFetchHandler.class);
 
     private boolean bPubmedArticleSet;
     private boolean bPubmedArticle;

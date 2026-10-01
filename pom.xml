@@ -3,42 +3,33 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>edu.wcmc.reciter</groupId>
     <artifactId>reciter-pubmed-retrieval-tool</artifactId>
-    <version>1.1.0</version>
+    <version>3.0.0</version>
     <name>ReCiter-PubMed-Retrieval-Tool</name>
     <description>A tool to retrieve PubMed articles.</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.18</version>
+        <version>3.4.3</version>
     </parent>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>17</java.version>
+       <java.version>17</java.version>
+       <corretto.version>17</corretto.version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <!-- Pin swagger-models to the version springdoc-openapi 1.8.0's swagger-core (2.2.20)
-                 expects. The reciter-pubmed-model dependency transitively drags in the unused
-                 swagger-codegen maven plugin, which forces the ancient swagger-models 2.0.0; that
-                 old version is missing classes springdoc references and breaks startup (#120).
-                 Pinning here (rather than excluding swagger-codegen) avoids disturbing other
-                 libraries the build picks up transitively through that same chain. -->
-            <dependency>
-                <groupId>io.swagger.core.v3</groupId>
-                <artifactId>swagger-models</artifactId>
-                <version>2.2.20</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+             <exclusions>
+        <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </exclusion>
+    </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -50,23 +41,32 @@
             <artifactId>squiggly-filter-jackson</artifactId>
             <version>1.3.18</version>
         </dependency>
-        <!-- Jackson is managed by the Spring Boot 2.7 BOM (currently 2.13.x), which supersedes the
-             explicit 2.12.x CVE pins that were required under Boot 2.5. Do not re-pin Jackson here:
-             bump Spring Boot to move Jackson, so the whole stack stays version-aligned. -->
-        <!-- OpenAPI/Swagger UI via springdoc-openapi (replaces the abandoned Springfox 3.0.0, #120).
-             1.8.0 is the last 1.x release and the one compatible with Spring Boot 2.7 / javax;
-             springdoc 2.x requires Spring Boot 3 / jakarta and is the upgrade target for epic #136.
-             Serves Swagger UI at /swagger-ui/index.html and the OpenAPI JSON at /v3/api-docs. -->
+       <dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.8.5</version>
+		</dependency>
+		<dependency>
+    		<groupId>org.springframework.boot</groupId>
+    		<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
         <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.8.0</version>
-        </dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>dynamodb</artifactId>
+			<version>2.29.26</version>
+		</dependency>
+
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>dynamodb-enhanced</artifactId>
+			<version>2.29.26</version>
+		</dependency>
+		
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
+            <version>1.18.42</version>
             <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
@@ -80,24 +80,17 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>7.5.1</version>
+            <version>7.4.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
         	<groupId>edu.cornell.weill.reciter</groupId>
         	<artifactId>reciter-pubmed-model</artifactId>
-        	<version>2.0.3</version>
+        	<version>3.0.1</version>
         	<exclusions>
         		<exclusion>
         			<groupId>org.slf4j</groupId>
         			<artifactId>slf4j-simple</artifactId>
-        		</exclusion>
-        		<!-- AWS SDK v1 is not used at runtime by this service (the only direct usage was
-        		     removed in #132); exclude the transitive DynamoDB SDK so it is not bundled in
-        		     the fat jar. This cascades to aws-java-sdk-s3/kms/core and jmespath-java. -->
-        		<exclusion>
-        			<groupId>com.amazonaws</groupId>
-        			<artifactId>aws-java-sdk-dynamodb</artifactId>
         		</exclusion>
         	</exclusions>
         </dependency>
@@ -105,7 +98,6 @@
             <groupId>org.jsmart</groupId>
             <artifactId>zerocode-tdd</artifactId>
             <version>1.3.28</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.retry</groupId>
@@ -115,7 +107,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -123,21 +114,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <!-- Exclude the live load tests (reciter.pubmed.loadtest.*) from the default test
-                 phase: they make live HTTP calls to a deployed/authenticated service and return
-                 403 without one, which would otherwise fail `mvn clean package` for everyone. They
-                 stay runnable on demand via an explicit -Dtest=ReCiterPubmedApiLoadTest. The real
-                 unit tests (parser, retrieval, rate limiter) now run by default and in CI without a
-                 hardcoded test list. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>**/loadtest/**</exclude>
-                    </excludes>
-                </configuration>
             </plugin>
         </plugins>
     </build>

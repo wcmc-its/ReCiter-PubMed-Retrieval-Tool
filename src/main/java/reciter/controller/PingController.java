@@ -1,22 +1,21 @@
 package reciter.controller;
 
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-@Controller
+@RestController
 @RequestMapping("/pubmed")
-@Tag(name = "Ping Controller", description = "Health Check.")
+@Tag(name = "PingController", description = "Health Check.")
 public class PingController {
 
-    @Operation(summary = "Health check")
-    @RequestMapping(value = "/ping", method = RequestMethod.GET, produces = "text/plain")
-    @ResponseBody
+	@Operation(summary  = "Health check")
+    @GetMapping(value = "/ping", produces = "text/plain")
     public ResponseEntity<String> ping() {
         return ResponseEntity.ok("Healthy");
     }

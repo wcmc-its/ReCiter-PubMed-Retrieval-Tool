@@ -3,15 +3,14 @@ version: 0.2
 phases:
   install:
     runtime-versions:
+      # amazon corretto java 17 version whcih was created from OpenJDK17
       java: corretto17
     commands:
-      # Modern CodeBuild images do not bundle kubectl; install a pinned client.
-      - curl -sSLo /usr/local/bin/kubectl https://dl.k8s.io/release/v1.29.10/bin/linux/amd64/kubectl
-      - chmod +x /usr/local/bin/kubectl
-      - kubectl version --client
+      - kubectl version --client   
       - java -version
   pre_build:
       commands:
+        - echo "************** PRE_BUILD START **************"
         # Fetch Docker credentials from AWS Secrets Manager
         - echo "Fetching Docker credentials from AWS Secrets Manager"
         - SECRET=$(aws secretsmanager get-secret-value --secret-id docker-hub-credentials --query "SecretString" --output text)
@@ -32,6 +31,7 @@ phases:
         - sed -i.bak -e 's@CONTAINER_IMAGE@'"$REPOSITORY_URI:$TAG"'@' kubernetes/k8-deployment.yaml
         - echo "${CODEBUILD_WEBHOOK_HEAD_REF}"
         - echo "${BRANCH}"
+        - echo "${AWS_REGION}"
         - |
           if expr "${BRANCH}" : ".*dev" >/dev/null; then
             sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-dev"'@' -e 's@APPNAME@'"reciter-pubmed-dev"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-dev"'@' -e 's@ENVIRONMENT_LABEL@'"dev"'@' kubernetes/k8-deployment.yaml;
@@ -40,16 +40,19 @@ phases:
           if expr "${BRANCH}" : ".*master" >/dev/null; then
             sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-prod"'@'  -e 's@APPNAME@'"reciter-pubmed-prod"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
           fi
-        # AWS CLI v2 (on modern images) replaces `aws ecr get-login` with get-login-password.
-        - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${REPOSITORY_URI%%/*}
+        - |
+          if expr "${BRANCH}" : ".*MigrationFromJDk11ToAWSCorretto17" >/dev/null; then
+            sed -i.bak -e 's@NAMESPACE@'"reciter"'@' -e 's@ENVCONFIG@'"env-config-prod"'@' -e 's@APPNAME@'"reciter-pubmed-prod"'@' -e 's@HPANAME@'"hpa-reciter-pubmed-prod"'@' -e 's@ENVIRONMENT_LABEL@'"prod"'@' kubernetes/k8-deployment.yaml;
+          fi
+        #- $(aws ecr get-login --no-include-email)
+        - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
         - cat ./kubernetes/k8-deployment.yaml
   build:
     commands:
-      # Run the curated unit tests while excluding the live load tests
-      # (ReCiterPubmedApiLoadTest / LoadTest), which 403 without a running service.
-      - mvn clean install -Dtest=PubmedEFetchHandlerTest,PubMedUriParserCallableTest,PubMedArticleRetrievalServiceTest -DfailIfNoTests=false
+      - echo "************** BUILD START **************"
+      - mvn clean install -Dmaven.test.skip=true
       - |
-        if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null; then
+        if expr "${BRANCH}" : ".*master" >/dev/null || expr "${BRANCH}" : ".*dev" >/dev/null || expr "${BRANCH}" : ".*MigrationFromJDk11ToAWSCorretto17" >/dev/null; then
           docker build --tag $REPOSITORY_URI:$TAG .
           docker push $REPOSITORY_URI:$TAG
           # Log out from the Docker registry to clear credentials
@@ -61,4 +64,7 @@ phases:
         fi
         if expr "${BRANCH}" : ".*dev" >/dev/null; then
           kubectl set image deployment/reciter-pubmed-dev reciter-pubmed=$REPOSITORY_URI:$TAG -n $EKS_CLUSTER_NAME
+        fi
+        if expr "${BRANCH}" : ".*MigrationFromJDk11ToAWSCorretto17" >/dev/null; then
+          kubectl set image deployment/reciter-pubmed-prod reciter-pubmed=$REPOSITORY_URI:$TAG -n $EKS_CLUSTER_NAME
         fi

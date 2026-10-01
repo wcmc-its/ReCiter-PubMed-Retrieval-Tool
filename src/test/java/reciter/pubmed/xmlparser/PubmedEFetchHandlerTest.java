@@ -1,27 +1,28 @@
 package reciter.pubmed.xmlparser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.List;
 
 import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.InputSource;
 
-import lombok.extern.slf4j.Slf4j;
 import reciter.model.pubmed.PubMedArticle;
+import reciter.pubmed.retriever.PubMedArticleRetrievalService;
 import reciter.pubmed.callable.PubMedUriParserCallable;
 import reciter.pubmed.ratelimit.NcbiRateLimiter;
 
-@Slf4j
-public class PubmedEFetchHandlerTest {
+/**
+ * Merge note: ported from dev's TestNG version to JUnit 5 (master's pom.xml runs only JUnit Platform
+ * tests). Covers the parser fixes merged from dev, e.g. equal-contributor de-duplication.
+ */
+class PubmedEFetchHandlerTest {
 
 	private PubmedEFetchHandler xmlHandler;
     private SAXParser saxParser;
@@ -31,10 +32,12 @@ public class PubmedEFetchHandlerTest {
     // exercised; a disabled instance just satisfies the constructor.
     private final NcbiRateLimiter rateLimiter = new NcbiRateLimiter(2.0, false);
 
-    @BeforeClass
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         xmlHandler = new PubmedEFetchHandler();
-        saxParser = SAXParserFactory.newInstance().newSAXParser();
+        // The production, XXE-hardened parser: proves it still accepts real PubMed XML (with its
+        // DOCTYPE) and keeps the test offline, since external DTD loading is disabled.
+        saxParser = new PubMedArticleRetrievalService(null, null).getSaxParser();
     }
 
     /**
@@ -42,31 +45,30 @@ public class PubmedEFetchHandlerTest {
      * @throws Exception 
      */
     @Test
-    public void testJournalTitleParse() throws Exception {
+    void testJournalTitleParse() throws Exception {
         File initialFile = new File("src/test/resources/reciter/pubmed/callable/31967741.xml");
         inputSource = new InputSource(new FileInputStream(initialFile));
-        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter);
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter, null);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
         String journalTitle = pubMedArticle.getMedlinecitation().getArticle().getJournal().getTitle();
-        assertEquals(journalTitle, "Annals of clinical and translational neurology");
+        assertEquals("Annals of clinical and translational neurology", journalTitle);
 
         initialFile = new File("src/test/resources/reciter/pubmed/callable/31746150.xml");
         inputSource = new InputSource(new FileInputStream(initialFile));
-        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter);
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter, null);
         pubMedArticles = pubMedUriParserCallable.call();
         pubMedArticle = pubMedArticles.get(0);
         journalTitle = pubMedArticle.getMedlinecitation().getArticle().getJournal().getTitle();
-        assertEquals(journalTitle, "MicrobiologyOpen");
+        assertEquals("MicrobiologyOpen", journalTitle);
     }
 
     @Test
-    public void testAuthorOrcid() throws Exception {
+    void testAuthorOrcid() throws Exception {
         inputSource = new InputSource(this.getClass().getResourceAsStream("31482638.xml"));
-        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter);
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter, null);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
-        log.debug(pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(0).getOrcid());
         assertEquals("0000-0002-5762-3917", pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(0).getOrcid());
         assertEquals("0000-0003-3544-2231", pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(7).getOrcid());
         assertEquals("0000-0002-5887-7257", pubMedArticle.getMedlinecitation().getArticle().getAuthorlist().get(8).getOrcid());
@@ -80,9 +82,9 @@ public class PubmedEFetchHandlerTest {
      * set on the single, correctly-populated author object.
      */
     @Test
-    public void testEqualContribDeduplication() throws Exception {
+    void testEqualContribDeduplication() throws Exception {
         inputSource = new InputSource(this.getClass().getResourceAsStream("equalcontrib.xml"));
-        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter);
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter, null);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
 
@@ -104,27 +106,27 @@ public class PubmedEFetchHandlerTest {
     }
 
     @Test
-    public void testReferenceList() throws Exception {
+    void testReferenceList() throws Exception {
         inputSource = new InputSource(this.getClass().getResourceAsStream("32025781.xml"));
-        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter);
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter, null);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
         assertEquals(38, pubMedArticle.getMedlinecitation().getCommentscorrectionslist().size(), "The referenceList matches");
     }
 
     @Test
-    public void testArticleTitleLineBreakRemoval() throws Exception {
+    void testArticleTitleLineBreakRemoval() throws Exception {
         inputSource = new InputSource(this.getClass().getResourceAsStream("32025781.xml"));
-        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter);
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter, null);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
         PubMedArticle pubMedArticle = pubMedArticles.get(0);
         assertEquals("<b> <i>Propionibacterium acnes</i> </b> Host Inflammatory Response During Periprosthetic Infection Is Joint Specific.", pubMedArticle.getMedlinecitation().getArticle().getArticletitle(), "The ArticleTitle matches");
     }
 
     @Test
-    public void testHexadecimalLiteralRemoval() throws Exception {
+    void testHexadecimalLiteralRemoval() throws Exception {
         inputSource = new InputSource(this.getClass().getResourceAsStream("32025781.xml"));
-        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter);
+        pubMedUriParserCallable = new PubMedUriParserCallable(xmlHandler, saxParser, inputSource, rateLimiter, null);
         List<PubMedArticle> pubMedArticles = pubMedUriParserCallable.call();
         String articleTitle = pubMedArticles.get(0).getMedlinecitation().getArticle().getArticletitle();
         assertEquals("<b> <i>Propionibacterium acnes</i> </b> Host Inflammatory Response During Periprosthetic Infection Is Joint Specific.", articleTitle);

@@ -60,11 +60,10 @@ public class PubMedQuery {
     /**
      * Optional ESearch sort order. Accepts {@code relevance} and {@code date} (an alias for NCBI's
      * {@code pub_date}, which is what actually goes on the wire); any other value is ignored and the
-     * query runs in PubMed's default order. When absent, the emitted ESearch request is unchanged
-     * from the pre-sort behavior.
+     * query runs in PubMed's default order. When absent, the emitted ESearch request is unchanged.
      * <p>
      * Deliberately excluded from {@link #toString()}: it is an ESearch request parameter, not part
-     * of the Entrez query term.
+     * of the Entrez query term. (Merged from dev.)
      */
     @JsonProperty("sort")
     private String sort;
@@ -75,7 +74,7 @@ public class PubMedQuery {
      * {@link reciter.pubmed.querybuilder.PubmedXmlQuery#DEFAULT_RETMAX} exactly as before. Values
      * above the default are ignored (this is a cap, never an increase).
      * <p>
-     * Deliberately excluded from {@link #toString()}: see {@link #sort}.
+     * Deliberately excluded from {@link #toString()}: see {@link #sort}. (Merged from dev.)
      */
     @JsonProperty("retmax")
     private Integer retmax;
