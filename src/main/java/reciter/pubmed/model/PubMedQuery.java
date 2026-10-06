@@ -38,8 +38,6 @@ import lombok.Setter;
 @Setter
 public class PubMedQuery {
 
-    private static SimpleDateFormat dt = new SimpleDateFormat("yyyy/MM/dd");
-
     @JsonProperty("author")
     private String author;
 
@@ -81,6 +79,11 @@ public class PubMedQuery {
 
     @Override
     public String toString() {
+        // SimpleDateFormat is NOT thread-safe. It used to be a shared static, so concurrent requests
+        // could interleave inside format() and silently build a wrong date range in the PubMed query
+        // (far more visible on Java 21 with virtual threads). One instance per call; same pattern and
+        // same default time zone as before, so the output is unchanged.
+        SimpleDateFormat dt = new SimpleDateFormat("yyyy/MM/dd");
         List<String> parts = new ArrayList<>();
         if (author != null) {
             //parts.add(author + " [au]");
