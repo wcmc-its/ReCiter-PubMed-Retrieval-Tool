@@ -38,8 +38,6 @@ import lombok.Setter;
 @Setter
 public class PubMedQuery {
 
-    private static SimpleDateFormat dt = new SimpleDateFormat("yyyy/MM/dd");
-
     @JsonProperty("author")
     private String author;
 
@@ -57,8 +55,35 @@ public class PubMedQuery {
     @JsonProperty("doi")
     private String doi;
 
+    /**
+     * Optional ESearch sort order. Accepts {@code relevance} and {@code date} (an alias for NCBI's
+     * {@code pub_date}, which is what actually goes on the wire); any other value is ignored and the
+     * query runs in PubMed's default order. When absent, the emitted ESearch request is unchanged.
+     * <p>
+     * Deliberately excluded from {@link #toString()}: it is an ESearch request parameter, not part
+     * of the Entrez query term. (Merged from dev.)
+     */
+    @JsonProperty("sort")
+    private String sort;
+
+    /**
+     * Optional cap on how many records EFetch pulls back, letting a caller ask for the top N of a
+     * sorted result set instead of every match. When absent, EFetch uses
+     * {@link reciter.pubmed.querybuilder.PubmedXmlQuery#DEFAULT_RETMAX} exactly as before. Values
+     * above the default are ignored (this is a cap, never an increase).
+     * <p>
+     * Deliberately excluded from {@link #toString()}: see {@link #sort}. (Merged from dev.)
+     */
+    @JsonProperty("retmax")
+    private Integer retmax;
+
     @Override
     public String toString() {
+        // SimpleDateFormat is NOT thread-safe. It used to be a shared static, so concurrent requests
+        // could interleave inside format() and silently build a wrong date range in the PubMed query
+        // (far more visible on Java 21 with virtual threads). One instance per call; same pattern and
+        // same default time zone as before, so the output is unchanged.
+        SimpleDateFormat dt = new SimpleDateFormat("yyyy/MM/dd");
         List<String> parts = new ArrayList<>();
         if (author != null) {
             //parts.add(author + " [au]");
