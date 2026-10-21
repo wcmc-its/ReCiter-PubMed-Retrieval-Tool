@@ -190,7 +190,7 @@ Current email subscribers (confirmed live, 2026-06-13):
 | Endpoint | Protocol |
 |----------|----------|
 | `paa2013@med.cornell.edu` | email |
-| `szd2013@med.cornell.edu` | email |
+| `mrj4001@med.cornell.edu` | email |
 
 > **ENABLEMENT GAP (action item, not a permanent fact):** `mrj4001` is **not** yet a
 > subscriber of `reciter-pipeline-validation`, yet policy requires them to approve
