@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!--
+        Application logs are written to stdout/console only, so they are collected
+        into CloudWatch from the container's stdout on EKS (Fluent Bit / Container
+        Insights). Do NOT add a file appender: an in-container log file is ephemeral,
+        is not shipped to CloudWatch, and is lost on pod restart.
+
+        The verbose full PubMed response body is no longer logged (see the controller);
+        raise a specific logger to DEBUG at runtime if deeper diagnostics are needed,
+        e.g. LOGGING_LEVEL_RECITER=DEBUG.
+    -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="reciter" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
