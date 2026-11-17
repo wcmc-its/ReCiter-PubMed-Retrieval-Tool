@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -65,6 +66,19 @@ public class GlobalExceptionHandler {
         log.error("Upstream PubMed retrieval error.", ex);
         return errorResponse(HttpStatus.BAD_GATEWAY, "upstream_error",
                 "Unable to retrieve results from PubMed at this time.");
+    }
+
+    /**
+     * A missing or malformed request body is a CLIENT error. Without this handler the catch-all below
+     * answered it as a 500 "internal_error" and logged an ERROR with a stack trace. It does not catch
+     * {@link IOException}s: Spring's exception is a plain runtime exception, so it never reaches the
+     * retrieval handlers above.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleUnreadableBody(HttpMessageNotReadableException ex) {
+        log.warn("Rejected request with a missing or unreadable body: {}", ex.getMessage());
+        return errorResponse(HttpStatus.BAD_REQUEST, "bad_request",
+                "The request body is missing or is not valid JSON.");
     }
 
     @ExceptionHandler(Exception.class)

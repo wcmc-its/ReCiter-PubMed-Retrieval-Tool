@@ -28,9 +28,9 @@ This tool has several advantages over using the eFetch API.
 
 ## Prerequisites
 
-- Java 17
+- Java 21
 - Latest version of Maven. To install Maven navigate to the directory where ReCiter PubMed Retrieval Tool will be installed, execute `brew install maven` and then `mvn clean install`
-If you want to use Java 17 then update `<java.version>17</java.version>` in [pom.xml](https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/f30963755659e5d4cc668297e3c1e7a8d577e259/pom.xml#L20)
+If you want to use Java 21 then update `<java.version>21</java.version>` in [pom.xml](https://github.com/wcmc-its/ReCiter-PubMed-Retrieval-Tool/blob/f30963755659e5d4cc668297e3c1e7a8d577e259/pom.xml#L20)
 
 It is not necessary to install ReCiter in order to use the API.
 
